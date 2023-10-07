@@ -1,18 +1,4 @@
-from fastapi import FastAPI
+import uvicorn
 
-from auth.auth_config import register_router, auth_router
-from db_config import create_db_and_tables
-
-app = FastAPI()
-
-
-@app.on_event('on_startup')
-async def on_startup():
-    await create_db_and_tables()
-
-
-on_startup()
-
-app.include_router(register_router)
-
-app.include_router(auth_router)
+if __name__ == "__main__":
+    uvicorn.run("app.app:app", host="0.0.0.0", port=8000, log_level="info")

@@ -12,6 +12,7 @@ DB_USER = os.getenv("DB_USER")
 # DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
 
-SECRET_KEY_JWT = os.getenv("SECRET_KEY_JWT")
+REDIS_URL = os.getenv("REDIS_URL")
+
 SECRET_VERIFICATION_TOKEN = os.getenv("SECRET_VERIFICATION_TOKEN")
 SECRET_RESET_TOKEN = os.getenv("SECRET_RESET_TOKEN")

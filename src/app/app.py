@@ -6,7 +6,7 @@ from app.api import routes
 from app.modules.users.auth.auth_router import auth_router
 from app.modules.users.fastapi_users_routes import user_router
 
-from app.db import create_db_and_tables, engine, drop_db_and_tables
+from app.db import engine
 
 app = FastAPI()
 

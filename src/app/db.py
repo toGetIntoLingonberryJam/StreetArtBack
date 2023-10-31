@@ -1,5 +1,9 @@
+import asyncio
 from typing import AsyncGenerator
+
+from fastapi import HTTPException
 from sqlalchemy import MetaData
+from sqlalchemy.exc import StatementError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -12,25 +16,24 @@ engine = create_async_engine(DATABASE_URL)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 
-async def create_db_and_tables():
-    # TODO: Что-то надо с этим делать... (Черновой вариант)
-    #  Вероятно, если мы используем модульную систему хранения логики, где модели хранятся внутри пакета модуля, то нам
-    #  стоит создать некую функцию import_models(), где будет реализован импорт всех модулей (artwork, users, map...) и уже
-    #  автоматически будет находить модели модулей и импортировать, юзая importlib.
-    #  Представляю это как некое подобие модулей в Django.
-    from app.modules.artworks.models.artwork_additions import ArtworkAdditions  # noqa
-    from app.modules.artworks.models.artwork_image import ArtworkImage  # noqa
-    from app.modules.artworks.models.artwork_location import ArtworkLocation  # noqa
-    from app.modules.artworks.models.artwork import Artwork  # noqa
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-
-async def drop_db_and_tables():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+# async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+#     async with async_session_maker() as session:
+#         yield session
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_maker() as session:
-        yield session
+    max_retries = 3  # Максимальное количество попыток создания сессии
+    retry_count = 0
+
+    while retry_count < max_retries:
+        try:
+            print("retry_count: " + str(retry_count))  # ToDO: убрать
+            async with async_session_maker() as session:
+                return session
+        except StatementError as e:
+            print(f"Ошибка при получении сессии: {e}")
+            retry_count += 1
+            await asyncio.sleep(1)  # Можно установить другую задержку перед повторной попыткой
+
+    raise HTTPException(status_code=500, detail="Не удалось создать сессию после нескольких попыток")
+

@@ -1,10 +1,10 @@
 import smtplib
 from email.message import EmailMessage
 
-from config import EMAIL_SENDER, EMAIL_PASSWORD
+from config import EMAIL_SENDER, EMAIL_PASSWORD, BACKEND_URL
 
 
-async def send_verify_email(token, receiver, username: str):
+async def send_verify_email(token, receiver, username: str) -> bool:
     print(token)
     print(receiver)
     template = __get_verify_template(token, username)
@@ -18,19 +18,22 @@ async def send_verify_email(token, receiver, username: str):
         server.login(EMAIL_SENDER, EMAIL_PASSWORD)
         server.sendmail(EMAIL_SENDER, receiver, template.as_string())
 
-        return "The message was sent successfully!"
+        print("The message was sent successfully!")
+        return True
     except Exception as _ex:
-        return f"{_ex}\nCheck your login or password please!"
+        print(f"{_ex}\nCheck your login or password please!")
+        return False
 
 
 def __get_verify_template(token, username: str) -> EmailMessage:
     msg = EmailMessage()
-    msg['Subject'] = 'Подтвердите почту'
+    msg['Subject'] = 'noreply'
 
     msg.set_content(
         '<div>'
         f'<h1>Здравствуйте, {username}, спасибо за регистрацию!</h1>'
-        f'<form action="google.com" method="POST">'
+        '<p>Пожалуйста, подтвердите почту.</p>'
+        f'<form action="{BACKEND_URL}/user/verify" method="POST">'
         '   <div>'
         f'    <button name="token" id="token" value="{token}">'
         '       <a>Подтвердить</a>'

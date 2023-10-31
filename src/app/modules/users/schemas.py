@@ -4,14 +4,14 @@ from fastapi_users import schemas
 from fastapi_users.schemas import CreateUpdateDictModel
 from pydantic import EmailStr, ConfigDict
 
-from app.modules.users.user import UserRole
+from app.modules.users.roles import Role
 
 
 class UserRead(CreateUpdateDictModel):
     id: int
     username: str
     email: EmailStr
-    role: UserRole
+    # role: Role
 
     model_config = ConfigDict(from_attributes=True)
 

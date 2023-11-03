@@ -7,6 +7,7 @@ class ArtworkImageBase(BaseModel):
 
 
 class ArtworkImageCreate(ArtworkImageBase):
+    image_url: str
     artwork_id: int
 
 

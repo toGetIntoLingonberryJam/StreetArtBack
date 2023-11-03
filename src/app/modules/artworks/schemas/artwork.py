@@ -1,11 +1,13 @@
+from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+import json
 
 from app.modules.artworks.models.artwork import ArtworkStatus
-from app.modules.artworks.schemas.artwork_image import ArtworkImage
-from app.modules.artworks.schemas.artwork_location import ArtworkLocation
+from app.modules.artworks.schemas.artwork_image import ArtworkImage, ArtworkImageCreate
+from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreate, ArtworkLocationBase, ArtworkLocation
 
 
 class ArtworkBase(BaseModel):
@@ -14,7 +16,7 @@ class ArtworkBase(BaseModel):
                               gt=1900, le=datetime.today().year,
                               description='The year of creation cannot be less than 1900 and more than the current '
                                           'year.')
-    festival: str
+    festival: Optional[str]
     description: str
     source_description: str
     added_by_user_id: int
@@ -23,8 +25,14 @@ class ArtworkBase(BaseModel):
 
 
 class ArtworkCreate(ArtworkBase):
-    location: Optional[ArtworkLocation]
-    images: Optional[List[ArtworkImage]]
+    location: Optional[ArtworkLocationCreate]
+    # images: Optional[List[ArtworkImageCreate]]
+
+    @model_validator(mode='before')
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value
 
 
 class Artwork(ArtworkBase):

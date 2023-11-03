@@ -1,10 +1,9 @@
 from pydantic import BaseModel as BaseSchema
 
-from sqlalchemy import insert, select, update, delete
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy import insert, select, update, delete, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db import async_session_maker, Base as ModelBase
+from app.db import Base as ModelBase
 
 
 class SQLAlchemyRepository:
@@ -21,13 +20,26 @@ class SQLAlchemyRepository:
         res = await self.session.execute(stmt)
         return res.scalar_one()
 
+    async def create_many(self, obj_data_list: list[BaseSchema]) -> list[ModelBase]:
+        insert_statements = []
+
+        for obj_data in obj_data_list:
+            obj_data = obj_data if isinstance(obj_data, dict) else obj_data.model_dump()
+            stmt = insert(self.model).values(**obj_data).returning(self.model)
+            insert_statements.append(stmt)
+
+        union_stmt = union_all(*insert_statements)
+        res = await self.session.execute(union_stmt)
+
+        return res.scalars().all()
+
         # new_obj = self.model(**obj_data)
         # self.session.add(new_obj)
         # await self.session.flush()
         # await self.session.refresh(new_obj)
         # return new_obj
 
-    async def get_all(self) -> ModelBase:
+    async def get_all(self) -> list[ModelBase]:
         stmt = select(self.model)
         result = await self.session.execute(stmt)
         return result.scalars().all()

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-# from fastapi.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles
 
 from app.admin_panel.apanel import AdminPanel
 from app.api import routes
@@ -8,9 +8,10 @@ from app.modules.users.fastapi_users_routes import user_router
 
 from app.db import engine
 
+
 app = FastAPI()
 
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Includes
 

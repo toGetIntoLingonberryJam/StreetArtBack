@@ -1,5 +1,5 @@
 from app.db import async_session_maker
-from app.repos.artworks import ArtworkRepository
+from app.repos.artworks import ArtworkRepository, ArtworkLocationRepository, ArtworkImageRepository
 from app.repos.users import UsersRepository
 
 
@@ -12,6 +12,8 @@ class UnitOfWork:
 
         self.users = UsersRepository(self.session)
         self.artworks = ArtworkRepository(self.session)
+        self.artwork_locations = ArtworkLocationRepository(self.session)
+        self.artwork_images = ArtworkImageRepository(self.session)
         # self.tasks = TasksRepository(self.session)
         # self.task_history = TaskHistoryRepository(self.session)
 

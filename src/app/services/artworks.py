@@ -1,13 +1,66 @@
+import shutil
+from typing import Optional, List
+
+import aiofiles
+from fastapi import UploadFile
+
 from app.modules.artworks.schemas.artwork import ArtworkCreate, ArtworkEdit
+from app.modules.artworks.schemas.artwork_image import ArtworkImageCreate
 from app.utils.service import BaseService
 from app.utils.unit_of_work import UnitOfWork
 
 
 class ArtworksService:
-    async def create_artwork(self, uow: UnitOfWork, artwork_schem: ArtworkCreate):
-        artwork_dict = artwork_schem.model_dump()
+    async def create_artwork(self, uow: UnitOfWork, artwork_schem: ArtworkCreate,
+                             images: Optional[List[UploadFile]] = None,
+                             thumbnail_image_index: Optional[int] = None):
+        location_data = artwork_schem.location
+
+        artwork_dict = artwork_schem.model_dump(exclude={"location"})
+
+        # artwork_location_dict = artwork_dict.pop('location')
+        # artwork_images_dict = artwork_dict.pop('images')
+
         async with uow:
             artwork = await uow.artworks.create(artwork_dict)
+
+            if location_data:
+                artwork_location = await uow.artwork_locations.create(location_data)
+                # Привязка Artwork к ArtworkLocation
+                artwork.location = artwork_location
+
+            if images:
+                images_data_list = list()
+
+                for image in images:
+                    # Путь к папке, в которую нужно сохранить файл
+                    save_path = f"static/{image.filename}"
+
+                    # Открываем файл для записи в бинарном режиме и записываем в него данные из загруженного файла
+                    # with open(save_path, "wb") as image_file:
+                    #     shutil.copyfileobj(image.file, image_file)
+
+                    async with aiofiles.open(save_path, 'wb') as image_file:
+                        while content := await image.read(1024):  # async read chunk
+                            await image_file.write(content)  # async write chunk
+
+                    image_data = {'image_url': "http://localhost:8000/"+save_path, 'artwork_id': artwork.id}
+
+                    # Добавляю созданную схему во все схемы, для дальнейшего создания объектов одним запросом к БД
+                    images_data_list.append(ArtworkImageCreate(**image_data))
+
+                artwork_images = [await uow.artwork_images.create(image_data) for image_data in images_data_list]
+
+                # Привязка Artwork к ArtworkImage
+                artwork.images = artwork_images
+
+                if location_data:
+                    if 0 <= thumbnail_image_index < len(artwork_images):
+                        img = artwork_images[thumbnail_image_index]
+                        img.generate_thumbnail_url()
+                        artwork.location.thumbnail_image = img
+
+
             await uow.commit()
             return artwork
 

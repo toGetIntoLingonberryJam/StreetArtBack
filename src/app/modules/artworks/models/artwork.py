@@ -25,7 +25,7 @@ class Artwork(Base):
     title = Column(String, index=True)
 
     year_created = Column(Integer)
-    festival = Column(String)
+    festival = Column(String, nullable=True)
     description = Column(String)
     source_description = Column(String)
 

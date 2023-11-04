@@ -10,7 +10,7 @@ colorama==0.4.6
 cryptography==41.0.4
 dnspython==2.4.2
 email-validator==2.0.0.post2
-fastapi==0.103.2
+fastapi==0.104.1
 fastapi-users==12.1.2
 fastapi-users-db-sqlalchemy==6.0.1
 greenlet==3.0.0
@@ -43,3 +43,6 @@ websockets==11.0.3
 pytz~=2023.3.post1
 sqladmin~=0.15.2
 
+
+Pillow~=10.1.0
+aiofiles~=23.2.1

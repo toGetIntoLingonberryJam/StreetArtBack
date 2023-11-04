@@ -12,6 +12,7 @@ from app.modules.artworks.models.artwork_additions import ArtworkAdditions
 from app.modules.artworks.models.artwork_location import ArtworkLocation
 from app.modules.artworks.models.artwork_image import ArtworkImage
 
+
 class ArtworkStatus(str, PyEnum):
     EXISTING = "existing"
     DESTROYED = "destroyed"
@@ -50,8 +51,8 @@ class Artwork(Base):
 
     # Отношение "ОДИН-КО-МНОГИМ" к изображениям арт-объекта (ArtworkImage)
     images = relationship("ArtworkImage", back_populates="artwork",
-                            foreign_keys=[ArtworkImage.artwork_id],
-                            lazy="selectin")
+                          foreign_keys=[ArtworkImage.artwork_id],
+                          lazy="selectin")
 
     # поле для использования перечисления статуса объекта (ArtworkStatus)
     status = Column(Enum(ArtworkStatus), default=ArtworkStatus.EXISTING)

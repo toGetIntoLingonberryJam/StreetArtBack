@@ -2,6 +2,19 @@ import os
 
 from dotenv import load_dotenv
 
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    STATIC_IMAGE_FOLDER: str = "static/images/"
+    BACKEND_URL: str = "https://streetartback.onrender.com/"  # Значение по умолчанию
+
+
+# Создание экземпляра настроек
+settings = Settings()
+
+# TODO: Переделать в pydantic_settings
+
 load_dotenv()
 
 DB_HOST = os.getenv("DB_HOST")

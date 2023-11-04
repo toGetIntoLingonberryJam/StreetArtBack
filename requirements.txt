@@ -46,3 +46,4 @@ sqladmin~=0.15.2
 
 Pillow~=10.1.0
 aiofiles~=23.2.1
+pydantic_settings==2.0.3

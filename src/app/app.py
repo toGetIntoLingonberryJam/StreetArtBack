@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from starlette.staticfiles import StaticFiles
 
@@ -11,6 +13,12 @@ from app.modules.users.fastapi_users_routes import user_router
 from app.db import engine
 
 app = FastAPI()
+
+#TODO: переделать
+# Проверить, существует ли путь и создать директории, если они отсутствуют
+save_dir = os.path.dirname("static/")
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

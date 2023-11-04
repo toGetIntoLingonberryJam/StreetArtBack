@@ -1,5 +1,4 @@
 import os
-import shutil
 from typing import Optional, List
 
 import aiofiles
@@ -7,7 +6,6 @@ from fastapi import UploadFile
 
 from app.modules.artworks.schemas.artwork import ArtworkCreate, ArtworkEdit
 from app.modules.artworks.schemas.artwork_image import ArtworkImageCreate
-from app.utils.service import BaseService
 from app.utils.unit_of_work import UnitOfWork
 from config import settings
 

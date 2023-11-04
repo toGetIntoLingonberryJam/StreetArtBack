@@ -12,7 +12,9 @@ from config import DATABASE_URL
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)
 
-engine = create_async_engine(DATABASE_URL)
+engine = create_async_engine(DATABASE_URL,
+                             pool_pre_ping=True,  # Проверять соединение перед выполнением запроса
+                             pool_recycle=3600)   # Пересоздавать соединение каждый час)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 

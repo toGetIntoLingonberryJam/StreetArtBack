@@ -18,7 +18,6 @@ class UnitOfWork:
         # self.task_history = TaskHistoryRepository(self.session)
 
     async def __aexit__(self, *args):
-        ...
         # await self.rollback()
         await self.session.close()
 

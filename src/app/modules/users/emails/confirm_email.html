@@ -1,0 +1,11 @@
+<div>
+    <h1>Здравствуйте, {username}, спасибо за регистрацию!</h1>
+    <p>Пожалуйста, подтвердите почту.</p>
+    <form action="{BACKEND_URL}/user/verify" method="POST">
+        <div>
+            <button name="token" id="token" value="{token}">
+                <a>Подтвердить</a>
+            </button>
+        </div>
+    </form>
+</div>

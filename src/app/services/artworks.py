@@ -1,28 +1,42 @@
-import shutil
+import asyncio
+import os
 from typing import Optional, List
 
 import aiofiles
 from fastapi import UploadFile
 
+from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 from app.modules.artworks.schemas.artwork import ArtworkCreate, ArtworkEdit
 from app.modules.artworks.schemas.artwork_image import ArtworkImageCreate
-from app.utils.service import BaseService
+from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCreate
+from app.modules.users.user import User
+from app.utils.cloud_storage_config import upload_to_yandex_disk
 from app.utils.unit_of_work import UnitOfWork
+from config import settings
 
 
 class ArtworksService:
-    async def create_artwork(self, uow: UnitOfWork, artwork_schem: ArtworkCreate,
-                             images: Optional[List[UploadFile]] = None,
-                             thumbnail_image_index: Optional[int] = None):
+    async def create_artwork(
+        self,
+        uow: UnitOfWork,
+        user: User,
+        artwork_schem: ArtworkCreate,
+        images: Optional[List[UploadFile]] = None,
+        thumbnail_image_index: Optional[int] = None,
+    ):
         location_data = artwork_schem.location
 
         artwork_dict = artwork_schem.model_dump(exclude={"location"})
 
-        # artwork_location_dict = artwork_dict.pop('location')
-        # artwork_images_dict = artwork_dict.pop('images')
+        artwork_dict["added_by_user_id"] = user.id
 
         async with uow:
             artwork = await uow.artworks.create(artwork_dict)
+
+            artwork_moderation = await uow.artwork_moderation.create(
+                ArtworkModerationCreate(artwork_id=artwork.id)
+            )
+            artwork.moderation = artwork_moderation
 
             if location_data:
                 artwork_location = await uow.artwork_locations.create(location_data)
@@ -33,23 +47,21 @@ class ArtworksService:
                 images_data_list = list()
 
                 for image in images:
-                    # Путь к папке, в которую нужно сохранить файл
-                    save_path = f"static/{image.filename}"
+                    public_image_url = await upload_to_yandex_disk(image)
 
-                    # Открываем файл для записи в бинарном режиме и записываем в него данные из загруженного файла
-                    # with open(save_path, "wb") as image_file:
-                    #     shutil.copyfileobj(image.file, image_file)
+                    image_data = {
+                        "image_url": public_image_url,
+                        "artwork_id": artwork.id,
+                    }
 
-                    async with aiofiles.open(save_path, 'wb') as image_file:
-                        while content := await image.read(1024):  # async read chunk
-                            await image_file.write(content)  # async write chunk
-
-                    image_data = {'image_url': "http://localhost:8000/"+save_path, 'artwork_id': artwork.id}
-
-                    # Добавляю созданную схему во все схемы, для дальнейшего создания объектов одним запросом к БД
+                    # ToDo: Добавляю созданную схему во все схемы, для дальнейшего создания объектов одним запросом к БД
+                    #  создать create_many
                     images_data_list.append(ArtworkImageCreate(**image_data))
 
-                artwork_images = [await uow.artwork_images.create(image_data) for image_data in images_data_list]
+                artwork_images = [
+                    await uow.artwork_images.create(image_data)
+                    for image_data in images_data_list
+                ]
 
                 # Привязка Artwork к ArtworkImage
                 artwork.images = artwork_images
@@ -57,39 +69,143 @@ class ArtworksService:
                 if location_data:
                     if 0 <= thumbnail_image_index < len(artwork_images):
                         img = artwork_images[thumbnail_image_index]
-                        img.generate_thumbnail_url()
+                        # img.generate_thumbnail_url()
                         artwork.location.thumbnail_image = img
-
 
             await uow.commit()
             return artwork
+
+    async def get_pending_artworks(
+        self, uow: UnitOfWork, offset: int = 0, limit: int | None = None
+    ):
+        async with uow:
+            artworks = await uow.artworks.get_all(
+                offset=offset,
+                limit=limit,
+                moderation={
+                    uow.artwork_moderation.model.status: ArtworkModerationStatus.PENDING  # Можно string
+                },
+            )
+            return artworks
+
+    async def get_approved_artworks(
+        self, uow: UnitOfWork, offset: int = 0, limit: int | None = None
+    ):
+        async with uow:
+            artworks = await uow.artworks.get_all(
+                offset=offset,
+                limit=limit,
+                moderation={
+                    uow.artwork_moderation.model.status: ArtworkModerationStatus.APPROVED  # Можно string
+                },
+            )
+            return artworks
+
+    async def get_rejected_artworks(
+        self, uow: UnitOfWork, offset: int = 0, limit: int | None = None
+    ):
+        async with uow:
+            artworks = await uow.artworks.get_all(
+                offset=offset,
+                limit=limit,
+                moderation={
+                    uow.artwork_moderation.model.status: ArtworkModerationStatus.REJECTED  # Можно string
+                },
+            )
+            return artworks
 
     async def get_artwork(self, uow: UnitOfWork, artwork_id: int):
         async with uow:
             artwork = await uow.artworks.get(artwork_id)
             return artwork
 
-    async def get_artworks(self, uow: UnitOfWork):
+    async def get_all_artworks(self, uow: UnitOfWork):
         async with uow:
             artworks = await uow.artworks.get_all()
             return artworks
 
     async def get_artworks_locations(self, uow: UnitOfWork):
         async with uow:
-            artworks = await uow.artworks.get_all()
+            # artworks = await uow.artworks.get_all()
+            artworks = await self.get_approved_artworks(uow=uow)
 
-            locations = [artwork.location for artwork in artworks if artwork.location is not None]
+            locations = [
+                artwork.location for artwork in artworks if artwork.location is not None
+            ]
 
             return locations
 
-    async def edit_artwork(self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkEdit):
-        artwork_dict = artwork_schem.model_dump()
-        async with uow:
-            await uow.artworks.edit(artwork_id, artwork_dict)
+    async def edit_artwork(
+        self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkEdit
+    ):
+        location_dict = (
+            artwork_schem.location.model_dump(exclude_unset=True)
+            if artwork_schem.location
+            else None
+        )
+        moderation_dict = (
+            artwork_schem.moderation.model_dump(exclude_unset=True)
+            if artwork_schem.moderation
+            else None
+        )
+        # location_dict = artwork_schem.location.model_dump(exclude_unset=True)
+        # moderation_dict = artwork_schem.moderation.model_dump(exclude_unset=True)
 
-    @staticmethod
-    async def delete_artwork(uow: UnitOfWork, artwork_id: int):
+        artwork_dict = artwork_schem.model_dump(
+            exclude_unset=True, exclude={"location", "moderation"}
+        )
+
         async with uow:
+            # Редактирование арт-объекта
+            artwork = await uow.artworks.edit(artwork_id, artwork_dict)
+
+            if location_dict:
+                # Редактирование локации арт-объекта
+                # location_id = artwork.location.id
+                location = await uow.artwork_locations.edit(
+                    artwork.location.id, location_dict
+                )
+
+            if moderation_dict:
+                # Редактирование модерации арт-объекта
+                moderation = await uow.artwork_moderation.edit(
+                    artwork.moderation.id, moderation_dict
+                )
+
+            await uow.commit()
+
+            return artwork
+
+        #
+        #
+        #     # artwork = await uow.artworks.create(artwork_dict)
+        #     #
+        #     # artwork_moderation = await uow.artwork_moderation.create(
+        #     #     ArtworkModerationCreate(artwork_id=artwork.id)
+        #     # )
+        #     # artwork.moderation = artwork_moderation
+        #     #
+        #     # if location_data:
+        #     #     artwork_location = await uow.artwork_locations.create(location_data)
+        #     #     # Привязка Artwork к ArtworkLocation
+        #     #     artwork.location = artwork_location
+        #     #
+        #     # if images:
+        #     #     images_data_list = list()
+        #
+        #
+        #
+        # artwork_dict = artwork_schem.model_dump()
+        # async with uow:
+        #     await uow.artworks.edit(artwork_id, artwork_dict)
+
+    async def delete_artwork(self, uow: UnitOfWork, artwork_id: int):
+        async with uow:
+            artwork = await self.get_artwork(uow=uow, artwork_id=artwork_id)
+            artwork_images = artwork.images
+            for img in artwork_images:
+                print(img.image_url)  # ToDo: Оформить удалялку с хранилища для картинок
+
             await uow.artworks.delete(artwork_id)
             await uow.commit()
 
@@ -98,6 +214,7 @@ class ArtworksService:
         #     artwork = await uow.artworks.create(artwork_dict)
         #     await uow.commit()
         #     return artwork
+
 
 # class TasksService:
 #     async def add_task(self, uow: IUnitOfWork, task: TaskSchemaAdd):

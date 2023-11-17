@@ -11,8 +11,10 @@ class ArtworkAdditions(Base):
     # artwork_id = Column(Integer, ForeignKey("artworks.id"))
 
     # Отношение к арт-объекту (Artwork)
-    artwork_id = Column(Integer, ForeignKey("artworks.id"))
-    artwork = relationship("Artwork", back_populates="additions", foreign_keys=[artwork_id])
+    artwork_id = Column(Integer, ForeignKey("artworks.id", ondelete="CASCADE"))
+    artwork = relationship(
+        "Artwork", back_populates="additions", foreign_keys=[artwork_id]
+    )
 
     # Отношение к изображениям арт-объекта (ArtworkImage)
     # images = relationship("ArtworkImage", back_populates="additions")

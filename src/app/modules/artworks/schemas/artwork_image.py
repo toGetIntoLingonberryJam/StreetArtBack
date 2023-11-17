@@ -3,7 +3,6 @@ from pydantic import BaseModel, HttpUrl
 
 class ArtworkImageBase(BaseModel):
     image_url: HttpUrl
-    # thumbnail_url: Optional[HttpUrl]
 
 
 class ArtworkImageCreate(ArtworkImageBase):
@@ -13,8 +12,7 @@ class ArtworkImageCreate(ArtworkImageBase):
 
 class ArtworkImage(ArtworkImageBase):
     id: int
-    # artwork_id: int
 
 
-class ArtworkImageThumbnail(BaseModel):
-    thumbnail_url: HttpUrl
+# class ArtworkImageThumbnail(BaseModel):
+#     thumbnail_url: HttpUrl

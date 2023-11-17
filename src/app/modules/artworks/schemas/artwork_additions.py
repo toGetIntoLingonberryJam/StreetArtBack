@@ -12,4 +12,3 @@ class ArtworkAdditionsCreate(ArtworkAdditionsBase):
 class ArtworkAdditions(ArtworkAdditionsBase):
     id: int
     artwork_id: int
-    # images: List[ArtworkImage]

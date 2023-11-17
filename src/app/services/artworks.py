@@ -45,6 +45,8 @@ class ArtworksService:
 
             if images:
                 images_data_list = list()
+                artwork_images = list()
+                unique_image_urls = set()
 
                 for image in images:
                     public_image_url = await upload_to_yandex_disk(image)
@@ -56,12 +58,23 @@ class ArtworksService:
 
                     # ToDo: Добавляю созданную схему во все схемы, для дальнейшего создания объектов одним запросом к БД
                     #  создать create_many
-                    images_data_list.append(ArtworkImageCreate(**image_data))
+                    # Создание объекта Pydantic
+                    image_create = ArtworkImageCreate(**image_data)
 
-                artwork_images = [
-                    await uow.artwork_images.create(image_data)
-                    for image_data in images_data_list
-                ]
+                    # Проверка отсутствия image_url в уникальных
+                    if image_create.image_url not in unique_image_urls:
+                        unique_image_urls.add(image_create.image_url)
+                        images_data_list.append(image_create)
+
+                # Добавление в базу данных
+                for image_data in images_data_list:
+                    exist_image = await uow.artwork_images.filter(image_url=image_data.image_url)
+                    if exist_image:
+                        artwork_images.append(exist_image[0])
+                    else:
+                        artwork_images.append(await uow.artwork_images.create(image_data))
+
+
 
                 # Привязка Artwork к ArtworkImage
                 artwork.images = artwork_images

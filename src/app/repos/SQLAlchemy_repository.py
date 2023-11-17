@@ -3,6 +3,7 @@ from pydantic import BaseModel as BaseSchema
 from sqlalchemy import insert, select, update, delete
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import RelationshipProperty, InstrumentedAttribute
 
 from app.db import async_session_maker, Base as ModelBase
 
@@ -27,17 +28,50 @@ class SQLAlchemyRepository:
         # await self.session.refresh(new_obj)
         # return new_obj
 
-    async def get_all(self) -> ModelBase:
-        stmt = select(self.model)
+    async def get_all(
+        self, offset: int = 0, limit: int | None = None, **filter_by
+    ) -> ModelBase:
+        stmt = select(self.model).offset(offset=offset)
+        if filter_by:
+            # TODO: как-то бы вынести и переработать
+            # Проверяем, что переданные атрибуты существуют в модели и стоим фильтр используя только существующие
+            valid_attributes = {
+                attr: getattr(self.model, attr)
+                for attr in filter_by.keys()
+                if hasattr(self.model, attr)
+            }
+            filters = {
+                attr: value
+                for attr, value in filter_by.items()
+                if attr in valid_attributes
+            }
+
+            # Фильтрация через связь, если атрибут - связанное поле
+            for attr, value in filters.items():
+                if isinstance(valid_attributes[attr], InstrumentedAttribute):
+                    if isinstance(
+                        valid_attributes[attr].property, RelationshipProperty
+                    ):
+                        related_model = valid_attributes[attr].mapper.class_
+                        stmt = stmt.join(related_model)
+                        for rm_attr, rm_value in value.items():
+                            if isinstance(rm_attr, InstrumentedAttribute):
+                                rm_attr = rm_attr.name
+
+                            stmt = stmt.filter(
+                                valid_attributes[attr].has(**{rm_attr: rm_value})
+                            )
+                else:
+                    stmt = stmt.filter_by(**{attr: value})
+
+        if limit:
+            stmt = stmt.limit(limit=limit)
+
         result = await self.session.execute(stmt)
         return result.scalars().all()
-        # return await self.session.execute(
-        #     self.model.__table__.
-        #     select()
-        # )
 
-    async def get(self, obj_id: int) -> ModelBase:
-        stmt = select(self.model).filter_by(id=obj_id)
+    async def get(self, obj_id: int, **filter_by) -> ModelBase:
+        stmt = select(self.model).filter_by(id=obj_id, **filter_by)
         result = await self.session.execute(stmt)
         return result.scalar_one()
         # return await self.session.execute(
@@ -61,8 +95,15 @@ class SQLAlchemyRepository:
 
         return result.scalars().all()
 
-    async def edit(self, obj_id: int, data: dict) -> int:
-        stmt = update(self.model).values(**data).filter_by(id=obj_id).returning(self.model)
+    async def edit(self, obj_id: int, obj_data: BaseSchema | dict) -> int:
+        obj_data = obj_data if isinstance(obj_data, dict) else obj_data.model_dump()
+
+        stmt = (
+            update(self.model)
+            .values(**obj_data)
+            .filter_by(id=obj_id)
+            .returning(self.model)
+        )
         res = await self.session.execute(stmt)
         return res.scalar_one()
 

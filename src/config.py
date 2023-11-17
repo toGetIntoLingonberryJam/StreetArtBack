@@ -2,6 +2,19 @@ import os
 
 from dotenv import load_dotenv
 
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    STATIC_IMAGE_FOLDER: str = "static/images/"
+    BACKEND_URL: str = "https://streetartback.onrender.com/"  # Значение по умолчанию
+
+
+# Создание экземпляра настроек
+settings = Settings()
+
+# TODO: Переделать в pydantic_settings
+
 load_dotenv()
 
 DB_HOST = os.getenv("DB_HOST")
@@ -16,6 +29,9 @@ REDIS_URL = os.getenv("REDIS_URL")
 
 SECRET_VERIFICATION_TOKEN = os.getenv("SECRET_VERIFICATION_TOKEN")
 SECRET_RESET_TOKEN = os.getenv("SECRET_RESET_TOKEN")
+
+YANDEX_DISK_TOKEN = os.getenv("YANDEX_DISK_TOKEN")
+YANDEX_DISK_IMAGES_FOLDER = os.getenv("YANDEX_DISK_IMAGES_FOLDER")
 
 EMAIL_SENDER = os.getenv("EMAIL_SENDER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")

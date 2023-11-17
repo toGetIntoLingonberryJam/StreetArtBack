@@ -7,8 +7,14 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-from app.modules.users.user import User
 from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
+
+
+from app.db import Base
+# Импорт моделей важен для target_metadata = Base.metadata, чтобы получить информацию о всех Base.
+# Не импортирую все модели Artwork из-за того, что в самом Artwork идёт импорт остальных моделей.
+from app.modules.artworks.models.artwork import Artwork # noqa
+from app.modules.users.user import User # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,7 +31,11 @@ config.set_section_option(section, "DB_PASS", DB_PASS)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = User.metadata
+# target_metadata = User.metadata
+
+# target_metadata = [User.metadata, Artwork.metadata]
+target_metadata = Base.metadata
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

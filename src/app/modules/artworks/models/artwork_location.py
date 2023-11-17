@@ -16,8 +16,14 @@ class ArtworkLocation(Base):
     # Поле, которое будет указывать на миниатюрное изображение в ArtworkImage
     thumbnail_image_id = Column(Integer, ForeignKey("artwork_images.id"), nullable=True)
     # Отношение к изображению ArtworkImage
-    thumbnail_image = relationship("ArtworkImage", foreign_keys=[thumbnail_image_id], lazy="selectin")
+    thumbnail_image = relationship(
+        "ArtworkImage", foreign_keys=[thumbnail_image_id], lazy="selectin"
+    )
 
     # Отношение "один-ко-одному" к объекту Artwork
-    artwork_id = Column(Integer, ForeignKey("artworks.id"), unique=True)
-    artwork = relationship("Artwork", back_populates="location", foreign_keys=[artwork_id])
+    artwork_id = Column(
+        Integer, ForeignKey("artworks.id", ondelete="CASCADE"), unique=True
+    )
+    artwork = relationship(
+        "Artwork", back_populates="location", foreign_keys=[artwork_id]
+    )

@@ -1,5 +1,6 @@
 from app.db import async_session_maker
-from app.repos.artworks import ArtworkRepository
+from app.repos.artworks import ArtworkRepository, ArtworkLocationRepository, ArtworkImageRepository, \
+    ArtworkModerationRepository
 from app.repos.users import UsersRepository
 
 
@@ -12,11 +13,13 @@ class UnitOfWork:
 
         self.users = UsersRepository(self.session)
         self.artworks = ArtworkRepository(self.session)
+        self.artwork_locations = ArtworkLocationRepository(self.session)
+        self.artwork_images = ArtworkImageRepository(self.session)
+        self.artwork_moderation = ArtworkModerationRepository(self.session)
         # self.tasks = TasksRepository(self.session)
         # self.task_history = TaskHistoryRepository(self.session)
 
     async def __aexit__(self, *args):
-        ...
         # await self.rollback()
         await self.session.close()
 

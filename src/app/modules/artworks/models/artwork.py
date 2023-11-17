@@ -11,6 +11,8 @@ from app.db import Base
 from app.modules.artworks.models.artwork_additions import ArtworkAdditions
 from app.modules.artworks.models.artwork_location import ArtworkLocation
 from app.modules.artworks.models.artwork_image import ArtworkImage
+from app.modules.artworks.models.artwork_moderation import ArtworkModeration
+
 
 class ArtworkStatus(str, PyEnum):
     EXISTING = "existing"
@@ -40,24 +42,33 @@ class Artwork(Base):
     # Отношение "ОДИН-К-ОДНОМУ" (uselist=False) к дополнениям арт-объекта (ArtworkAdditions)
     # additions_id = Column(Integer, ForeignKey("artwork_additions.id"), nullable=True)
     additions = relationship("ArtworkAdditions", uselist=False, back_populates="artwork",
-                             foreign_keys=[ArtworkAdditions.artwork_id])
+                             foreign_keys=[ArtworkAdditions.artwork_id],
+                             cascade="all, delete-orphan")
 
     # Отношение "один-ко-одному" к ArtworkLocation
     # location_id = Column(Integer, ForeignKey("artwork_location.id"), nullable=True)
     location = relationship("ArtworkLocation", uselist=False, back_populates="artwork",
                             foreign_keys=[ArtworkLocation.artwork_id],
-                            lazy="selectin")
+                            lazy="selectin",
+                            cascade="all, delete-orphan")
 
     # Отношение "ОДИН-КО-МНОГИМ" к изображениям арт-объекта (ArtworkImage)
     images = relationship("ArtworkImage", back_populates="artwork",
-                            foreign_keys=[ArtworkImage.artwork_id],
-                            lazy="selectin")
+                          foreign_keys=[ArtworkImage.artwork_id],
+                          lazy="selectin",
+                          cascade="all, delete-orphan")
 
     # поле для использования перечисления статуса объекта (ArtworkStatus)
     status = Column(Enum(ArtworkStatus), default=ArtworkStatus.EXISTING)
 
+    # связь Artwork с ArtworkModeration
+    moderation = relationship("ArtworkModeration", uselist=False, back_populates="artwork",
+                              foreign_keys=[ArtworkModeration.artwork_id],
+                              lazy="selectin",
+                              cascade="all, delete-orphan")
+
     created_at = Column(DateTime(timezone=True), default=datetime.now(tz=pytz.UTC), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), default=datetime.now(tz=pytz.UTC), onupdate=func.now())
 
-    def get_image_urls(self):
-        return [image.image_url for image in self.images]
+    # def get_image_urls(self):
+    #     return [image.image_url for image in self.images]

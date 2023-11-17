@@ -17,3 +17,4 @@ class AdminPanel:
         self.admin.add_view(ArtworkAdditionsAdmin)
         self.admin.add_view(ArtworkImageAdmin)
         self.admin.add_view(ArtworkLocationAdmin)
+        self.admin.add_view(ArtworkModerationAdmin)

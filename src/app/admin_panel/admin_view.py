@@ -5,7 +5,7 @@ from app.modules.artworks.models.artwork_additions import ArtworkAdditions
 from app.modules.artworks.models.artwork_image import ArtworkImage
 from app.modules.artworks.models.artwork_location import ArtworkLocation
 from app.modules.artworks.models.artwork_moderation import ArtworkModeration
-from app.modules.users.user import User
+from app.modules.users.models.user import User
 
 
 class UserAdmin(ModelView, model=User):

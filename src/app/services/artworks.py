@@ -1,18 +1,14 @@
-import asyncio
-import os
 from typing import Optional, List
 
-import aiofiles
 from fastapi import UploadFile
 
 from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 from app.modules.artworks.schemas.artwork import ArtworkCreate, ArtworkEdit
 from app.modules.artworks.schemas.artwork_image import ArtworkImageCreate
 from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCreate
-from app.modules.users.user import User
+from app.modules.users.models.user import User
 from app.utils.cloud_storage_config import upload_to_yandex_disk
 from app.utils.unit_of_work import UnitOfWork
-from config import settings
 
 
 class ArtworksService:

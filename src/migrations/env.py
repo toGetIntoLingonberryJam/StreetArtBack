@@ -1,5 +1,4 @@
 import asyncio
-from logging.config import fileConfig
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -14,7 +13,7 @@ from app.db import Base
 # Импорт моделей важен для target_metadata = Base.metadata, чтобы получить информацию о всех Base.
 # Не импортирую все модели Artwork из-за того, что в самом Artwork идёт импорт остальных моделей.
 from app.modules.artworks.models.artwork import Artwork # noqa
-from app.modules.users.user import User # noqa
+from app.modules.users.models.user import User # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

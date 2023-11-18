@@ -8,7 +8,7 @@ from app.api.utils import is_image
 from app.modules.artworks.schemas.artwork import ArtworkCreate, Artwork, ArtworkEdit, ArtworkForModerator
 from app.modules.artworks.schemas.artwork_location import ArtworkLocation
 from app.modules.users.fastapi_users_config import current_user
-from app.modules.users.user import User
+from app.modules.users.models.user import User
 from app.services.artworks import ArtworksService
 from app.utils.dependencies import UOWDep
 

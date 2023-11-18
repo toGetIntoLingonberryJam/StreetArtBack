@@ -5,8 +5,6 @@ from config import EMAIL_SENDER, EMAIL_PASSWORD, BACKEND_URL
 
 
 async def send_verify_email(token, receiver, username: str) -> bool:
-    print(token)
-    print(receiver)
     template = __get_verify_template(token, username)
     template["To"] = receiver
     template["From"] = EMAIL_SENDER

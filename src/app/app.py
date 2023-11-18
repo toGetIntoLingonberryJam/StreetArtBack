@@ -1,21 +1,36 @@
+from pathlib import Path
+
 from fastapi import FastAPI
-from app.modules.users.auth.auth_router import auth_router
-from app.modules.users.fastapi_users_routes import user_router
-from app.db import create_db_and_tables, drop_db_and_tables
+from fastapi.staticfiles import StaticFiles
+
+from app.admin_panel.apanel import AdminPanel
+from app.api.routes import router
+
+from app.db import engine, redis
+
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 
 app = FastAPI()
 
 
-# Events
-
 @app.on_event("startup")
-async def on_startup():
-    # Not needed if you setup a migration system like Alembic
-    await create_db_and_tables()
-    # await drop_db_and_tables()
+async def startup():
+    # # Проверяем, существует ли директория "static" и создаем её, если отсутствует
+    # save_dir = Path("static/")
+    # save_dir.mkdir(parents=True, exist_ok=True)
+    #
+    # # Монтируем статические файлы из директории "static"
+    # app.mount("/static", StaticFiles(directory="static"), name="static")
+
+    # Include routers
+    app.include_router(router)
+
+    # Initialize AdminPanel
+    AdminPanel(app, engine)
+
+    # Позволяет использовать декоратор @cache(sec), из fastapi_cache.decorator, кэшируя уникальный запрос-ответ в redis
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
 
-# Includes
 
-app.include_router(auth_router)
-app.include_router(user_router)

@@ -1,23 +1,16 @@
-from fastapi_users.authentication import AuthenticationBackend, BearerTransport
-from fastapi_users.authentication import JWTStrategy
+from fastapi_users.authentication import AuthenticationBackend, BearerTransport, RedisStrategy
 
-from config import SECRET_KEY_JWT
-
-
-def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET_KEY_JWT, lifetime_seconds=None)  #, lifetime_seconds=60 * 60
+from app.db import redis
 
 
-bearer_transport = BearerTransport(tokenUrl='/auth/login')
+def get_redis_strategy() -> RedisStrategy:
+    return RedisStrategy(redis, lifetime_seconds=None)
+
+
+bearer_transport = BearerTransport(tokenUrl='/v1/auth/login')
 
 auth_backend = AuthenticationBackend(
-    name="jwt",
+    name="streetart",
     transport=bearer_transport,
-    get_strategy=get_jwt_strategy,
+    get_strategy=get_redis_strategy,
 )
-
-
-
-
-
-

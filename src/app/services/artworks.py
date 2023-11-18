@@ -9,6 +9,7 @@ from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCre
 from app.modules.users.models.user import User
 from app.utils.cloud_storage_config import upload_to_yandex_disk
 from app.utils.unit_of_work import UnitOfWork
+from config import settings
 
 
 class ArtworksService:

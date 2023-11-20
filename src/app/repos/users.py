@@ -1,4 +1,4 @@
-from app.modules.users.user import User
+from app.modules.users.models.user import User
 from app.repos.SQLAlchemy_repository import SQLAlchemyRepository
 
 

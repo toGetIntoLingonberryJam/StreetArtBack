@@ -1,18 +1,16 @@
-import asyncio
-import os
 from typing import Optional, List
 
-import aiofiles
 from fastapi import UploadFile
+from fastapi_pagination import Params
 
+from app.modules.artworks.models.artwork import Artwork
 from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 from app.modules.artworks.schemas.artwork import ArtworkCreate, ArtworkEdit
 from app.modules.artworks.schemas.artwork_image import ArtworkImageCreate
 from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCreate
-from app.modules.users.user import User
+from app.modules.users.models.user import User
 from app.utils.cloud_storage_config import upload_to_yandex_disk
 from app.utils.unit_of_work import UnitOfWork
-from config import settings
 
 
 class ArtworksService:
@@ -102,15 +100,25 @@ class ArtworksService:
             return artworks
 
     async def get_approved_artworks(
-        self, uow: UnitOfWork, offset: int = 0, limit: int | None = None
-    ):
+        self, uow: UnitOfWork, pagination: Params | None = None, **filter_by
+    ) -> list[Artwork]:
         async with uow:
+            offset: int = 0
+            limit: int | None = None
+
+            if pagination:
+                pagination_raw_params = pagination.to_raw_params()
+                offset = pagination_raw_params.offset
+                limit = pagination_raw_params.limit
+
             artworks = await uow.artworks.get_all(
                 offset=offset,
                 limit=limit,
+                # pagination=pagination,
                 moderation={
                     uow.artwork_moderation.model.status: ArtworkModerationStatus.APPROVED  # Можно string
                 },
+                filter_by=filter_by
             )
             return artworks
 

@@ -5,6 +5,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 
 from app.db import Base
+from config import settings
 
 
 class ArtworkImage(Base):

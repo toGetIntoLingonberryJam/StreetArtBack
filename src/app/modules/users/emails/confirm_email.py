@@ -9,11 +9,12 @@ async def send_verify_email(token, receiver, username: str) -> bool:
     template["To"] = receiver
     template["From"] = EMAIL_SENDER
 
-    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server = smtplib.SMTP('smtp.yandex.ru', 587, timeout=10)
     server.starttls()
 
     try:
         server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        server.ehlo()
         server.sendmail(EMAIL_SENDER, receiver, template.as_string())
 
         print("The message was sent successfully!")

@@ -1,5 +1,6 @@
 from typing import Sequence
 
+from fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 from pydantic import BaseModel as BaseSchema
 
@@ -32,12 +33,16 @@ class SQLAlchemyRepository:
         # return new_obj
 
     async def get_all(
-        self, offset: int = 0, limit: int | None = None, **filter_by
+        self, offset: int = 0, limit: int | None = None, filters: Filter | None = None, **filter_by
     ) -> Sequence[ModelBase]:
         stmt = select(self.model).offset(offset=offset)
 
         if limit:
             stmt = stmt.limit(limit=limit)
+
+        if filters:
+            stmt = filters.sort(stmt)
+            stmt = filters.filter(stmt)
 
         if filter_by:
             # TODO: как-то бы вынести и переработать

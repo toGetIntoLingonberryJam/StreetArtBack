@@ -1,6 +1,7 @@
 from typing import Optional, List
 
 from fastapi import UploadFile
+from fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 
 from app.modules.artworks.models.artwork import Artwork
@@ -100,7 +101,7 @@ class ArtworksService:
             return artworks
 
     async def get_approved_artworks(
-        self, uow: UnitOfWork, pagination: Params | None = None, **filter_by
+        self, uow: UnitOfWork, pagination: Params | None = None, filters: Filter | None = None, **filter_by
     ) -> list[Artwork]:
         async with uow:
             offset: int = 0
@@ -115,6 +116,7 @@ class ArtworksService:
                 offset=offset,
                 limit=limit,
                 # pagination=pagination,
+                filters=filters,
                 moderation={
                     uow.artwork_moderation.model.status: ArtworkModerationStatus.APPROVED  # Можно string
                 },

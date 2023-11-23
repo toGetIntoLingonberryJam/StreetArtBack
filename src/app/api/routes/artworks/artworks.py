@@ -2,9 +2,12 @@ from typing import Annotated, List
 
 from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends
 from fastapi.responses import JSONResponse
+from fastapi_filter import FilterDepends
+from fastapi_filter.contrib.sqlalchemy import Filter
 from sqlalchemy.exc import NoResultFound
 
 from app.api.utils import is_image
+from app.api.utils.filters import ArtworkFilter
 from app.api.utils.paginator import Page, MyParams
 from fastapi_pagination import paginate
 
@@ -31,7 +34,7 @@ async def show_artwork_locations(uow: UOWDep):
     return locations
 
 
-@router_artworks.post(path="/", response_model=Artwork,
+@router_artworks.post(path="/", response_model=Artwork, status_code=201,
                       description="После создания арт-объекта, его статус модерации будет 'Ожидает проверки'.")
 async def create_artwork(
         uow: UOWDep,
@@ -65,9 +68,10 @@ async def create_artwork(
                      description="Выводит список подтверждённых арт-объектов, используя пагинацию. Лимит: 50 объектов.")
 async def show_artworks(
         uow: UOWDep,
-        pagination: MyParams = Depends()
+        pagination: MyParams = Depends(),
+        filters: Filter = FilterDepends(ArtworkFilter),
 ):
-    artworks = await ArtworksService().get_approved_artworks(uow, pagination)
+    artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
     return paginate(artworks, pagination)
 
 

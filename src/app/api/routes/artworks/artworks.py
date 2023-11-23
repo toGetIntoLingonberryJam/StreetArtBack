@@ -34,7 +34,7 @@ async def show_artwork_locations(uow: UOWDep):
     return locations
 
 
-@router_artworks.post(path="/", response_model=Artwork,
+@router_artworks.post(path="/", response_model=Artwork, status_code=201,
                       description="После создания арт-объекта, его статус модерации будет 'Ожидает проверки'.")
 async def create_artwork(
         uow: UOWDep,

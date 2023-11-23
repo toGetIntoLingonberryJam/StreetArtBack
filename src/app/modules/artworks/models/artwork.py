@@ -72,3 +72,7 @@ class Artwork(Base):
 
     # def get_image_urls(self):
     #     return [image.image_url for image in self.images]
+
+    def __repr__(self):
+        return f"{self.title} (ID: {self.id})"
+

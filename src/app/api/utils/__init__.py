@@ -36,3 +36,4 @@ def is_image(file: UploadFile) -> bool:
     image_type = imghdr.what(None, h=content)
 
     return image_type is not None
+

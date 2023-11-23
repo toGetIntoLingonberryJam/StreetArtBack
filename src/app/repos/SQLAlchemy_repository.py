@@ -1,3 +1,7 @@
+from typing import Sequence
+
+from fastapi_filter.contrib.sqlalchemy import Filter
+from fastapi_pagination import Params
 from pydantic import BaseModel as BaseSchema
 
 from sqlalchemy import insert, select, update, delete
@@ -29,9 +33,17 @@ class SQLAlchemyRepository:
         # return new_obj
 
     async def get_all(
-        self, offset: int = 0, limit: int | None = None, **filter_by
-    ) -> ModelBase:
+        self, offset: int = 0, limit: int | None = None, filters: Filter | None = None, **filter_by
+    ) -> Sequence[ModelBase]:
         stmt = select(self.model).offset(offset=offset)
+
+        if limit:
+            stmt = stmt.limit(limit=limit)
+
+        if filters:
+            stmt = filters.sort(stmt)
+            stmt = filters.filter(stmt)
+
         if filter_by:
             # TODO: как-то бы вынести и переработать
             # Проверяем, что переданные атрибуты существуют в модели и стоим фильтр используя только существующие
@@ -64,11 +76,9 @@ class SQLAlchemyRepository:
                 else:
                     stmt = stmt.filter_by(**{attr: value})
 
-        if limit:
-            stmt = stmt.limit(limit=limit)
-
         result = await self.session.execute(stmt)
-        return result.scalars().all()
+        items = result.scalars().all()
+        return items
 
     async def get(self, obj_id: int, **filter_by) -> ModelBase:
         stmt = select(self.model).filter_by(id=obj_id, **filter_by)

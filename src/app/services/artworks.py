@@ -32,15 +32,13 @@ class ArtworksService:
         async with uow:
             artwork = await uow.artworks.create(artwork_dict)
 
-            artwork_moderation = await uow.artwork_moderation.create(
+            # Добавление связи ArtworkModeration
+            artwork.moderation = await uow.artwork_moderation.create(
                 ArtworkModerationCreate(artwork_id=artwork.id)
             )
-            artwork.moderation = artwork_moderation
 
-            if location_data:
-                artwork_location = await uow.artwork_locations.create(location_data)
-                # Привязка Artwork к ArtworkLocation
-                artwork.location = artwork_location
+            # Добавление связи ArtworkLocation
+            artwork.location = await uow.artwork_locations.create(location_data)
 
             if images:
                 images_data_list = list()
@@ -55,8 +53,8 @@ class ArtworksService:
                         "artwork_id": artwork.id,
                     }
 
-                    # ToDo: Добавляю созданную схему во все схемы, для дальнейшего создания объектов одним запросом к БД
-                    #  создать create_many
+                    # ToDo: Добавлять созданную схему во все схемы, для дальнейшего создания объектов одним запросом к
+                    #  БД. создать create_many
                     # Создание объекта Pydantic
                     image_create = ArtworkImageCreate(**image_data)
 
@@ -67,13 +65,15 @@ class ArtworksService:
 
                 # Добавление в базу данных
                 for image_data in images_data_list:
-                    exist_image = await uow.artwork_images.filter(image_url=image_data.image_url)
+                    exist_image = await uow.artwork_images.filter(
+                        image_url=image_data.image_url
+                    )
                     if exist_image:
                         artwork_images.append(exist_image[0])
                     else:
-                        artwork_images.append(await uow.artwork_images.create(image_data))
-
-
+                        artwork_images.append(
+                            await uow.artwork_images.create(image_data)
+                        )
 
                 # Привязка Artwork к ArtworkImage
                 artwork.images = artwork_images
@@ -87,21 +87,13 @@ class ArtworksService:
             await uow.commit()
             return artwork
 
-    async def get_pending_artworks(
-        self, uow: UnitOfWork, offset: int = 0, limit: int | None = None
-    ):
-        async with uow:
-            artworks = await uow.artworks.get_all(
-                offset=offset,
-                limit=limit,
-                moderation={
-                    uow.artwork_moderation.model.status: ArtworkModerationStatus.PENDING  # Можно string
-                },
-            )
-            return artworks
-
-    async def get_approved_artworks(
-        self, uow: UnitOfWork, pagination: Params | None = None, filters: Filter | None = None, **filter_by
+    async def get_artworks_by_moderation_status(
+        self,
+        uow: UnitOfWork,
+        moderation_status: ArtworkModerationStatus,
+        pagination: Params | None = None,
+        filters: Filter | None = None,
+        **filter_by
     ) -> list[Artwork]:
         async with uow:
             offset: int = 0
@@ -118,24 +110,56 @@ class ArtworksService:
                 # pagination=pagination,
                 filters=filters,
                 moderation={
-                    uow.artwork_moderation.model.status: ArtworkModerationStatus.APPROVED  # Можно string
+                    uow.artwork_moderation.model.status: moderation_status  # Можно string
                 },
-                filter_by=filter_by
+                filter_by=filter_by,
             )
             return artworks
 
+    async def get_pending_artworks(
+        self,
+        uow: UnitOfWork,
+        pagination: Params | None = None,
+        filters: Filter | None = None,
+        **filter_by
+    ) -> list[Artwork]:
+        return await self.get_artworks_by_moderation_status(
+            uow=uow,
+            moderation_status=ArtworkModerationStatus.PENDING,
+            pagination=pagination,
+            filters=filters,
+            filter_by=filter_by,
+        )
+
+    async def get_approved_artworks(
+        self,
+        uow: UnitOfWork,
+        pagination: Params | None = None,
+        filters: Filter | None = None,
+        **filter_by
+    ) -> list[Artwork]:
+        return await self.get_artworks_by_moderation_status(
+            uow=uow,
+            moderation_status=ArtworkModerationStatus.APPROVED,
+            pagination=pagination,
+            filters=filters,
+            filter_by=filter_by,
+        )
+
     async def get_rejected_artworks(
-        self, uow: UnitOfWork, offset: int = 0, limit: int | None = None
-    ):
-        async with uow:
-            artworks = await uow.artworks.get_all(
-                offset=offset,
-                limit=limit,
-                moderation={
-                    uow.artwork_moderation.model.status: ArtworkModerationStatus.REJECTED  # Можно string
-                },
-            )
-            return artworks
+        self,
+        uow: UnitOfWork,
+        pagination: Params | None = None,
+        filters: Filter | None = None,
+        **filter_by
+    ) -> list[Artwork]:
+        return await self.get_artworks_by_moderation_status(
+            uow=uow,
+            moderation_status=ArtworkModerationStatus.REJECTED,
+            pagination=pagination,
+            filters=filters,
+            filter_by=filter_by,
+        )
 
     async def get_artwork(self, uow: UnitOfWork, artwork_id: int):
         async with uow:
@@ -185,13 +209,13 @@ class ArtworksService:
             if location_dict:
                 # Редактирование локации арт-объекта
                 # location_id = artwork.location.id
-                location = await uow.artwork_locations.edit(
+                await uow.artwork_locations.edit(
                     artwork.location.id, location_dict
                 )
 
             if moderation_dict:
                 # Редактирование модерации арт-объекта
-                moderation = await uow.artwork_moderation.edit(
+                await uow.artwork_moderation.edit(
                     artwork.moderation.id, moderation_dict
                 )
 

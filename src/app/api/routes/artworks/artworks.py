@@ -1,6 +1,6 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends
+from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends, status
 from fastapi.responses import JSONResponse
 from fastapi_filter import FilterDepends
 from fastapi_filter.contrib.sqlalchemy import Filter
@@ -20,7 +20,6 @@ from app.utils.dependencies import UOWDep
 
 router_artworks = APIRouter(tags=["Artworks"])
 
-
 # Page = Page.with_custom_options(
 #     size=Query(20, ge=1, le=50),
 # )
@@ -29,12 +28,12 @@ router_artworks = APIRouter(tags=["Artworks"])
                      description="Выводит список локаций подтверждённых арт-объектов.")
 # @cache(expire=15)
 async def show_artwork_locations(uow: UOWDep):
-    # Возвращает локации арт-объектов, если местоположение не указано - выведено не будет.
+    # Возвращает локации подтверждённых арт-объектов.
     locations = await ArtworksService().get_artworks_locations(uow)
     return locations
 
 
-@router_artworks.post(path="/", response_model=Artwork, status_code=201,
+@router_artworks.post(path="/", response_model=Artwork, status_code=status.HTTP_201_CREATED,
                       description="После создания арт-объекта, его статус модерации будет 'Ожидает проверки'.")
 async def create_artwork(
         uow: UOWDep,
@@ -50,7 +49,7 @@ async def create_artwork(
         for image in images:
             if not is_image(image):
                 raise HTTPException(
-                    status_code=400, detail=f"Invalid image file extension {image.filename}"
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid image file extension {image.filename}"
                 )
 
     artwork = await ArtworksService().create_artwork(
@@ -84,12 +83,8 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
     except NoResultFound:
         # Обработка случая, когда запись не найдена
         # Вернуть 404 ошибку или пустой объект
-        return JSONResponse(content={"message": "Artwork not found"}, status_code=404)
-    except Exception as e:
-        # Обработка других ошибок, если они возникают
-        # Вернуть 500 ошибку или другое сообщение об ошибке
-        return JSONResponse(
-            content={"message": "Internal Server Error"}, status_code=500
+        raise HTTPException(
+            detail="Artwork not found", status_code=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -102,25 +97,21 @@ async def edit_artwork(artwork_id: int, artwork_data: ArtworkEdit, uow: UOWDep):
     except NoResultFound:
         # Обработка случая, когда запись не найдена
         # Вернуть 404 ошибку или пустой объект
-        return JSONResponse(content={"message": "Artwork not found"}, status_code=404)
-    except Exception as e:
-        # Обработка других ошибок, если они возникают
-        # Вернуть 500 ошибку или другое сообщение об ошибке
-        return JSONResponse(
-            content={"message": "Internal Server Error"}, status_code=500
+        raise HTTPException(
+            detail="Artwork not found", status_code=status.HTTP_404_NOT_FOUND
         )
 
 
 # ToDO: доработать метод удаления. Возвращает мало информации + нет response_model.
 @router_artworks.delete("/{artwork_id}",
                         description="Удаляет арт-объект и его связные сущности, включая изображения.")
-async def delete_artwork(artwork_id: int, uow: UOWDep, ):
+async def delete_artwork(artwork_id: int, uow: UOWDep):
     try:
         await ArtworksService().delete_artwork(uow, artwork_id)
-        return JSONResponse(content={"message": "Object deleted successfully"}, status_code=200)
+        return JSONResponse(content={"message": "Object deleted successfully"}, status_code=status.HTTP_200_OK)
     except NoResultFound:
         # Обработка случая, когда запись не найдена
         # Вернуть 404 ошибку или пустой объект
-        return JSONResponse(content={"message": "Artwork not found"}, status_code=404)
+        raise HTTPException(detail="Artwork not found", status_code=status.HTTP_404_NOT_FOUND)
     # except ObjectNotFound as exc:
     #     raise exc

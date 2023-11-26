@@ -27,7 +27,7 @@ class ArtworkBase(BaseModel):
 
 
 class ArtworkCreate(ArtworkBase):
-    location: Optional[ArtworkLocationCreate]
+    location: ArtworkLocationCreate
 
     @model_validator(mode='before')
     def validate_to_json(cls, value):  # noqa Костыль, без которого не работает multipart/form data заспросы
@@ -40,7 +40,7 @@ class Artwork(ArtworkBase):
     id: int
     added_by_user_id: int
 
-    location: Optional[ArtworkLocation]
+    location: ArtworkLocation
     images: Optional[List[ArtworkImage]]
 
     created_at: datetime = Field(exclude=True)

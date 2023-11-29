@@ -5,7 +5,7 @@ from fastapi.requests import Request
 
 from app.db import get_async_session
 from app.modules.users.manager import get_user_manager
-from app.modules.users.models.user import get_user_db
+from app.modules.users.models import get_user_db
 
 
 class AdminAuth(AuthenticationBackend):

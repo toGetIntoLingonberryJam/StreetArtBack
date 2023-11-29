@@ -2,7 +2,7 @@ import smtplib
 from email.message import EmailMessage
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from src.config import BACKEND_URL, EMAIL_SENDER, EMAIL_PASSWORD
+from config import BACKEND_URL, EMAIL_SENDER, EMAIL_PASSWORD
 
 _env = Environment(
     loader=FileSystemLoader('static'),

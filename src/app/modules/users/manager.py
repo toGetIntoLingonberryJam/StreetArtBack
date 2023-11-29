@@ -18,12 +18,13 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     async def on_after_request_verify(
         self, user: UserRead, token: str, request: Optional[Request] = None
     ) -> None:
+        print(token)
         await send_verify_email(token, user.email, user.username)
 
     async def on_after_forgot_password(
         self, user: UserRead, token: str, request: Optional[Request] = None
     ) -> None:
-        await send_reset_password_email(token, user.email, user.username)
+        await send_reset_password_email(token, user.email)
 
 
 async def get_user_manager(user_db=Depends(get_user_db)):

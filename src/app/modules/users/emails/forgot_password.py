@@ -1,14 +1,17 @@
-import io
 import smtplib
 from email.message import EmailMessage
-
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.config import BACKEND_URL, EMAIL_SENDER, EMAIL_PASSWORD
 
+_env = Environment(
+    loader=FileSystemLoader('static'),
+    autoescape=select_autoescape(['html'])
+)
 
-async def send_reset_password_email(token, receiver, username: str) -> bool:
-    template = __reset_password_template(token)
+
+async def send_reset_password_email(token, receiver) -> bool:
+    template = __get_reset_password_email(token)
     template["To"] = receiver
     template["From"] = EMAIL_SENDER
 
@@ -27,13 +30,13 @@ async def send_reset_password_email(token, receiver, username: str) -> bool:
         return False
 
 
-def __reset_password_template(token) -> EmailMessage:
+def __get_reset_password_email(token) -> EmailMessage:
     msg = EmailMessage()
     msg['Subject'] = 'noreply'
-    env = Environment(
-        loader=FileSystemLoader('static'),
-        autoescape=select_autoescape(['html'])
-    )
-    template = env.get_template('forgot_password.html').render({"token": token, "BACKEND_URL": BACKEND_URL})
+    template = _env.get_template('forgot_password_email.html').render({"token": token, "BACKEND_URL": BACKEND_URL})
     msg.set_content(template, subtype='html')
     return msg
+
+
+def get_reset_password_template(token: str) -> str:
+    return _env.get_template('forgot_password_template.html').render({"token": token, "BACKEND_URL": BACKEND_URL})

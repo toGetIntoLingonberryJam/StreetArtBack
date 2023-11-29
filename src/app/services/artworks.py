@@ -6,7 +6,7 @@ from app.modules.artworks.models.artwork_moderation import ArtworkModerationStat
 from app.modules.artworks.schemas.artwork import ArtworkCreate, ArtworkEdit
 from app.modules.artworks.schemas.artwork_image import ArtworkImageCreate
 from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCreate
-from app.modules.users.models.user import User
+from app.modules.users.models import User
 from app.utils.cloud_storage_config import upload_to_yandex_disk
 from app.utils.unit_of_work import UnitOfWork
 

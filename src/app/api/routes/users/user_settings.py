@@ -6,18 +6,18 @@ from starlette.requests import Request
 
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.manager import UserManager, get_user_manager
-from app.modules.users.models.user import User
+from app.modules.users.models import User
 from app.modules.users.schemas import UserRead, UserUpdatePassword, UserUpdate, UserUpdateUsername
 
-router = APIRouter()
+settings_router = APIRouter()
 
 
-@router.get('/me', response_model=UserRead)
+@settings_router.get('/me', response_model=UserRead)
 def get_user_me(user: User = Depends(current_user)):
     return UserRead.model_validate(user)
 
 
-@router.delete("/me")
+@settings_router.delete("/me")
 async def delete_user(
         request: Request,
         password: str,
@@ -32,7 +32,7 @@ async def delete_user(
     return None
 
 
-@router.patch('/me/change_password', response_model=UserRead)
+@settings_router.patch('/me/change_password', response_model=UserRead)
 async def update_password(
         request: Request,
         user_update: UserUpdatePassword,
@@ -53,7 +53,7 @@ async def update_password(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"reason": e.reason})
 
 
-@router.patch('/me/change_username', response_model=UserRead)
+@settings_router.patch('/me/change_username', response_model=UserRead)
 async def update_username(
         request: Request,
         user_update: UserUpdateUsername,

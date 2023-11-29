@@ -7,7 +7,7 @@ from . import (
     artworks
 )
 
-router = APIRouter(prefix="/v1")
+router = APIRouter(prefix="/v1", include_in_schema=True)
 
 router.include_router(auth.router)
 router.include_router(users.router)

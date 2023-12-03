@@ -3,19 +3,14 @@ from typing import List
 from fastapi import Depends
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 
-from sqlalchemy import Integer, String, Enum, Boolean, Table, Column, ForeignKey
+from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base, get_async_session
+from app.modules.artists.models import Artist
 from app.modules.artworks.models.artwork import Artwork
-
-reaction_table = Table(
-    "reaction",
-    Base.metadata,
-    Column("user_id", ForeignKey("user.id")),
-    Column("artwork_id", ForeignKey("artworks.id")),
-)
+from app.modules.users.favorite_artworks.models import Reaction
 
 
 class User(Base, SQLAlchemyBaseUserTable[int]):
@@ -24,7 +19,9 @@ class User(Base, SQLAlchemyBaseUserTable[int]):
 
     # отношение к добавленным арт-объектам
     added_artworks = relationship("Artwork", back_populates="added_by_user", foreign_keys=[Artwork.added_by_user_id])
-    favorite_artworks: Mapped[List[Artwork]] = relationship(secondary=reaction_table)
+
+    # отношение MANY-TO-MANY к любимым работам
+    favorite_artworks: Mapped[List["Artwork"]] = relationship("Artwork", secondary=Reaction)
 
     is_artist: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_moderator: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

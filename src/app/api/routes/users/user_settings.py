@@ -7,6 +7,7 @@ from starlette.requests import Request
 
 from app.modules.artworks.schemas.artwork import Artwork
 from app.modules.users.fastapi_users_config import current_user
+from app.modules.users.favorite_artworks.cruds import get_favorite_artworks
 from app.modules.users.manager import UserManager, get_user_manager
 from app.modules.users.models import User
 from app.modules.users.schemas import UserRead, UserUpdatePassword, UserUpdate, UserUpdateUsername
@@ -84,12 +85,12 @@ async def get_user_by_id(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"reason": "Пользователь не найден."})
 
 
-@settings_router.get('/me/favorite_artworks', response_model=list[int])
+@settings_router.get('/me/favorite_artworks') # response_model=list[int]
 async def get_favorite_artworks_ids(
         user: User = Depends(current_user)
 ):
     try:
-        # TODO: get favorite artworks
+        return get_favorite_artworks(user)
         pass
     except UserNotExists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"reason": "Пользователь не найден."})

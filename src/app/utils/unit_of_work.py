@@ -1,6 +1,10 @@
 from app.db import async_session_maker
-from app.repos.artworks import ArtworkRepository, ArtworkLocationRepository, ArtworkImageRepository, \
-    ArtworkModerationRepository
+from app.repos.artworks import (
+    ArtworkRepository,
+    ArtworkLocationRepository,
+    ArtworkImageRepository,
+    ArtworkModerationRepository,
+)
 from app.repos.users import UsersRepository
 
 

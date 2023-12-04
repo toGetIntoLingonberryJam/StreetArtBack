@@ -2,8 +2,6 @@ from typing import Annotated, List
 
 from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends, status
 from fastapi.responses import JSONResponse
-from fastapi_filter import FilterDepends
-from fastapi_filter.contrib.sqlalchemy import Filter
 from sqlalchemy.exc import NoResultFound
 
 from app.api.routes.common import (
@@ -13,7 +11,10 @@ from app.api.routes.common import (
     generate_detail,
 )
 from app.api.utils import is_image
-from app.api.utils.filters import ArtworkFilter
+from app.api.utils.filters.artworks.artwork_location import ArtworkLocationFilter
+from app.api.utils.libs.fastapi_filter import FilterDepends
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
+from app.api.utils.filters.artworks import ArtworkFilter
 from app.api.utils.paginator import Page, MyParams
 from fastapi_pagination import paginate
 
@@ -31,10 +32,6 @@ from app.utils.dependencies import UOWDep
 
 router_artworks = APIRouter(tags=["Artworks"])
 
-# Page = Page.with_custom_options(
-#     size=Query(20, ge=1, le=50),
-# )
-
 
 @router_artworks.get(
     "/locations",
@@ -42,9 +39,12 @@ router_artworks = APIRouter(tags=["Artworks"])
     description="Выводит список локаций подтверждённых арт-объектов.",
 )
 # @cache(expire=15)
-async def show_artwork_locations(uow: UOWDep):
+async def show_artwork_locations(
+    uow: UOWDep, filters: Filter = FilterDepends(ArtworkLocationFilter)
+):
     # Возвращает локации подтверждённых арт-объектов.
-    locations = await ArtworksService().get_artworks_locations(uow)
+    # locations = await ArtworksService().get_artworks_locations(uow, filters)
+    locations = await ArtworksService().get_locations_approved_artworks(uow, filters)
     return locations
 
 
@@ -103,7 +103,9 @@ async def create_artwork(
 @router_artworks.get(
     "/",
     response_model=Page[Artwork],
-    description="Выводит список подтверждённых арт-объектов, используя пагинацию. Лимит: 50 объектов.",
+    description=f"""Выводит список подтверждённых арт-объектов, используя пагинацию. Лимит: 50 объектов.\n
+    Поля для сортировки: {", ".join(ArtworkFilter.Constants.ordering_model_fields)}\n
+    Поля используемые в поиске: {", ".join(ArtworkFilter.Constants.search_model_fields)}""",
 )
 async def show_artworks(
     uow: UOWDep,
@@ -153,7 +155,7 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
             summary="Object not found",
             message="Artwork not found",
         )
-    }
+    },
 )
 async def edit_artwork(artwork_id: int, artwork_data: ArtworkEdit, uow: UOWDep):
     try:
@@ -182,7 +184,7 @@ async def edit_artwork(artwork_id: int, artwork_data: ArtworkEdit, uow: UOWDep):
             summary="Object not found",
             message="Artwork not found",
         )
-    }
+    },
 )
 async def delete_artwork(artwork_id: int, uow: UOWDep):
     try:

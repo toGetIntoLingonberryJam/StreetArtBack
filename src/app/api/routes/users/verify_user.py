@@ -15,9 +15,9 @@ verify_router = APIRouter()
 
 @verify_router.post("/request-verify-token", status_code=status.HTTP_202_ACCEPTED)
 async def request_verify_token(
-        request: Request,
-        email: EmailStr = Body(..., embed=True),
-        user_manager=Depends(get_user_manager),
+    request: Request,
+    email: EmailStr = Body(..., embed=True),
+    user_manager=Depends(get_user_manager),
 ):
     try:
         user = await user_manager.get_by_email(email)
@@ -30,9 +30,9 @@ async def request_verify_token(
 
 @verify_router.post("/verify", response_model=UserRead)
 async def verify(
-        request: Request,
-        token: Annotated[str, Form()],
-        user_manager=Depends(get_user_manager),
+    request: Request,
+    token: Annotated[str, Form()],
+    user_manager=Depends(get_user_manager),
 ):
     try:
         user = await user_manager.verify(token, request)

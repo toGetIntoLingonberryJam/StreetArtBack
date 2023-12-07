@@ -27,9 +27,11 @@ from app.modules.artworks.schemas.artwork_location import ArtworkLocation
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
 from app.services.artworks import ArtworksService
+from app.services.user import UserService
 from app.utils.dependencies import UOWDep
 
 router_artworks = APIRouter(tags=["Artworks"])
+
 
 # Page = Page.with_custom_options(
 #     size=Query(20, ge=1, le=50),
@@ -64,14 +66,14 @@ async def show_artwork_locations(uow: UOWDep):
     },
 )
 async def create_artwork(
-    uow: UOWDep,
-    user: User = Depends(current_user),
-    artwork_data: ArtworkCreate = Body(...),
-    thumbnail_image_index: Annotated[int, Body()] = None,
-    images: Annotated[
-        List[UploadFile],
-        File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
-    ] = None,
+        uow: UOWDep,
+        user: User = Depends(current_user),
+        artwork_data: ArtworkCreate = Body(...),
+        thumbnail_image_index: Annotated[int, Body()] = None,
+        images: Annotated[
+            List[UploadFile],
+            File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
+        ] = None,
 ):
     if images:
         for image in images:
@@ -106,9 +108,9 @@ async def create_artwork(
     description="Выводит список подтверждённых арт-объектов, используя пагинацию. Лимит: 50 объектов.",
 )
 async def show_artworks(
-    uow: UOWDep,
-    pagination: MyParams = Depends(),
-    filters: Filter = FilterDepends(ArtworkFilter),
+        uow: UOWDep,
+        pagination: MyParams = Depends(),
+        filters: Filter = FilterDepends(ArtworkFilter),
 ):
     artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
     return paginate(artworks, pagination)
@@ -201,3 +203,21 @@ async def delete_artwork(artwork_id: int, uow: UOWDep):
         )
     # except ObjectNotFound as exc:
     #     raise exc
+
+
+@router_artworks.post("/{artwork_id}/toggle_like")
+async def toggle_like(artwork_id: int,
+                      uow: UOWDep,
+                      user: User = Depends(current_user)):
+    try:
+        artwork = await ArtworksService().get_artwork(uow, artwork_id)
+        reaction = await UserService().make_reaction(uow, user.id, artwork.id)
+        return True if reaction else False
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=generate_detail(
+                error_code=ErrorCode.OBJECT_NOT_FOUND, message="Artwork not found"
+            ),
+        )
+

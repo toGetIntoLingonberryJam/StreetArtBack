@@ -5,12 +5,12 @@ from fastapi_users.exceptions import UserNotExists
 from starlette import status
 from starlette.requests import Request
 
-from app.modules.artworks.schemas.artwork import Artwork
 from app.modules.users.fastapi_users_config import current_user
-from app.modules.users.favorite_artworks.cruds import get_favorite_artworks
 from app.modules.users.manager import UserManager, get_user_manager
 from app.modules.users.models import User
 from app.modules.users.schemas import UserRead, UserUpdatePassword, UserUpdate, UserUpdateUsername
+from app.services.user import UserService
+from app.utils.dependencies import UOWDep
 
 settings_router = APIRouter()
 
@@ -87,10 +87,8 @@ async def get_user_by_id(
 
 @settings_router.get('/me/favorite_artworks') # response_model=list[int]
 async def get_favorite_artworks_ids(
+        uow: UOWDep,
         user: User = Depends(current_user)
 ):
-    try:
-        return get_favorite_artworks(user)
-        pass
-    except UserNotExists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"reason": "Пользователь не найден."})
+    reactions = await UserService().get_user_reactions(uow, user.id)
+    return reactions

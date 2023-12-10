@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Body, Depends, APIRouter, HTTPException, Form
+from fastapi import Body, Depends, APIRouter, HTTPException, Form, Query
 from fastapi_users import exceptions
 from fastapi_users.router import ErrorCode
 from pydantic import EmailStr
@@ -28,10 +28,10 @@ async def request_verify_token(
     return None
 
 
-@verify_router.post("/verify", response_model=UserRead)
+@verify_router.get("/verify", response_model=UserRead)
 async def verify(
     request: Request,
-    token: Annotated[str, Form()],
+    token: Annotated[str, Query(...)],
     user_manager=Depends(get_user_manager),
 ):
     try:

@@ -2,21 +2,16 @@
     <div style="align-items: center;
     font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;">
         <h1>Спасибо за регистрацию, {{username}}!</h1>
-        <p>Здравствуйте, была совершена регистрация на сервисе Streetart Witness с использованием данной почты.</p>
+        <p>Здравствуйте, была совершена регистрация на сервисе StreetArt Witnesses с использованием данной почты.</p>
         <img style="width: 448px; height: 252px; border-radius: 5%"
              src="https://sun3-22.userapi.com/impg/FdFmC5Ns4t3pTbYjlJGZdvtP5leQkFWaBXq37g/PpzQhfoKmE4.jpg?size=1280x720&quality=96&sign=dc7527c8a76459ac0f44194f314b5801&type=album">
         <p>Для подтверждения регистрации нажмите на кнопку ниже.</p>
-        <form action="{{BACKEND_URL}}/v1/users/verify" method="POST" style="padding-bottom: 0">
             <div>
-                <button name="token" id="token" value="{{token}}" style="border: 0;
-                background-color: #6247aa; border-radius: 10%;">
-                    <a style="font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
-                    font-size: larger; color: white; padding: 0px 20px">
+                    <a href="{{BACKEND_URL}}/v1/users/verify/?token={{token}}" style="font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+                    font-size: larger; color: white; padding: 0px 20px; border: 0; background-color: #6247aa; border-radius: 10%;">
                         Подтвердить
                     </a>
-                </button>
             </div>
-        </form>
         <p style="color: grey; font-size: small;">Проигнорируйте данное письмо, если вы не регистрировались на сервисе.</p>
     </div>
 </body>

@@ -11,6 +11,7 @@ class UserRead(CreateUpdateDictModel):
     email: EmailStr
     is_artist: bool
     is_moderator: bool
+    is_verified: bool
 
     model_config = ConfigDict(from_attributes=True)
 

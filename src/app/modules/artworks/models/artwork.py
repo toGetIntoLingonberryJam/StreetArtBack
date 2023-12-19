@@ -3,7 +3,7 @@ from enum import Enum as PyEnum
 
 import pytz
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.types import Enum
 
 from app.db import Base
@@ -36,8 +36,8 @@ class Artwork(Base):
     added_by_user = relationship("User", back_populates="added_artworks", foreign_keys=[added_by_user_id])
 
     # поля для связи арт-объекта с конкретным пользователем-художником, если он зарегистрирован
-    artist_id = Column(Integer, ForeignKey("user.id"), nullable=True)
-    artist = relationship("User", back_populates="artwork", foreign_keys=[artist_id])
+    artist_id = mapped_column(ForeignKey("artist.id"), nullable=True)
+    artist: Mapped["Artist"] = relationship("Artist", back_populates="artworks", lazy="subquery")
 
     # Отношение "ОДИН-К-ОДНОМУ" (uselist=False) к дополнениям арт-объекта (ArtworkAdditions)
     # additions_id = Column(Integer, ForeignKey("artwork_additions.id"), nullable=True)

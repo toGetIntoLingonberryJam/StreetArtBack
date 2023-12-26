@@ -204,6 +204,7 @@ async def delete_artwork(artwork_id: int, uow: UOWDep):
     # except ObjectNotFound as exc:
     #     raise exc
 
+
 @router_artworks.post(
     "/{artwork_id}/toggle_like",
     description="Ставит и удаляет лайк на арт-объект.",
@@ -216,7 +217,6 @@ async def delete_artwork(artwork_id: int, uow: UOWDep):
         )
     }
 )
-@router_artworks.post("/{artwork_id}/toggle_like")
 async def toggle_like(artwork_id: int,
                       uow: UOWDep,
                       user: User = Depends(current_user)):
@@ -231,4 +231,3 @@ async def toggle_like(artwork_id: int,
                 error_code=ErrorCode.OBJECT_NOT_FOUND, message="Artwork not found"
             ),
         )
-

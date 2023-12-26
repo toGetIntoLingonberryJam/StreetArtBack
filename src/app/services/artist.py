@@ -1,28 +1,37 @@
+from sqlalchemy import exc
+from sqlalchemy.exc import NoResultFound
+
 from app.modules.artists.models import Artist
 from app.modules.artists.schemas import ArtistCreate
+from app.modules.users.models import User
+from app.modules.users.schemas import UserRead
 from app.utils.exceptions import UserNotFoundException, IncorrectInput
 from app.utils.unit_of_work import UnitOfWork
 
 
 class ArtistsService:
     async def get_artist_by_id(self, uow: UnitOfWork, artist_id: int):
-        async with uow:
-            artist = await uow.artist.get(artist_id)
-            return artist
+        try:
+            async with uow:
+                artist = await uow.artist.get(artist_id)
+                return artist
+        except exc.NoResultFound:
+            return None
 
     async def create_artist(self, uow: UnitOfWork, artist_schema: ArtistCreate):
         async with uow:
-            artist = Artist()
-            artist.name = artist_schema.name
-            if artist_schema.user_id:
-                user = uow.users.get(artist_schema.user_id)
-                if not user:
+            if artist_schema.user_id is not None:
+                try:
+                    user = await uow.users.get(artist_schema.user_id)
+                    if not user.is_verified:
+                        raise IncorrectInput("Пользователь не верифициован.")
+                except NoResultFound:
                     raise UserNotFoundException("Пользователь не найден.")
-                elif not user.is_verified:
-                    raise IncorrectInput("Пользователь не верифициован.")
-                else:
-                    artist.user_id = artist_schema.user_id
-            artist = await uow.artist.create(artist)
+
+            artist_user = await uow.artist.filter(user_id=user.id)
+            # if artist_user:
+            #     raise IncorrectInput("Пользователь уже является художником.")
+            artist = await uow.artist.create(artist_schema)
             await uow.commit()
             return artist
 

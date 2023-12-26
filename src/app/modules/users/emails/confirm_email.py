@@ -1,20 +1,21 @@
 import smtplib
 from email.message import EmailMessage
-
-from config import EMAIL_SENDER, EMAIL_PASSWORD, BACKEND_URL
+from config import get_settings
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 async def send_verify_email(token, receiver, username: str) -> bool:
-    template = __get_verify_template(token, username)
+    template = __get_verify_message(token, username)
     template["To"] = receiver
-    template["From"] = EMAIL_SENDER
+    template["From"] = get_settings().email_sender
 
-    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server = smtplib.SMTP("smtp.yandex.ru", 587, timeout=10)
     server.starttls()
 
     try:
-        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.sendmail(EMAIL_SENDER, receiver, template.as_string())
+        server.login(get_settings().email_sender, get_settings().email_password)
+        server.ehlo()
+        server.sendmail(get_settings().email_sender, receiver, template.as_string())
 
         print("The message was sent successfully!")
         return True
@@ -23,21 +24,18 @@ async def send_verify_email(token, receiver, username: str) -> bool:
         return False
 
 
-def __get_verify_template(token, username: str) -> EmailMessage:
+def __get_verify_message(token, username: str) -> EmailMessage:
     msg = EmailMessage()
-    msg['Subject'] = 'noreply'
-
-    msg.set_content(
-        '<div>'
-        f'<h1>Здравствуйте, {username}, спасибо за регистрацию!</h1>'
-        '<p>Пожалуйста, подтвердите почту.</p>'
-        f'<form action="{BACKEND_URL}/user/verify" method="POST">'
-        '   <div>'
-        f'    <button name="token" id="token" value="{token}">'
-        '       <a>Подтвердить</a>'
-        '     </button>'
-        '   </div>'
-        '</form>',
-        subtype='html'
+    msg["Subject"] = "noreply"
+    env = Environment(
+        loader=FileSystemLoader("static"), autoescape=select_autoescape(["html"])
     )
+    template = env.get_template("confirm_email.html").render(
+        {
+            "token": token,
+            "username": username,
+            "BACKEND_URL": get_settings().backend_url,
+        }
+    )
+    msg.set_content(template, subtype="html")
     return msg

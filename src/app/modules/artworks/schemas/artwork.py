@@ -1,24 +1,33 @@
-from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, model_validator, computed_field, HttpUrl
+from pydantic import BaseModel, Field, model_validator
 import json
 
 from app.modules.artworks.models.artwork import ArtworkStatus
 from app.modules.artworks.schemas.artwork_image import ArtworkImage
-from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreate, ArtworkLocation, ArtworkLocationEdit
-from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationBase, ArtworkModerationEdit
+from app.modules.artworks.schemas.artwork_location import (
+    ArtworkLocation,
+    ArtworkLocationEdit,
+    ArtworkLocationBase,
+)
+from app.modules.artworks.schemas.artwork_moderation import (
+    ArtworkModerationBase,
+    ArtworkModerationEdit,
+)
 
 from pydantic_partial import create_partial_model
 
 
 class ArtworkBase(BaseModel):
     title: str
-    year_created: int = Field(...,
-                              gt=1900, le=datetime.today().year,
-                              description='The year of creation cannot be less than 1900 and more than the current '
-                                          'year.')
+    year_created: int = Field(
+        ...,
+        gt=1900,
+        le=datetime.today().year,
+        description="The year of creation cannot be less than 1900 and more than the current "
+        "year.",
+    )
     festival: Optional[str]
     description: str
     source_description: str
@@ -27,10 +36,12 @@ class ArtworkBase(BaseModel):
 
 
 class ArtworkCreate(ArtworkBase):
-    location: Optional[ArtworkLocationCreate]
+    location: ArtworkLocationBase
 
-    @model_validator(mode='before')
-    def validate_to_json(cls, value):  # noqa Костыль, без которого не работает multipart/form data заспросы
+    @model_validator(mode="before")
+    def validate_to_json(
+        cls, value
+    ):  # noqa Костыль, без которого не работает multipart/form data заспросы
         if isinstance(value, str):
             return cls(**json.loads(value))  # noqa
         return value
@@ -40,7 +51,7 @@ class Artwork(ArtworkBase):
     id: int
     added_by_user_id: int
 
-    location: Optional[ArtworkLocation]
+    location: ArtworkLocation
     images: Optional[List[ArtworkImage]]
 
     created_at: datetime = Field(exclude=True)

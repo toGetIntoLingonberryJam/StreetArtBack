@@ -1,13 +1,9 @@
 from app.api.utils import remove_trailing_slashes_from_routes
 from fastapi import APIRouter
 
-from . import (
-    auth,
-    users,
-    artworks
-)
+from . import auth, users, artworks
 
-router = APIRouter(prefix="/v1")
+router = APIRouter(prefix="/v1", include_in_schema=True)
 
 router.include_router(auth.router)
 router.include_router(users.router)

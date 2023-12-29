@@ -54,7 +54,7 @@ class ArtworksService:
                 unique_image_urls = set()
 
                 for image in images:
-                    public_image_url = await upload_to_yandex_disk(image)
+                    public_image_url = await upload_to_yandex_disk(image=image)
 
                     image_data = {
                         "image_url": public_image_url,

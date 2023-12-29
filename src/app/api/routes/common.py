@@ -4,6 +4,7 @@ from typing import Dict, Union, Optional
 from pydantic import BaseModel
 
 
+# TODO: Обработка Response моделек тут для стандартизирования
 class ErrorModel(BaseModel):
     detail: Union[str, Dict[str, str]]
 

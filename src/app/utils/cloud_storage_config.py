@@ -26,14 +26,20 @@ def generate_unique_filename(image: UploadFile):
     return unique_filename
 
 
-async def upload_to_yandex_disk(image: UploadFile):
+async def upload_to_yandex_disk(image: UploadFile, custom_folder: str | None = None):
     """Загружает файл на диск. Возвращает публичную ссылку загруженного файла."""
 
     # Открываем изображение и вычисляем хеш
     unique_filename = generate_unique_filename(image)
 
+    # TODO: Проработать все случаи:
+    #  нахождение одинаковых файлов для записи в артворк их ссылок;
+    #  удаление изображений в методе удаления артворка
+    # Создание правильного пути до выбранной папки загрузки изображения в Яндекс.Диск
+    custom_folder = '/' if custom_folder is None or custom_folder == '' else f'/{custom_folder.strip("/")}/'
+
     # Загружаем изображение в Яндекс.Диск
-    file_cloud_path = get_settings().yandex_disk_images_folder + "/" + unique_filename
+    file_cloud_path = get_settings().yandex_disk_images_folder + custom_folder + unique_filename
 
     if y.is_file(file_cloud_path):
         # Получаем информацию о файле

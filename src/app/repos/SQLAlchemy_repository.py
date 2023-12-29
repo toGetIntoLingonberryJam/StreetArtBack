@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import RelationshipProperty, InstrumentedAttribute
 
 from app.db import Base as ModelBase
-from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 
 
 class SQLAlchemyRepository:
@@ -19,7 +18,7 @@ class SQLAlchemyRepository:
         self.session = session
 
     async def create(self, obj_data: BaseSchema | dict) -> ModelBase:
-        obj_data = obj_data if isinstance(obj_data, dict) else obj_data.model_dump()
+        obj_data = obj_data if isinstance(obj_data, dict) else obj_data.model_dump()  # ?? exclude_none=True, exclude_unset=True
 
         stmt = insert(self.model).values(**obj_data).returning(self.model)
         res = await self.session.execute(stmt)
@@ -105,7 +104,7 @@ class SQLAlchemyRepository:
         return result.scalars().all()
 
     async def edit(self, obj_id: int, obj_data: BaseSchema | dict) -> int:
-        obj_data = obj_data if isinstance(obj_data, dict) else obj_data.model_dump()
+        obj_data = obj_data if isinstance(obj_data, dict) else obj_data.model_dump(exclude_none=True, exclude_unset=True)
 
         stmt = (
             update(self.model)
@@ -121,53 +120,5 @@ class SQLAlchemyRepository:
         res = await self.session.execute(stmt)
 
         # if res.rowcount == 0:
-        #     raise NoResultFound(f"Object with ID {obj_id} not found")
+        #     raise NoResultFound(f"Object with ID {obj_id} not found") # TODO: ?
 
-    #
-    # async def get(self, obj_id: int) -> ModelBase:
-    #     try:
-    #         document = await self.session.get(self.model, obj_id)
-    #         # await self.session.refresh(new_document)
-    #         return document
-    #     except Exception:
-    #         await self.session.rollback()
-    #         raise
-
-    # async def create(self, data: BaseSchema | dict):  # ToDo: Чекни работоспособность
-    #     # try:
-    #         # data = data if isinstance(data, dict) else data.dict()
-    #     new_document = self.model(**data)
-    #     self.session.add(new_document)
-    #         # self.session.commit()
-    #     # except Exception:
-    #     #     self.session.rollback()
-    #     #     raise
-    #
-    #     # Обновляем объект, чтобы получить автоматически сгенерированные значения, если таковые есть
-    #     await self.session.refresh(new_document)
-    #
-    #     return new_document
-
-    # async def add_one(self, data: dict) -> ModelBase:
-    #     stmt = insert(self.model).values(**data).returning(self.model)
-    #     res = await self.session.execute(stmt)
-    #     return res.scalar_one()
-    #
-    # async def edit_one(self, id: int, data: dict) -> int:
-    #     stmt = update(self.model).values(**data).filter_by(id=id).returning(self.model.id)
-    #     res = await self.session.execute(stmt)
-    #     return res.scalar_one()
-    #
-    # async def find_all(self, **kwargs):
-    #     stmt = select(self.model)
-    #     if 'options' in kwargs:
-    #         for option in kwargs['options']:
-    #             stmt = stmt.options(option)
-    #     res = await self.session.execute(stmt)
-    #     return [row[0] for row in res.all()]
-    #
-    # async def find_one(self, **filter_by):
-    #     stmt = select(self.model).filter_by(**filter_by)
-    #     res = await self.session.execute(stmt)
-    #     res = res.scalar()
-    #     return res

@@ -302,8 +302,6 @@ def FilterDepends(
                 ):
                     prefix = f"{Filter.Constants.prefix}__"
                     stripped = {}
-                    # TODO: replace with `removeprefix` when python 3.8 is no longer supported
-                    # stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in value.items()}
                     for k, v in data.items():
                         if k.startswith(prefix):
                             k = k.replace(prefix, "", 1)

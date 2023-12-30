@@ -1,9 +1,11 @@
 from sqladmin import ModelView
 
+from app.modules import BaseTicket
 from app.modules.artworks.models.artwork import Artwork
 from app.modules.artworks.models.artwork_image import ArtworkImage
 from app.modules.artworks.models.artwork_location import ArtworkLocation
 from app.modules.artworks.models.artwork_moderation import ArtworkModeration
+from app.modules.tickets.models.ticket_artwork import ArtworkTicket
 from app.modules.users.models import User
 
 
@@ -50,3 +52,13 @@ class ArtworkLocationAdmin(ModelView, model=ArtworkLocation):
 class ArtworkModerationAdmin(ModelView, model=ArtworkModeration):
     column_list = "__all__"
     category = "Арт-объект"
+
+
+class ArtworkTicketAdmin(ModelView, model=ArtworkTicket):
+    column_list = "__all__"
+    category = "Тикет"
+
+
+class BaseTicketAdmin(ModelView, model=BaseTicket):
+    column_list = "__all__"
+    category = "Тикет"

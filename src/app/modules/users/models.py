@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import Depends
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 
@@ -22,6 +24,8 @@ class User(Base, SQLAlchemyBaseUserTable[int]):
     artwork = relationship(
         "Artwork", back_populates="artist", foreign_keys=[Artwork.artist_id]
     )
+
+    tickets: Mapped[List["BaseTicket"]] = relationship(back_populates="user")
 
     is_artist: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_moderator: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

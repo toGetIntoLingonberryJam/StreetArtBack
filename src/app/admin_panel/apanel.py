@@ -26,3 +26,6 @@ class AdminPanel:
         self.admin.add_view(ArtworkImageAdmin)
         self.admin.add_view(ArtworkLocationAdmin)
         self.admin.add_view(ArtworkModerationAdmin)
+
+        self.admin.add_view(ArtworkTicketAdmin)
+        self.admin.add_view(BaseTicketAdmin)

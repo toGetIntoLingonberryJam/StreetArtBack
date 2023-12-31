@@ -1,14 +1,14 @@
 from pydantic import BaseModel, HttpUrl
 
 
-class ArtworkImageBase(BaseModel):
+class ArtworkImageBaseSchema(BaseModel):
     image_url: HttpUrl
 
 
-class ArtworkImageCreate(ArtworkImageBase):
+class ArtworkImageCreateSchema(ArtworkImageBaseSchema):
     image_url: str
     artwork_id: int
 
 
-class ArtworkImage(ArtworkImageBase):
+class ArtworkImageReadSchema(ArtworkImageBaseSchema):
     id: int

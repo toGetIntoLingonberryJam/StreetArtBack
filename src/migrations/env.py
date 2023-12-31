@@ -11,7 +11,7 @@ from config import get_settings
 from app.db import Base
 
 # Импорт моделей важен для target_metadata = Base.metadata, чтобы получить информацию о всех Base.
-import app.modules  # noqa
+import app.modules.models  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

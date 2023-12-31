@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from app.modules import BaseTicket
+from app.modules.tickets.models import TicketBase
 from app.modules.artworks.models.artwork import Artwork
 from app.modules.artworks.models.artwork_image import ArtworkImage
 from app.modules.artworks.models.artwork_location import ArtworkLocation
@@ -59,6 +59,6 @@ class ArtworkTicketAdmin(ModelView, model=ArtworkTicket):
     category = "Тикет"
 
 
-class BaseTicketAdmin(ModelView, model=BaseTicket):
+class TicketBaseAdmin(ModelView, model=TicketBase):
     column_list = "__all__"
     category = "Тикет"

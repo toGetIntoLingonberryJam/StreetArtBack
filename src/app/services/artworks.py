@@ -6,10 +6,10 @@ from fastapi_pagination import Params
 
 from app.modules.artworks.models.artwork import Artwork
 from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
-from app.modules.artworks.schemas.artwork import ArtworkCreate, ArtworkEdit
-from app.modules.artworks.schemas.artwork_image import ArtworkImageCreate
-from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreate
-from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCreate
+from app.modules.artworks.schemas.artwork import ArtworkCreateSchema, ArtworkUpdateSchema
+from app.modules.artworks.schemas.artwork_image import ArtworkImageCreateSchema
+from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreateSchema
+from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCreateSchema
 from app.modules.users.models import User
 from app.utils.cloud_storage_config import (
     upload_to_yandex_disk,
@@ -23,7 +23,7 @@ class ArtworksService:
         self,
         uow: UnitOfWork,
         user: User,
-        artwork_schem: ArtworkCreate,
+        artwork_schem: ArtworkCreateSchema,
         images: Optional[List[UploadFile]] = None,
         thumbnail_image_index: Optional[int] = None,
     ):
@@ -38,12 +38,12 @@ class ArtworksService:
 
             # Добавление связи ArtworkModeration
             artwork.moderation = await uow.artwork_moderation.create(
-                ArtworkModerationCreate(artwork_id=artwork.id)
+                ArtworkModerationCreateSchema(artwork_id=artwork.id)
             )
 
             # Добавление связи ArtworkLocation
             artwork.location = await uow.artwork_locations.create(
-                ArtworkLocationCreate(
+                ArtworkLocationCreateSchema(
                     **location_data.model_dump(), artwork_id=artwork.id
                 )
             )
@@ -64,7 +64,7 @@ class ArtworksService:
                     # ToDo: Добавлять созданную схему во все схемы, для дальнейшего создания объектов одним запросом к
                     #  БД. создать create_many
                     # Создание объекта Pydantic
-                    image_create = ArtworkImageCreate(**image_data)
+                    image_create = ArtworkImageCreateSchema(**image_data)
 
                     # Проверка отсутствия image_url в уникальных
                     if image_create.image_url not in unique_image_urls:
@@ -195,8 +195,8 @@ class ArtworksService:
     #
     #         return locations
 
-    async def edit_artwork(
-        self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkEdit
+    async def update_artwork(
+        self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkUpdateSchema
     ):
         location_dict = (
             artwork_schem.location.model_dump(exclude_unset=True)

@@ -7,14 +7,14 @@ from app.db import Base
 
 
 class ArtworkImage(Base):
-    __tablename__ = "artwork_images"
+    __tablename__ = "artwork_image"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     image_url: Mapped[str] = mapped_column(String, unique=True)
 
     # Отношение к объекту Artwork
     artwork_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("artworks.id", ondelete="CASCADE")
+        Integer, ForeignKey("artwork.id", ondelete="CASCADE")
     )
     artwork = relationship("Artwork", back_populates="images")
 

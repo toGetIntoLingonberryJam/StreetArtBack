@@ -22,20 +22,20 @@ class TicketStatus(enum.Enum):
     REJECTED = "rejected"
 
 
-class BaseTicket(Base):
-    __tablename__ = "tickets"
+class TicketBase(Base):
+    __tablename__ = "ticket"
 
     id = mapped_column(Integer, primary_key=True, index=True)
     user_id = mapped_column(Integer, ForeignKey("user.id"), index=True)
     ticket_type = mapped_column(Enum(TicketType), nullable=False)
-    reason = mapped_column(Text)
+    reason = mapped_column(Text, nullable=True)
 
     status = mapped_column(Enum(TicketStatus), default=TicketStatus.PENDING)
     moderator_comment = mapped_column(Text, nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="tickets")
 
-    discriminator = mapped_column(String)
+    discriminator = mapped_column(String, nullable=False)
     __mapper_args__ = {"polymorphic_on": discriminator, "polymorphic_identity": "ticket"}
 
     created_at: Mapped[DateTime] = mapped_column(

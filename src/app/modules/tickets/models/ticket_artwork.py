@@ -1,11 +1,11 @@
 from sqlalchemy import JSON, Integer, ForeignKey
 from sqlalchemy.orm import mapped_column
 
-from app.modules.tickets.models.base_ticket import BaseTicket
+from app.modules.tickets.models.base_ticket import TicketBase
 
 
-class ArtworkTicket(BaseTicket):
-    artwork_id = mapped_column(Integer, ForeignKey("artworks.id"), index=True, nullable=True)
+class ArtworkTicket(TicketBase):
+    artwork_id = mapped_column(Integer, ForeignKey("artwork.id"), index=True, nullable=True)
     artwork_data = mapped_column(JSON, nullable=True)
 
     __mapper_args__ = {"polymorphic_identity": "artwork_ticket"}

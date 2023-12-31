@@ -6,21 +6,21 @@ from pydantic_partial import PartialModelMixin
 from app.modules.artworks.models.artwork_image import ArtworkImage
 
 
-class ArtworkLocationBase(BaseModel):
+class ArtworkLocationBaseSchema(BaseModel):
     latitude: float
     longitude: float
     address: str
 
 
-class ArtworkLocationCreate(ArtworkLocationBase):
+class ArtworkLocationCreateSchema(ArtworkLocationBaseSchema):
     artwork_id: int
 
 
-class ArtworkLocationEdit(PartialModelMixin, ArtworkLocationBase):
+class ArtworkLocationUpdateSchema(PartialModelMixin, ArtworkLocationBaseSchema):
     pass
 
 
-class ArtworkLocation(ArtworkLocationBase):
+class ArtworkLocationReadSchema(ArtworkLocationBaseSchema):
     artwork_id: int
 
     thumbnail_image: Optional[HttpUrl]

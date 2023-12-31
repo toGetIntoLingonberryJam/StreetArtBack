@@ -19,12 +19,12 @@ from app.api.utils.paginator import Page, MyParams
 from fastapi_pagination import paginate
 
 from app.modules.artworks.schemas.artwork import (
-    ArtworkCreate,
-    Artwork,
-    ArtworkEdit,
-    ArtworkForModerator,
+    ArtworkCreateSchema,
+    ArtworkReadSchema,
+    ArtworkUpdateSchema,
+    ArtworkForModeratorReadSchema,
 )
-from app.modules.artworks.schemas.artwork_location import ArtworkLocation
+from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSchema
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
 from app.services.artworks import ArtworksService
@@ -35,7 +35,7 @@ router_artworks = APIRouter(tags=["Artworks"])
 
 @router_artworks.get(
     "/locations",
-    response_model=list[ArtworkLocation],
+    response_model=list[ArtworkLocationReadSchema],
     description="Выводит список локаций подтверждённых арт-объектов.",
 )
 # @cache(expire=15)
@@ -50,7 +50,7 @@ async def show_artwork_locations(
 
 @router_artworks.post(
     path="/",
-    response_model=Artwork,
+    response_model=ArtworkReadSchema,
     status_code=status.HTTP_201_CREATED,
     description="После создания арт-объекта, его статус модерации будет 'Ожидает проверки'.",
     responses={
@@ -66,7 +66,7 @@ async def show_artwork_locations(
 async def create_artwork(
     uow: UOWDep,
     user: User = Depends(current_user),
-    artwork_data: ArtworkCreate = Body(...),
+    artwork_data: ArtworkCreateSchema = Body(...),
     thumbnail_image_index: Annotated[int, Body()] = None,
     images: Annotated[
         List[UploadFile],
@@ -102,7 +102,7 @@ async def create_artwork(
 # await FastAPICache.clear(namespace="show_artworks")
 @router_artworks.get(
     "/",
-    response_model=Page[Artwork],
+    response_model=Page[ArtworkReadSchema],
     description=f"""Выводит список подтверждённых арт-объектов, используя пагинацию. Лимит: 50 объектов.\n
     Поля для сортировки: {", ".join(ArtworkFilter.Constants.ordering_model_fields)}\n
     Поля используемые в поиске: {", ".join(ArtworkFilter.Constants.search_model_fields)}""",
@@ -118,7 +118,7 @@ async def show_artworks(
 
 @router_artworks.get(
     "/{artwork_id}",
-    response_model=Artwork,
+    response_model=ArtworkReadSchema,
     description="Выводит арт-объект по его ID.",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -146,7 +146,7 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
 
 @router_artworks.patch(
     "/{artwork_id}",
-    response_model=ArtworkForModerator,
+    response_model=ArtworkForModeratorReadSchema,
     description="Метод для редактирования отдельных полей арт-объекта.",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -157,9 +157,9 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
         )
     },
 )
-async def edit_artwork(artwork_id: int, artwork_data: ArtworkEdit, uow: UOWDep):
+async def update_artwork(artwork_id: int, artwork_data: ArtworkUpdateSchema, uow: UOWDep):
     try:
-        artwork = await ArtworksService().edit_artwork(uow, artwork_id, artwork_data)
+        artwork = await ArtworksService().update_artwork(uow, artwork_id, artwork_data)
         return artwork
     except NoResultFound:
         # Обработка случая, когда запись не найдена

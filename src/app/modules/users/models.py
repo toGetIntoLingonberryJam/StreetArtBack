@@ -25,7 +25,7 @@ class User(Base, SQLAlchemyBaseUserTable[int]):
         "Artwork", back_populates="artist", foreign_keys=[Artwork.artist_id]
     )
 
-    tickets: Mapped[List["BaseTicket"]] = relationship(back_populates="user")
+    tickets: Mapped[List["TicketBase"]] = relationship(back_populates="user")
 
     is_artist: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_moderator: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

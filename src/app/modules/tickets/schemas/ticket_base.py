@@ -7,10 +7,8 @@ from app.modules import TicketType, TicketStatus
 
 from pydantic_partial import create_partial_model
 
-from app.modules.tickets.schemas.ticket_base import TicketBaseSchema
 
-
-class ArtworkTicketBaseSchema(TicketBaseSchema):
+class TicketBaseSchema(BaseModel):
     user_id: int
     ticket_type: Optional[TicketType] = None
     reason: Optional[str] = None
@@ -18,15 +16,15 @@ class ArtworkTicketBaseSchema(TicketBaseSchema):
     moderator_comment: Optional[str] = None
 
 
-class ArtworkTicketCreateSchema(ArtworkTicketBaseSchema):
+class TicketCreateSchema(TicketBaseSchema):
     pass
 
 
-# class ArtworkTicketUpdate(TicketBase):
+# class TicketUpdate(TicketBase):
 #     pass
 
 
-class ArtworkTicketSchema(ArtworkTicketBaseSchema):
+class TicketSchema(TicketBaseSchema):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -38,4 +36,4 @@ class ArtworkTicketSchema(ArtworkTicketBaseSchema):
     #     from_attributes = True
 
 
-ArtworkTicketUpdateSchema = create_partial_model(ArtworkTicketBaseSchema, recursive=True)
+TicketUpdateSchema = create_partial_model(TicketBaseSchema, recursive=True)

@@ -17,7 +17,7 @@ class ArtworkStatus(str, PyEnum):
 
 
 class Artwork(Base):
-    __tablename__ = "artworks"
+    __tablename__ = "artwork"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String, index=True)
@@ -29,19 +29,16 @@ class Artwork(Base):
 
     # отношение к пользователю, который добавил арт-объект
     added_by_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
-    added_by_user = relationship(
-        "User", back_populates="added_artworks", foreign_keys=[added_by_user_id]
-    )
+    added_by_user: Mapped["User"] = relationship(back_populates="added_artworks", foreign_keys=[added_by_user_id])
 
     # поля для связи арт-объекта с конкретным пользователем-художником, если он зарегистрирован
     artist_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=True
     )
-    artist = relationship("User", back_populates="artwork", foreign_keys=[artist_id])
+    artist: Mapped["User"] = relationship(back_populates="artwork", foreign_keys=[artist_id])
 
     # Отношение "один-ко-одному" к ArtworkLocation
-    location = relationship(
-        "ArtworkLocation",
+    location: Mapped["ArtworkLocation"] = relationship(
         uselist=False,
         back_populates="artwork",
         foreign_keys="ArtworkLocation.artwork_id",
@@ -50,8 +47,7 @@ class Artwork(Base):
     )
 
     # Отношение "ОДИН-КО-МНОГИМ" к изображениям арт-объекта (ArtworkImage)
-    images = relationship(
-        "ArtworkImage",
+    images: Mapped["ArtworkImage"] = relationship(
         back_populates="artwork",
         foreign_keys="ArtworkImage.artwork_id",
         lazy="selectin",
@@ -64,8 +60,7 @@ class Artwork(Base):
     )
 
     # связь Artwork с ArtworkModeration
-    moderation = relationship(
-        "ArtworkModeration",
+    moderation: Mapped["ArtworkModeration"] = relationship(
         uselist=False,
         back_populates="artwork",
         foreign_keys="ArtworkModeration.artwork_id",

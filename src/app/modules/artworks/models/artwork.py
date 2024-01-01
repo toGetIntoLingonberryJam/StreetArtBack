@@ -1,6 +1,7 @@
 import enum
 from datetime import datetime
 from enum import Enum as PyEnum
+from typing import List
 
 import pytz
 from sqlalchemy import Integer, String, ForeignKey, DateTime, func
@@ -47,7 +48,7 @@ class Artwork(Base):
     )
 
     # Отношение "ОДИН-КО-МНОГИМ" к изображениям арт-объекта (ArtworkImage)
-    images: Mapped["ArtworkImage"] = relationship(
+    images: Mapped[List["ArtworkImage"]] = relationship(
         back_populates="artwork",
         foreign_keys="ArtworkImage.artwork_id",
         lazy="selectin",

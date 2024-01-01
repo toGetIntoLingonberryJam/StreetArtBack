@@ -10,6 +10,20 @@ from app.admin_panel.apanel_auth import AdminAuth
 class AdminPanel:
     admin: Admin
 
+    def _add_views(self):
+        views = [
+            UserAdmin,
+            ArtworkAdmin,
+            ArtworkImageAdmin,
+            ArtworkLocationAdmin,
+            ArtworkModerationAdmin,
+            ArtworkTicketAdmin,
+            TicketBaseAdmin,
+        ]
+
+        for view in views:
+            self.admin.add_view(view)
+
     def __init__(self, app: FastAPI, engine: AsyncEngine):
         self.admin = Admin(
             app,
@@ -19,13 +33,4 @@ class AdminPanel:
                 secret_key=get_settings().secret_verification_token
             ),
         )
-
-        self.admin.add_view(UserAdmin)
-
-        self.admin.add_view(ArtworkAdmin)
-        self.admin.add_view(ArtworkImageAdmin)
-        self.admin.add_view(ArtworkLocationAdmin)
-        self.admin.add_view(ArtworkModerationAdmin)
-
-        self.admin.add_view(ArtworkTicketAdmin)
-        self.admin.add_view(TicketBaseAdmin)
+        self._add_views()

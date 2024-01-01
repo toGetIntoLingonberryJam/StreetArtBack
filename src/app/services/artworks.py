@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional, List
 
 from fastapi import UploadFile
@@ -53,10 +54,11 @@ class ArtworksService:
                 artwork_images = list()
                 unique_image_urls = set()
 
-                for image in images:
+                # Создаем список корутин, каждая из которых отвечает за загрузку и обработку одного изображения
+                async def process_image(image):
                     public_image_url = await upload_to_yandex_disk(image=image)
 
-                    image_data = {
+                    img_data = {
                         "image_url": public_image_url,
                         "artwork_id": artwork.id,
                     }
@@ -64,12 +66,15 @@ class ArtworksService:
                     # ToDo: Добавлять созданную схему во все схемы, для дальнейшего создания объектов одним запросом к
                     #  БД. создать create_many
                     # Создание объекта Pydantic
-                    image_create = ArtworkImageCreateSchema(**image_data)
+                    image_create = ArtworkImageCreateSchema(**img_data)
 
                     # Проверка отсутствия image_url в уникальных
                     if image_create.image_url not in unique_image_urls:
                         unique_image_urls.add(image_create.image_url)
                         images_data_list.append(image_create)
+
+                # Запускаем корутины асинхронно
+                await asyncio.gather(*[process_image(image) for image in images])
 
                 # Добавление в базу данных
                 for image_data in images_data_list:

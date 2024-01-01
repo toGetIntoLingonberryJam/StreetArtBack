@@ -7,7 +7,7 @@ import imagehash
 
 # ToDo: возможно стоит вынести инициализацию в app.py
 # Инициализация YaDisk
-y = yadisk.YaDisk(token=get_settings().yandex_disk_token)
+client = yadisk.AsyncClient(token=get_settings().yandex_disk_token)
 
 
 def generate_unique_filename(image: UploadFile):
@@ -41,33 +41,35 @@ async def upload_to_yandex_disk(image: UploadFile, custom_folder: str | None = N
     # Загружаем изображение в Яндекс.Диск
     file_cloud_path = get_settings().yandex_disk_images_folder + custom_folder + unique_filename
 
-    if y.is_file(file_cloud_path):
+    if await client.is_file(file_cloud_path):
         # Получаем информацию о файле
-        file_info = y.get_meta(file_cloud_path)
+        file_info = await client.get_meta(file_cloud_path)
 
         # Проверяем размер текущего файла на диске и нового изображения
         if file_info["size"] < image.size:
             # Размер нового изображения больше, заменяем файл на диске
             image.file.seek(0)
-            y.upload(image.file, file_cloud_path, overwrite=True)
+            await client.upload(image.file, file_cloud_path, overwrite=True)
     else:
         # Файл не найден, загружаем новый
         image.file.seek(0)
-        y.upload(image.file, file_cloud_path)
+        await client.upload(image.file, file_cloud_path)
 
     # Предоставление общего доступа к файлу
-    public_file = y.publish(file_cloud_path)
+    # public_file = await client.publish(file_cloud_path)
+    await client.publish(file_cloud_path)
+    public_file_info = await client.get_meta(file_cloud_path)
 
-    # Получение ранее полученной публичной ссылки
-    file_public_url = public_file.get_meta().FIELDS.get("public_url")
+    # Получение ранее созданной публичной ссылки
+    public_file_url = public_file_info.FIELDS.get("public_url")
 
-    return file_public_url
+    return public_file_url
 
 
 async def delete_from_yandex_disk(public_url: str):
     try:
         # Получаем информацию о файле по публичной ссылке
-        meta_info = y.get_public_meta(public_url)
+        meta_info = await client.get_public_meta(public_url)
 
         # Получаем путь к файлу на Яндекс.Диске
         filename = meta_info.FIELDS.get("name")
@@ -75,7 +77,7 @@ async def delete_from_yandex_disk(public_url: str):
         file_path = get_settings().yandex_disk_images_folder + "/" + filename
 
         # Удаляем файл
-        y.remove(file_path)
+        await client.remove(file_path)
         print(f"Файл {file_path} успешно удален.")
     except yadisk.exceptions.BadRequestError as e:
         print(f"Ошибка при удалении файла: {e}")

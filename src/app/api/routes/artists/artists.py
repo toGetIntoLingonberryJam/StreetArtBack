@@ -42,5 +42,4 @@ async def get_artist(artist: ArtistCreate, uow: UOWDep):
         raise HTTPException(status_code=404)
     except IncorrectInput as e:
         raise HTTPException(status_code=400, detail=e.__str__())
-    print(artist)
     return artist

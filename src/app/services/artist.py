@@ -1,10 +1,7 @@
 from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
-from app.modules.artists.models import Artist
 from app.modules.artists.schemas import ArtistCreate
-from app.modules.users.models import User
-from app.modules.users.schemas import UserRead
 from app.utils.exceptions import UserNotFoundException, IncorrectInput
 from app.utils.unit_of_work import UnitOfWork
 
@@ -20,7 +17,7 @@ class ArtistsService:
 
     async def create_artist(self, uow: UnitOfWork, artist_schema: ArtistCreate):
         async with uow:
-            if artist_schema.user_id is not None:
+            if artist_schema.user_id:
                 try:
                     user = await uow.users.get(artist_schema.user_id)
                     if not user.is_verified:
@@ -29,8 +26,8 @@ class ArtistsService:
                     raise UserNotFoundException("Пользователь не найден.")
 
             artist_user = await uow.artist.filter(user_id=user.id)
-            # if artist_user:
-            #     raise IncorrectInput("Пользователь уже является художником.")
+            if artist_user:
+                raise IncorrectInput("Пользователь уже является художником.")
             artist = await uow.artist.create(artist_schema)
             await uow.commit()
             return artist

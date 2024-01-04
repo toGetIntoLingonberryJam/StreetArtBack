@@ -58,6 +58,7 @@ class ArtworkEdit(ArtworkCreate):
     location: Optional[ArtworkLocationEdit]
     added_by_user_id: Optional[int]
     moderation: Optional[ArtworkModerationEdit]
+    artist_id: Optional[int]
 
 
 ArtworkEdit = create_partial_model(ArtworkEdit, recursive=True)

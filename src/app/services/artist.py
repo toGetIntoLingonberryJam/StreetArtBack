@@ -2,7 +2,8 @@ from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
 from app.modules.artists.schemas import ArtistCreate
-from app.utils.exceptions import UserNotFoundException, IncorrectInput
+from app.modules.artworks.schemas.artwork import ArtworkEdit
+from app.utils.exceptions import UserNotFoundException, IncorrectInput, ObjectNotFoundException
 from app.utils.unit_of_work import UnitOfWork
 
 
@@ -25,9 +26,11 @@ class ArtistsService:
                 except NoResultFound:
                     raise UserNotFoundException("Пользователь не найден.")
 
-            artist_user = await uow.artist.filter(user_id=user.id)
-            if artist_user:
-                raise IncorrectInput("Пользователь уже является художником.")
+                artist_user = await uow.artist.filter(user_id=user.id)
+                if artist_user:
+                    raise IncorrectInput("Пользователь уже является художником.")
+            else:
+                artist_schema.user_id = None
             artist = await uow.artist.create(artist_schema)
             await uow.commit()
             return artist
@@ -45,3 +48,17 @@ class ArtistsService:
         async with uow:
             artist = uow.artist.filter(user_id=user_id)
             return artist
+
+    async def update_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id):
+        async with uow:
+            try:
+                artist = uow.artist.get(artist_id)
+            except NoResultFound:
+                raise ObjectNotFoundException("Художник не найден.")
+
+            try:
+                artwork_edit = ArtworkEdit(artist_id=artist_id)
+                artwork = uow.artworks.edit(artwork_id, artwork_edit)
+                return artwork
+            except NoResultFound:
+                raise ObjectNotFoundException("Арт-объект не найден.")

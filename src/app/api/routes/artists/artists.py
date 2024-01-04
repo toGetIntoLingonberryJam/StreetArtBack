@@ -1,11 +1,14 @@
+from typing import List
+
 from fastapi import APIRouter, HTTPException
 from starlette import status
 
 from app.api.routes.common import generate_response, ErrorModel, ErrorCode
 from app.modules.artists.schemas import ArtistRead, ArtistCreate
+from app.modules.artworks.schemas.artwork import Artwork
 from app.services.artist import ArtistsService
 from app.utils.dependencies import UOWDep
-from app.utils.exceptions import UserNotFoundException, IncorrectInput
+from app.utils.exceptions import UserNotFoundException, IncorrectInput, ObjectNotFoundException
 
 artist_router = APIRouter(prefix="/artists", tags=["artist"])
 
@@ -43,3 +46,22 @@ async def get_artist(artist: ArtistCreate, uow: UOWDep):
     except IncorrectInput as e:
         raise HTTPException(status_code=400, detail=e.__str__())
     return artist
+
+
+@artist_router.get("/",
+                   response_model=List[ArtistRead],
+                   description="Получение списка артистов")
+async def get_artist(uow: UOWDep, limit: int = 0, offset: int | None = None):
+    artists = await ArtistsService().get_all_artist(uow, offset, limit)
+    return artists
+
+
+@artist_router.post("/assignee",
+                    response_model=Artwork,
+                    description="Присвоение художнику работы.")
+async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
+    try:
+        artwork = await ArtistsService().update_artwork_artist(uow, artwork_id, artist_id)
+        return Artwork.model_validate(artwork)
+    except ObjectNotFoundException as e:
+        raise HTTPException(status_code=404, detail=e.__str__())

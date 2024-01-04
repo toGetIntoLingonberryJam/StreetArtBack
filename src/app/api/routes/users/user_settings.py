@@ -73,7 +73,7 @@ async def update_username(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"reason": e.reason})
 
 
-@settings_router.get('/{user_id}', response_model=UserRead)
+@settings_router.get('/user/{user_id}', response_model=UserRead)
 async def get_user_by_id(
         user_id: int,
         user_manager: UserManager = Depends(get_user_manager),

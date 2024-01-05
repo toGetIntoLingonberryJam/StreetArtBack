@@ -5,7 +5,7 @@ from starlette import status
 
 from app.api.routes.common import generate_response, ErrorModel, ErrorCode
 from app.modules.artists.schemas import ArtistRead, ArtistCreate
-from app.modules.artworks.schemas.artwork import Artwork
+from app.modules.artworks.schemas.artwork import ArtworkCard
 from app.services.artist import ArtistsService
 from app.utils.dependencies import UOWDep
 from app.utils.exceptions import UserNotFoundException, IncorrectInput, ObjectNotFoundException
@@ -38,7 +38,7 @@ async def get_artist(artist_id: int, uow: UOWDep):
                         summary="Object not found",
                         message="User not found",
                     )})
-async def get_artist(artist: ArtistCreate, uow: UOWDep):
+async def create_artist(artist: ArtistCreate, uow: UOWDep):
     try:
         artist = await ArtistsService().create_artist(uow, artist)
     except UserNotFoundException:
@@ -51,17 +51,17 @@ async def get_artist(artist: ArtistCreate, uow: UOWDep):
 @artist_router.get("/",
                    response_model=List[ArtistRead],
                    description="Получение списка артистов")
-async def get_artist(uow: UOWDep, limit: int = 0, offset: int | None = None):
+async def get_artist_list(uow: UOWDep, limit: int = 0, offset: int | None = None):
     artists = await ArtistsService().get_all_artist(uow, offset, limit)
     return artists
 
 
 @artist_router.post("/assignee",
-                    response_model=Artwork,
+                    response_model=ArtworkCard,
                     description="Присвоение художнику работы.")
 async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
     try:
         artwork = await ArtistsService().update_artwork_artist(uow, artwork_id, artist_id)
-        return Artwork.model_validate(artwork)
+        return artwork
     except ObjectNotFoundException as e:
         raise HTTPException(status_code=404, detail=e.__str__())

@@ -9,6 +9,7 @@ class UserService:
             return reactions
 
     async def make_reaction(self, uow: UnitOfWork, user_id: int, artwork_id: int):
+        """Создает реакцию на Artwork. При наличии реацкии на данный Artwork - удаляет реакцию."""
         async with uow:
             reactions = await uow.reaction.filter(user_id=user_id, artworks_id=artwork_id)
             if reactions:
@@ -18,4 +19,4 @@ class UserService:
                 reaction = {"user_id": user_id, "artworks_id": artwork_id}
                 reaction = await uow.reaction.create(reaction)
             await uow.commit()
-            return reaction
+            return None if reactions else reaction

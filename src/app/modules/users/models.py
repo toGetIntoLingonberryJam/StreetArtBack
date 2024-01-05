@@ -10,8 +10,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base, get_async_session
 from app.modules.artists.models import Artist
 from app.modules.artworks.models.artwork import Artwork
+from app.modules.festivals.models import Festival   # TODO: перенести в __init__
 from app.modules.users.utils.reactions import Reaction
-
 
 
 class User(Base, SQLAlchemyBaseUserTable[int]):

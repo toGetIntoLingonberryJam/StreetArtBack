@@ -16,7 +16,7 @@ class Artist(Base):
     name: Mapped[str] = mapped_column(String(length=50), index=True)
     description: Mapped[str] = mapped_column(String(length=320), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), index=True, nullable=True)
-    artworks: Mapped[List["Artwork"]] = relationship("Artwork", back_populates="artist", lazy="subquery")
+    artworks: Mapped[List["Artwork"]] = relationship("Artwork", back_populates="artist", lazy="selectin")
 
     links: Mapped[List[str]] = mapped_column(ARRAY(String))
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, model_validator, computed_field, HttpUrl
+from pydantic import BaseModel, Field, model_validator, ConfigDict, field_validator
 import json
 
 from app.modules.artworks.models.artwork import ArtworkStatus
@@ -19,11 +19,36 @@ class ArtworkBase(BaseModel):
                               gt=1900, le=datetime.today().year,
                               description='The year of creation cannot be less than 1900 and more than the current '
                                           'year.')
-    festival: Optional[str]
     description: str
     source_description: str
-    artist_id: int
+    artist_id: Optional[int]
+    festival_id: Optional[int]
     status: ArtworkStatus
+
+
+class ArtworkCard(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    title: str
+    artist_id: Optional[int]
+    festival_id: Optional[int]
+    status: ArtworkStatus
+    images: Optional[List[ArtworkImage]] = Field(..., exclude=True)
+    location: ArtworkLocation = Field(..., exclude=True)
+
+    address: Optional[str] = None
+    card_image: Optional[ArtworkImage] = None
+
+    @field_validator("images")
+    def images_valid(cls, img: List[ArtworkImage] | None) -> Optional[List[ArtworkImage]]:
+        if img:
+            cls.card_image = img[0]
+        return img
+
+    @field_validator("location")
+    def loc_valid(cls, location: ArtworkLocation) -> ArtworkLocation:
+        cls.address = location.address
+        return location
 
 
 class ArtworkCreate(ArtworkBase):
@@ -46,8 +71,7 @@ class Artwork(ArtworkBase):
     created_at: datetime = Field(exclude=True)
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ArtworkForModerator(Artwork):

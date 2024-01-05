@@ -27,7 +27,6 @@ class Artwork(Base):
     title = Column(String, index=True)
 
     year_created = Column(Integer)
-    festival = Column(String)
     description = Column(String)
     source_description = Column(String)
 
@@ -38,6 +37,9 @@ class Artwork(Base):
     # поля для связи арт-объекта с конкретным пользователем-художником, если он зарегистрирован
     artist_id = mapped_column(ForeignKey("artist.id"), nullable=True)
     artist: Mapped["Artist"] = relationship("Artist", back_populates="artworks", lazy="subquery")
+
+    festival_id = mapped_column(ForeignKey("festival.id"), nullable=True)
+    festival = relationship("Festival", back_populates="artworks", lazy="subquery")
 
     # Отношение "ОДИН-К-ОДНОМУ" (uselist=False) к дополнениям арт-объекта (ArtworkAdditions)
     # additions_id = Column(Integer, ForeignKey("artwork_additions.id"), nullable=True)

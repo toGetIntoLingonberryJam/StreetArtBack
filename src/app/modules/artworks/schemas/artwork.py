@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from pydantic import BaseModel, Field, model_validator, ConfigDict, field_validator
 import json
 
+from app.modules.artists.base_schema import ArtistBase
 from app.modules.artworks.models.artwork import ArtworkStatus
 from app.modules.artworks.schemas.artwork_image import ArtworkImage
 from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreate, ArtworkLocation, ArtworkLocationEdit
@@ -30,7 +31,9 @@ class ArtworkCard(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     title: str
+
     artist_id: Optional[int]
+    # artist: Optional[ArtistBase]
     festival_id: Optional[int]
     status: ArtworkStatus
     images: Optional[List[ArtworkImage]] = Field(..., exclude=True)
@@ -38,12 +41,19 @@ class ArtworkCard(BaseModel):
 
     address: Optional[str] = None
     card_image: Optional[ArtworkImage] = None
+    artist_name: Optional[str] = None
 
     @field_validator("images")
     def images_valid(cls, img: List[ArtworkImage] | None) -> Optional[List[ArtworkImage]]:
         if img:
             cls.card_image = img[0]
         return img
+
+    # @field_validator("artist")
+    # def artist_valid(cls, artist: Optional[ArtistBase]) -> Optional[ArtistBase]:
+    #     if artist:
+    #         cls.artist_name = artist.name
+    #     return artist
 
     @field_validator("location")
     def loc_valid(cls, location: ArtworkLocation) -> ArtworkLocation:

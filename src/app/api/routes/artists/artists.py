@@ -1,12 +1,16 @@
-from typing import List
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi_filter import FilterDepends
+from fastapi_filter.contrib.sqlalchemy import Filter
+from fastapi_pagination import paginate
 from starlette import status
 
 from app.api.routes.common import generate_response, ErrorModel, ErrorCode
+from app.api.utils.filters import ArtistFilter
+from app.api.utils.paginator import MyParams, Page
 from app.modules.artists.schemas import ArtistRead, ArtistCreate
 from app.modules.artworks.schemas.artwork import ArtworkCard
 from app.services.artist import ArtistsService
+from app.services.artworks import ArtworksService
 from app.utils.dependencies import UOWDep
 from app.utils.exceptions import UserNotFoundException, IncorrectInput, ObjectNotFoundException
 
@@ -49,11 +53,25 @@ async def create_artist(artist: ArtistCreate, uow: UOWDep):
 
 
 @artist_router.get("/",
-                   response_model=List[ArtistRead],
+                   response_model=list[ArtistRead],
                    description="Получение списка артистов")
-async def get_artist_list(uow: UOWDep, limit: int = 0, offset: int | None = None):
-    artists = await ArtistsService().get_all_artist(uow, offset, limit)
+async def get_artist_list(uow: UOWDep,
+                          pagination: MyParams = Depends(),
+                          filters: Filter = FilterDepends(ArtistFilter)):
+    artists = await ArtistsService().get_all_artist(uow, pagination, filters)
     return artists
+
+
+@artist_router.get("/{artist_id}/artworks",
+                   response_model=Page[ArtworkCard],
+                   description="Получение списка артистов")
+async def get_artist_list(uow: UOWDep,
+                          artist_id: int,
+                          pagination: MyParams = Depends()):
+    artists = await ArtworksService().get_approved_artworks(uow,
+                                                            pagination,
+                                                            filter_by={"artist_id", artist_id})
+    return paginate(artists, pagination)
 
 
 @artist_router.post("/assignee",

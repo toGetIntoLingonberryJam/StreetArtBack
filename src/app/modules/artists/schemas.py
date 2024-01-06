@@ -1,16 +1,9 @@
 from typing import Optional, List
 
-from pydantic import BaseModel, ConfigDict, field_validator, HttpUrl, Field
+from pydantic import field_validator, HttpUrl
 
+from app.modules.artists.base_schema import ArtistBase
 from app.modules.artworks.schemas.artwork import ArtworkCard
-
-
-class ArtistBase(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    name: str
-    description: str
-    links: List[HttpUrl]
 
 
 class ArtistCreate(ArtistBase):
@@ -29,3 +22,4 @@ class ArtistRead(ArtistBase):
     def links_validator(cls, v: List[str]) -> List[str]:
         links = ''.join(v).strip('{}').split(',')
         return links
+

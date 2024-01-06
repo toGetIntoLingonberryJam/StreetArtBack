@@ -1,3 +1,5 @@
+from fastapi_filter.contrib.sqlalchemy import Filter
+from fastapi_pagination import Params
 from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
@@ -35,9 +37,24 @@ class ArtistsService:
             await uow.commit()
             return artist
 
-    async def get_all_artist(self, uow: UnitOfWork, offset: int = 0, limit: int = None):
+    async def get_all_artist(self,
+                             uow: UnitOfWork,
+                             pagination: Params | None = None,
+                             filters: Filter | None = None,
+                             **filter_by
+                             ):
         async with uow:
-            artists = await uow.artist.get_all(offset, limit)
+            offset: int = 0
+            limit: int | None = None
+
+            if pagination:
+                pagination_raw_params = pagination.to_raw_params()
+                offset = pagination_raw_params.offset
+                limit = pagination_raw_params.limit
+            artists = await uow.artist.get_all(offset=offset,
+                                               limit=limit,
+                                               filters=filters,
+                                               filter_by=filter_by)
             return artists
 
     async def delete_artist(self, uow: UnitOfWork, artist_id: int):

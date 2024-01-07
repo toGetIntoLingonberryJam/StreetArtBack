@@ -7,7 +7,7 @@ mypy==1.8.0
 fastapi-cache2==0.2.1
 pydantic-partial==0.5.2
 
-yadisk[async_defaults]==2.0.0
+yadisk[async_defaults]==2.1.0
 ImageHash~=4.3.1
 
 fastapi-pagination==0.12.14

@@ -30,13 +30,17 @@ class Artwork(Base):
 
     # отношение к пользователю, который добавил арт-объект
     added_by_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
-    added_by_user: Mapped["User"] = relationship(back_populates="added_artworks", foreign_keys=[added_by_user_id])
+    added_by_user: Mapped["User"] = relationship(
+        back_populates="added_artworks", foreign_keys=[added_by_user_id]
+    )
 
     # поля для связи арт-объекта с конкретным пользователем-художником, если он зарегистрирован
     artist_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=True
     )
-    artist: Mapped["User"] = relationship(back_populates="artwork", foreign_keys=[artist_id])
+    artist: Mapped["User"] = relationship(
+        back_populates="artwork", foreign_keys=[artist_id]
+    )
 
     # Отношение "один-ко-одному" к ArtworkLocation
     location: Mapped["ArtworkLocation"] = relationship(

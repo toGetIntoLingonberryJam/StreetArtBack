@@ -7,25 +7,19 @@ from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.types import Enum
 
 from app.db import Base
+from app.modules.tickets.utils.classes import TicketType, TicketStatus, TicketModel, TicketRegistry
 
 
-# Enum и базовая модель Ticket
-class TicketType(str, enum.Enum):
-    CREATE = "create"
-    EDIT = "edit"
-    COMPLAIN = "complain"
-
-
-class TicketStatus(enum.Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
-
-
+@TicketRegistry.register(TicketModel.TICKET)
 class TicketBase(Base):
     __tablename__ = "ticket"
 
-    id = mapped_column(Integer, primary_key=True, index=True)
+    __mapper_args__ = {
+        "polymorphic_on": "discriminator",
+        "polymorphic_identity": TicketModel.TICKET,
+    }
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+
     user_id = mapped_column(Integer, ForeignKey("user.id"), index=True)
     ticket_type = mapped_column(Enum(TicketType), nullable=False)
     reason = mapped_column(Text, nullable=True)
@@ -35,8 +29,7 @@ class TicketBase(Base):
 
     user: Mapped["User"] = relationship(back_populates="tickets")
 
-    discriminator = mapped_column(String, nullable=False)
-    __mapper_args__ = {"polymorphic_on": discriminator, "polymorphic_identity": "ticket"}
+    discriminator = mapped_column(String(50), nullable=False)
 
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),

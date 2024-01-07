@@ -19,6 +19,7 @@ class AdminPanel:
             ArtworkModerationAdmin,
             ArtworkTicketAdmin,
             TicketBaseAdmin,
+            ImageAdmin,
         ]
 
         for view in views:

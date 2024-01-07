@@ -5,6 +5,8 @@ from app.repos.artworks import (
     ArtworkImageRepository,
     ArtworkModerationRepository,
 )
+from app.repos.cloud_storage import ImageRepository
+from app.repos.tickets import TicketBaseRepository, ArtworkTicketRepository
 from app.repos.users import UsersRepository
 
 
@@ -19,7 +21,10 @@ class UnitOfWork:
         self.artworks = ArtworkRepository(self.session)
         self.artwork_locations = ArtworkLocationRepository(self.session)
         self.artwork_images = ArtworkImageRepository(self.session)
+        self.images = ImageRepository(self.session)
         self.artwork_moderation = ArtworkModerationRepository(self.session)
+        self.tickets = TicketBaseRepository(self.session)
+        self.artwork_tickets = ArtworkTicketRepository(self.session)
         # self.tasks = TasksRepository(self.session)
         # self.task_history = TaskHistoryRepository(self.session)
 

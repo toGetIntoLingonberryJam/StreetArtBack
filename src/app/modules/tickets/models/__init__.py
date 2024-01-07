@@ -1,2 +1,2 @@
-from .base_ticket import *
-from .ticket_artwork import *
+from .ticket_base import TicketBase
+from .ticket_artwork import ArtworkTicket

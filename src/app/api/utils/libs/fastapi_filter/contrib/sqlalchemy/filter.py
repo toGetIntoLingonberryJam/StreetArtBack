@@ -4,7 +4,7 @@ from typing import Union
 
 from pydantic import FieldValidationInfo, field_validator
 from sqlalchemy import or_
-from sqlalchemy.orm import Query
+from sqlalchemy.orm import Query, class_mapper, joinedload
 from sqlalchemy.sql.selectable import Select
 
 from ...base.filter import BaseFilterModel
@@ -161,6 +161,7 @@ class Filter(BaseFilterModel):
                 else:
                     # model_field = getattr(self.Constants.model, field_name)
                     model_field = getattr(base_model, field_name)
+
                     query = query.filter(getattr(model_field, operator)(value))
 
         return query

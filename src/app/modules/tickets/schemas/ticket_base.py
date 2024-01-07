@@ -3,13 +3,13 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.modules import TicketType, TicketStatus
 
 from pydantic_partial import create_partial_model
 
+from app.modules.tickets.utils.classes import TicketType, TicketStatus
+
 
 class TicketBaseSchema(BaseModel):
-    user_id: int
     ticket_type: Optional[TicketType] = None
     reason: Optional[str] = None
     status: TicketStatus = TicketStatus.PENDING
@@ -20,20 +20,23 @@ class TicketCreateSchema(TicketBaseSchema):
     pass
 
 
-# class TicketUpdate(TicketBase):
-#     pass
-
-
-class TicketSchema(TicketBaseSchema):
+class TicketReadSchema(TicketBaseSchema):
     model_config = ConfigDict(from_attributes=True)
 
+    user_id: int
+
+    discriminator: str
     id: int
 
-    created_at: datetime = Field(exclude=True)
+    created_at: datetime
     updated_at: datetime
 
     # class Config:
     #     from_attributes = True
 
 
-TicketUpdateSchema = create_partial_model(TicketBaseSchema, recursive=True)
+class TicketUpdateSchema(TicketBaseSchema):
+    pass
+
+
+TicketUpdateSchema = create_partial_model(TicketUpdateSchema, recursive=True)

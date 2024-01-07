@@ -88,7 +88,7 @@ async def create_artwork(
     artwork = await ArtworksService().create_artwork(
         uow=uow,
         user=user,
-        artwork_schem=artwork_data,
+        artwork_schema=artwork_data,
         images=images,
         thumbnail_image_index=thumbnail_image_index,
     )
@@ -157,7 +157,9 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
         )
     },
 )
-async def update_artwork(artwork_id: int, artwork_data: ArtworkUpdateSchema, uow: UOWDep):
+async def update_artwork(
+    artwork_id: int, artwork_data: ArtworkUpdateSchema, uow: UOWDep
+):
     try:
         artwork = await ArtworksService().update_artwork(uow, artwork_id, artwork_data)
         return artwork

@@ -3,7 +3,7 @@ from fastapi_pagination import Params
 from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
-from app.modules.artists.schemas import ArtistCreate
+from app.modules.artists.schemas.artist import ArtistCreate
 from app.utils.exceptions import UserNotFoundException, IncorrectInput, ObjectNotFoundException
 from app.utils.unit_of_work import UnitOfWork
 
@@ -69,12 +69,13 @@ class ArtistsService:
     async def update_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id):
         async with uow:
             try:
-                artist = uow.artist.get(artist_id)
+                artist = await uow.artist.get(artist_id)
             except NoResultFound:
                 raise ObjectNotFoundException("Художник не найден.")
 
             try:
-                artwork = await uow.artworks.edit(artwork_id, {"artist_id": artist_id})
+                artwork = await uow.artworks.get(artwork_id)
+                artwork.artist = artist
                 await uow.commit()
                 return artwork
             except NoResultFound:

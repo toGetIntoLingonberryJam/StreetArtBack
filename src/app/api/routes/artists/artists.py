@@ -7,8 +7,8 @@ from starlette import status
 from app.api.routes.common import generate_response, ErrorModel, ErrorCode
 from app.api.utils.filters import ArtistFilter
 from app.api.utils.paginator import MyParams, Page
-from app.modules.artists.schemas import ArtistRead, ArtistCreate
-from app.modules.artworks.schemas.artwork import ArtworkCard
+from app.modules.artists.schemas.artist import ArtistRead, ArtistCreate
+from app.modules.artworks.schemas.artwork_card import ArtworkCard
 from app.services.artist import ArtistsService
 from app.services.artworks import ArtworksService
 from app.utils.dependencies import UOWDep

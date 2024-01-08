@@ -36,10 +36,10 @@ class Artwork(Base):
 
     # поля для связи арт-объекта с конкретным пользователем-художником, если он зарегистрирован
     artist_id = mapped_column(ForeignKey("artist.id"), nullable=True)
-    artist: Mapped["Artist"] = relationship("Artist", back_populates="artworks", lazy="subquery")
+    artist: Mapped["Artist"] = relationship("Artist", foreign_keys=artist_id, back_populates="artworks", lazy="subquery")
 
     festival_id = mapped_column(ForeignKey("festival.id"), nullable=True)
-    festival = relationship("Festival", back_populates="artworks", lazy="subquery")
+    festival = relationship("Festival", foreign_keys=festival_id, back_populates="artworks", lazy="subquery")
 
     # Отношение "ОДИН-К-ОДНОМУ" (uselist=False) к дополнениям арт-объекта (ArtworkAdditions)
     # additions_id = Column(Integer, ForeignKey("artwork_additions.id"), nullable=True)

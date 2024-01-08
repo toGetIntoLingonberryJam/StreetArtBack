@@ -21,6 +21,7 @@ class FestivalService:
         async with uow:
             festival = await uow.festival.create(festival_schema)
             await uow.commit()
+            await uow.session.refresh(festival)
             return festival
 
     async def get_all_festival(self,

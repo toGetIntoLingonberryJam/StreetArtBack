@@ -86,6 +86,10 @@ class ArtworksService:
                         # img.generate_thumbnail_url()
                         artwork.location.thumbnail_image = img
 
+            if artwork.artist_id:
+                artwork.artist = await uow.artist.get(artwork.artist_id)
+            else:
+                artwork.artist = None
             await uow.commit()
             return artwork
 

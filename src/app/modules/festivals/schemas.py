@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, HttpUrl, field_validator, ConfigDict
 
-from app.modules.artworks.schemas.artwork import ArtworkCard
+from app.modules.artworks.schemas.artwork_card import ArtworkCard
 
 
 class FestivalBase(BaseModel):

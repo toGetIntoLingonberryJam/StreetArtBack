@@ -15,7 +15,7 @@ class ArtworkLocation(Base):
 
     # Поле, которое будет указывать на миниатюрное изображение в ArtworkImage
     thumbnail_image_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("artwork_images.id"), nullable=True
+        Integer, ForeignKey("artwork_image.id"), nullable=True
     )
     # Отношение к изображению ArtworkImage
     thumbnail_image = relationship(
@@ -24,7 +24,7 @@ class ArtworkLocation(Base):
 
     # Отношение "один-ко-одному" к объекту Artwork
     artwork_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("artworks.id", ondelete="CASCADE"), unique=True
+        Integer, ForeignKey("artwork.id", ondelete="CASCADE"), unique=True
     )
     artwork = relationship(
         "Artwork", back_populates="location", foreign_keys=[artwork_id]

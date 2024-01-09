@@ -1,23 +1,24 @@
 from typing import Optional
 
+
 from pydantic import BaseModel
 from pydantic_partial import PartialModelMixin
 
 from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 
 
-class ArtworkModerationBase(BaseModel):
+class ArtworkModerationBaseSchema(BaseModel):
     comment: Optional[str] = None
     status: ArtworkModerationStatus = ArtworkModerationStatus.PENDING
 
 
-class ArtworkModerationCreate(ArtworkModerationBase):
+class ArtworkModerationCreateSchema(ArtworkModerationBaseSchema):
     artwork_id: int
 
 
-class ArtworkModerationEdit(PartialModelMixin, ArtworkModerationBase):
+class ArtworkModerationUpdateSchema(PartialModelMixin, ArtworkModerationBaseSchema):
     pass
 
 
-class ArtworkModeration(ArtworkModerationBase):
+class ArtworkModerationReadSchema(ArtworkModerationBaseSchema):
     artwork_id: int

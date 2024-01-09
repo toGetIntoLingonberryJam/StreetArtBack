@@ -1,14 +1,28 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic_partial import create_partial_model
+
+from app.modules.cloud_storage.schemas.image import (
+    ImageBaseSchema,
+    ImageCreateSchema,
+    ImageReadSchema,
+)
 
 
-class ArtworkImageBase(BaseModel):
-    image_url: HttpUrl
-
-
-class ArtworkImageCreate(ArtworkImageBase):
-    image_url: str
+class ArtworkImageBaseSchema(ImageBaseSchema):
     artwork_id: int
 
 
-class ArtworkImage(ArtworkImageBase):
-    id: int
+class ArtworkImageCreateSchema(ImageCreateSchema, ArtworkImageBaseSchema):
+    pass
+
+
+class ArtworkImageReadSchema(ImageReadSchema, ArtworkImageBaseSchema):
+    pass
+
+
+class ArtworkImageUpdateSchema(ArtworkImageBaseSchema):
+    pass
+
+
+ArtworkImageUpdateSchema = create_partial_model(
+    ArtworkImageUpdateSchema, recursive=True
+)

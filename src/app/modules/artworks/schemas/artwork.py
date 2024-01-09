@@ -1,25 +1,25 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 import json
 
 from app.modules.artworks.models.artwork import ArtworkStatus
-from app.modules.artworks.schemas.artwork_image import ArtworkImage
+from app.modules.artworks.schemas.artwork_image import ArtworkImageReadSchema
 from app.modules.artworks.schemas.artwork_location import (
-    ArtworkLocation,
-    ArtworkLocationEdit,
-    ArtworkLocationBase,
+    ArtworkLocationReadSchema,
+    ArtworkLocationUpdateSchema,
+    ArtworkLocationBaseSchema,
 )
 from app.modules.artworks.schemas.artwork_moderation import (
-    ArtworkModerationBase,
-    ArtworkModerationEdit,
+    ArtworkModerationBaseSchema,
+    ArtworkModerationUpdateSchema,
 )
 
 from pydantic_partial import create_partial_model
 
 
-class ArtworkBase(BaseModel):
+class ArtworkBaseSchema(BaseModel):
     title: str
     year_created: int = Field(
         ...,
@@ -35,8 +35,8 @@ class ArtworkBase(BaseModel):
     status: ArtworkStatus
 
 
-class ArtworkCreate(ArtworkBase):
-    location: ArtworkLocationBase
+class ArtworkCreateSchema(ArtworkBaseSchema):
+    location: ArtworkLocationBaseSchema
 
     @model_validator(mode="before")
     def validate_to_json(
@@ -47,28 +47,30 @@ class ArtworkCreate(ArtworkBase):
         return value
 
 
-class Artwork(ArtworkBase):
+class ArtworkReadSchema(ArtworkBaseSchema):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     added_by_user_id: int
 
-    location: ArtworkLocation
-    images: Optional[List[ArtworkImage]]
+    location: ArtworkLocationReadSchema
+    images: Optional[List[ArtworkImageReadSchema]]
 
     created_at: datetime = Field(exclude=True)
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
 
 
-class ArtworkForModerator(Artwork):
-    moderation: ArtworkModerationBase
+class ArtworkForModeratorReadSchema(ArtworkReadSchema):
+    moderation: ArtworkModerationBaseSchema
 
 
-class ArtworkEdit(ArtworkCreate):
-    location: Optional[ArtworkLocationEdit]
+class ArtworkUpdateSchema(ArtworkCreateSchema):
+    location: Optional[ArtworkLocationUpdateSchema]
     added_by_user_id: Optional[int]
-    moderation: Optional[ArtworkModerationEdit]
+    moderation: Optional[ArtworkModerationUpdateSchema]
 
 
-ArtworkEdit = create_partial_model(ArtworkEdit, recursive=True)
+ArtworkUpdateSchema = create_partial_model(ArtworkUpdateSchema, recursive=True)

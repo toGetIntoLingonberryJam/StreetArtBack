@@ -21,7 +21,7 @@ class ArtworkModeration(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     artwork_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("artworks.id", ondelete="CASCADE"), unique=True
+        Integer, ForeignKey("artwork.id", ondelete="CASCADE"), unique=True
     )
     status: Mapped[enum] = mapped_column(
         Enum(ArtworkModerationStatus), default=ArtworkModerationStatus.PENDING

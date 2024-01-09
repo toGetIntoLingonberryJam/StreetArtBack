@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional, List
 
 from fastapi import UploadFile
@@ -6,15 +7,22 @@ from fastapi_pagination import Params
 
 from app.modules.artworks.models.artwork import Artwork
 from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
-from app.modules.artworks.schemas.artwork import ArtworkCreate, ArtworkEdit
-from app.modules.artworks.schemas.artwork_image import ArtworkImageCreate
-from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreate
-from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCreate
-from app.modules.users.models import User
-from app.utils.cloud_storage_config import (
-    upload_to_yandex_disk,
-    delete_from_yandex_disk,
+from app.modules.artworks.schemas.artwork import (
+    ArtworkCreateSchema,
+    ArtworkUpdateSchema,
 )
+from app.modules.artworks.schemas.artwork_image import ArtworkImageCreateSchema
+from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreateSchema
+from app.modules.artworks.schemas.artwork_moderation import (
+    ArtworkModerationCreateSchema,
+)
+from app.modules.users.models import User
+from app.services.cloud_storage import CloudStorageService
+
+# from app.utils.cloud_storage_config import (
+#     upload_to_yandex_disk,
+#     delete_from_yandex_disk,
+# )
 from app.utils.unit_of_work import UnitOfWork
 
 
@@ -23,13 +31,13 @@ class ArtworksService:
         self,
         uow: UnitOfWork,
         user: User,
-        artwork_schem: ArtworkCreate,
+        artwork_schema: ArtworkCreateSchema,
         images: Optional[List[UploadFile]] = None,
         thumbnail_image_index: Optional[int] = None,
     ):
-        location_data = artwork_schem.location
+        location_data = artwork_schema.location
 
-        artwork_dict = artwork_schem.model_dump(exclude={"location"})
+        artwork_dict = artwork_schema.model_dump(exclude={"location"})
 
         artwork_dict["added_by_user_id"] = user.id
 
@@ -38,12 +46,12 @@ class ArtworksService:
 
             # Добавление связи ArtworkModeration
             artwork.moderation = await uow.artwork_moderation.create(
-                ArtworkModerationCreate(artwork_id=artwork.id)
+                ArtworkModerationCreateSchema(artwork_id=artwork.id)
             )
 
             # Добавление связи ArtworkLocation
             artwork.location = await uow.artwork_locations.create(
-                ArtworkLocationCreate(
+                ArtworkLocationCreateSchema(
                     **location_data.model_dump(), artwork_id=artwork.id
                 )
             )
@@ -53,23 +61,30 @@ class ArtworksService:
                 artwork_images = list()
                 unique_image_urls = set()
 
-                for image in images:
-                    public_image_url = await upload_to_yandex_disk(image)
-
-                    image_data = {
-                        "image_url": public_image_url,
-                        "artwork_id": artwork.id,
-                    }
+                # Создаем список корутин, каждая из которых отвечает за загрузку и обработку одного изображения
+                async def process_image(image):
+                    cloud_file = await CloudStorageService.upload_to_yandex_disk(
+                        image=image
+                    )
 
                     # ToDo: Добавлять созданную схему во все схемы, для дальнейшего создания объектов одним запросом к
                     #  БД. создать create_many
+
                     # Создание объекта Pydantic
-                    image_create = ArtworkImageCreate(**image_data)
+                    image_create = ArtworkImageCreateSchema(
+                        image_url=cloud_file.public_url,
+                        public_key=cloud_file.public_key,
+                        file_path=cloud_file.file_path,
+                        artwork_id=artwork.id,
+                    )
 
                     # Проверка отсутствия image_url в уникальных
                     if image_create.image_url not in unique_image_urls:
                         unique_image_urls.add(image_create.image_url)
                         images_data_list.append(image_create)
+
+                # Запускаем корутины асинхронно
+                await asyncio.gather(*[process_image(image) for image in images])
 
                 # Добавление в базу данных
                 for image_data in images_data_list:
@@ -195,8 +210,8 @@ class ArtworksService:
     #
     #         return locations
 
-    async def edit_artwork(
-        self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkEdit
+    async def update_artwork(
+        self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkUpdateSchema
     ):
         location_dict = (
             artwork_schem.location.model_dump(exclude_unset=True)
@@ -243,7 +258,7 @@ class ArtworksService:
                 if len(exist_image) > 1:
                     continue
                 else:
-                    await delete_from_yandex_disk(img.image_url)
+                    await CloudStorageService.delete_from_yandex_disk(img.image_url)
 
             await uow.artworks.delete(artwork_id)
             await uow.commit()

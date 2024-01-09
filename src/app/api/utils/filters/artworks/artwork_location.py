@@ -1,11 +1,13 @@
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, ConfigDict
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from app.modules.artworks.models.artwork_location import ArtworkLocation
 
 
 class ArtworkLocationFilter(Filter):
+    model_config = ConfigDict(populate_by_name=True)
+
     order_by: Optional[list[str]] = Field(None)
     artwork__artist__username__ilike: Optional[str] = Field(
         None, alias="artistUsername"
@@ -17,5 +19,5 @@ class ArtworkLocationFilter(Filter):
         model = ArtworkLocation
         search_model_fields = ["title", "festival", "artist__username"]
 
-    class Config:
-        populate_by_name = True
+    # class Config:
+    #     populate_by_name = True

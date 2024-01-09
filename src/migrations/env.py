@@ -11,7 +11,9 @@ from config import get_settings
 from app.db import Base
 
 # Импорт моделей важен для target_metadata = Base.metadata, чтобы получить информацию о всех Base.
-import app.modules  # noqa
+# Не импортирую все модели Artwork из-за того, что в самом Artwork идёт импорт остальных моделей.
+from app.modules.artworks.models.artwork import Artwork  # noqa
+from app.modules.users.models import User  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -12,6 +12,7 @@ class UserRead(CreateUpdateDictModel):
     is_verified: bool
     is_artist: bool
     is_moderator: bool
+    is_verified: bool
 
     model_config = ConfigDict(from_attributes=True)
 

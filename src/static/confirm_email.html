@@ -1,17 +1,45 @@
-<body style="background-color: gainsboro;">
-    <div style="align-items: center;
-    font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;">
-        <h1>Спасибо за регистрацию, {{username}}!</h1>
-        <p>Здравствуйте, была совершена регистрация на сервисе StreetArt Witnesses с использованием данной почты.</p>
-        <img style="width: 448px; height: 252px; border-radius: 5%"
-             src="https://sun3-22.userapi.com/impg/FdFmC5Ns4t3pTbYjlJGZdvtP5leQkFWaBXq37g/PpzQhfoKmE4.jpg?size=1280x720&quality=96&sign=dc7527c8a76459ac0f44194f314b5801&type=album">
-        <p>Для подтверждения регистрации нажмите на кнопку ниже.</p>
-            <div>
-                    <a href="{{BACKEND_URL}}/v1/users/verify/?token={{token}}" style="font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
-                    font-size: larger; color: white; padding: 0px 20px; border: 0; background-color: #6247aa; border-radius: 10%;">
-                        Подтвердить
-                    </a>
-            </div>
-        <p style="color: grey; font-size: small;">Проигнорируйте данное письмо, если вы не регистрировались на сервисе.</p>
-    </div>
+<body style="background-color: #F2F2F7; width: 600px;">
+    <table style="width: 100%;">
+        <thead>
+            <tr>
+                <td style="width: 100%;">
+                    <img style="width: 100%;" src="https://sun9-54.userapi.com/impg/tl55XbSvz4cNTTNAKrQYOZ8AviN7thuPT97KAw/ICMiSz0RrfU.jpg?size=599x233&quality=96&sign=71bd9b6acc548ff3f70088e350eeb402&type=album">
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="width: 40%;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="font-family: 'Inter'; font-size: 20px">
+                                <p>Здравствуйте, {{username}}!</p>
+                                <p>Только что была совершена регистрация на сервисе «Свидетели Стрит-Арта» с использованием данной почты.</p>
+                                <p>Чтобы подтвердить почту нажмите на кнопку ниже.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <a href="{{BACKEND_URL}}/v1/users/verify?token={{token}}" style="font-family: 'Inter'; text-decoration: none;
+                                    font-size: 16px; color: #0B0B0B; padding: 8px 12px; border: 0; background-color: #3DE8CA; border-radius: 10px; height: 36px;">
+                                    Подтвердить
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: 'Inter'; font-size: 16px; text-align: center;">
+                                Проигнорируйте данное письмо, если вы не регистрировались на сервисе.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <p style="color: #727272; text-align: center; font-family: 'Inter', Regular; font-size: 20px; line-height: 130% ">Свидетели Стрит-Арта</p>
+                                <p style="color: #727272; text-align: center; font-family: 'Inter', Regular; font-size: 16px; line-height: 26px">(to) Get Into Lingonberry Jam</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </body>

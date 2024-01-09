@@ -4,6 +4,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, model_validator, ConfigDict
 import json
 
+from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.models.artwork import ArtworkStatus
 from app.modules.artworks.schemas.artwork_image import ArtworkImageReadSchema
 from app.modules.artworks.schemas.artwork_location import (
@@ -28,10 +29,10 @@ class ArtworkBaseSchema(BaseModel):
         description="The year of creation cannot be less than 1900 and more than the current "
         "year.",
     )
-    festival: Optional[str]
     description: str
     source_description: str
-    artist_id: int
+    artist_id: Optional[int]
+    festival_id: Optional[int]
     status: ArtworkStatus
 
 
@@ -55,12 +56,10 @@ class ArtworkReadSchema(ArtworkBaseSchema):
 
     location: ArtworkLocationReadSchema
     images: Optional[List[ArtworkImageReadSchema]]
+    artist: Optional[ArtistCardSchema]
 
     created_at: datetime = Field(exclude=True)
     updated_at: datetime
-
-    # class Config:
-    #     from_attributes = True
 
 
 class ArtworkForModeratorReadSchema(ArtworkReadSchema):

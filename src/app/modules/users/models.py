@@ -3,12 +3,15 @@ from typing import List
 from fastapi import Depends
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 
-from sqlalchemy import Integer, String, Enum, Boolean
+from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base, get_async_session
+from app.modules.artists.models import Artist
 from app.modules.artworks.models.artwork import Artwork
+from app.modules.festivals.models import Festival  # TODO: перенести в __init__
+from app.modules.users.utils.reactions import Reaction
 
 
 class User(Base, SQLAlchemyBaseUserTable[int]):
@@ -21,8 +24,10 @@ class User(Base, SQLAlchemyBaseUserTable[int]):
         back_populates="added_by_user",
         foreign_keys=[Artwork.added_by_user_id],
     )
-    artwork = relationship(
-        "Artwork", back_populates="artist", foreign_keys=[Artwork.artist_id]
+
+    # отношение MANY-TO-MANY к любимым работам
+    favorite_artworks: Mapped[List["Artwork"]] = relationship(
+        "Artwork", secondary="reaction"
     )
 
     tickets: Mapped[List["TicketBase"]] = relationship(back_populates="user")

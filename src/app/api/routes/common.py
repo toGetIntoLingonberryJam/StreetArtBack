@@ -17,6 +17,7 @@ class ErrorCodeReasonModel(BaseModel):
 class ErrorCode(str, Enum):
     INVALID_IMAGE_FILE_EXTENSION = "INVALID_IMAGE_FILE_EXTENSION"
     OBJECT_NOT_FOUND = "OBJECT_NOT_FOUND"
+    NO_ACCESS_TO_RESOURCE = "NO_ACCESS_TO_RESOURCE"
 
 
 def generate_response(

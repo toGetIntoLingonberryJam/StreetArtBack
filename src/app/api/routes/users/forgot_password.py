@@ -9,7 +9,7 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
-from app.modules.users.emails.forgot_password import get_reset_password_template
+from app.modules.users.utils.forgot_password import get_reset_password_template
 from app.modules.users.manager import get_user_manager
 
 password_router = APIRouter()

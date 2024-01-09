@@ -35,13 +35,15 @@ class Artwork(Base):
     )
 
     # поля для связи арт-объекта с конкретным пользователем-художником, если он зарегистрирован
-    artist_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True
-    )
-    artist: Mapped["User"] = relationship(
-        back_populates="artwork", foreign_keys=[artist_id]
+    artist_id = mapped_column(ForeignKey("artist.id"), nullable=True)
+    artist: Mapped["Artist"] = relationship(
+        "Artist", foreign_keys=artist_id, back_populates="artworks", lazy="joined"
     )
 
+    festival_id = mapped_column(ForeignKey("festival.id"), nullable=True)
+    festival = relationship(
+        "Festival", foreign_keys=festival_id, back_populates="artworks", lazy="subquery"
+    )
     # Отношение "один-ко-одному" к ArtworkLocation
     location: Mapped["ArtworkLocation"] = relationship(
         uselist=False,

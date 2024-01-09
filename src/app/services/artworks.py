@@ -40,6 +40,12 @@ class ArtworksService:
         artwork_dict = artwork_schema.model_dump(exclude={"location"})
 
         artwork_dict["added_by_user_id"] = user.id
+        artwork_dict["artist_id"] = (
+            artwork_schem.artist_id if artwork_schem.artist_id else None
+        )
+        artwork_dict["festival_id"] = (
+            artwork_schem.festival_id if artwork_schem.festival_id else None
+        )
 
         async with uow:
             artwork = await uow.artworks.create(artwork_dict)
@@ -108,6 +114,10 @@ class ArtworksService:
                             # img.generate_thumbnail_url()
                             artwork.location.thumbnail_image = img
 
+            if artwork.artist_id:
+                artwork.artist = await uow.artist.get(artwork.artist_id)
+            else:
+                artwork.artist = None
             await uow.commit()
             return artwork
 

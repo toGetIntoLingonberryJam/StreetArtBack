@@ -12,7 +12,3 @@ class ArtworkImageCreate(ArtworkImageBase):
 
 class ArtworkImage(ArtworkImageBase):
     id: int
-
-
-# class ArtworkImageThumbnail(BaseModel):
-#     thumbnail_url: HttpUrl

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, field_validator, HttpUrl, ConfigDict, Field
+from pydantic import BaseModel, field_validator, HttpUrl
 from pydantic_partial import PartialModelMixin
 
 from app.modules.artworks.models.artwork_image import ArtworkImage
@@ -13,10 +13,10 @@ class ArtworkLocationBase(BaseModel):
 
 
 class ArtworkLocationCreate(ArtworkLocationBase):
-    pass
+    artwork_id: int
 
 
-class ArtworkLocationEdit(PartialModelMixin, ArtworkLocationCreate):
+class ArtworkLocationEdit(PartialModelMixin, ArtworkLocationBase):
     pass
 
 

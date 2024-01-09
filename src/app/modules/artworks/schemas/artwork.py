@@ -8,9 +8,9 @@ from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.models.artwork import ArtworkStatus
 from app.modules.artworks.schemas.artwork_image import ArtworkImage
 from app.modules.artworks.schemas.artwork_location import (
-    ArtworkLocationCreate,
     ArtworkLocation,
     ArtworkLocationEdit,
+    ArtworkLocationBase,
 )
 from app.modules.artworks.schemas.artwork_moderation import (
     ArtworkModerationBase,
@@ -37,7 +37,7 @@ class ArtworkBase(BaseModel):
 
 
 class ArtworkCreate(ArtworkBase):
-    location: ArtworkLocationCreate
+    location: ArtworkLocationBase
 
     @model_validator(mode="before")
     def validate_to_json(

@@ -9,6 +9,7 @@ class UserRead(CreateUpdateDictModel):
     id: int
     username: str
     email: EmailStr
+    is_verified: bool
     is_artist: bool
     is_moderator: bool
     is_verified: bool

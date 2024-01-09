@@ -1,13 +1,13 @@
 from PIL import Image
 from fastapi import UploadFile
 
-from config import YANDEX_DISK_TOKEN, YANDEX_DISK_IMAGES_FOLDER
+from config import get_settings
 import yadisk
 import imagehash
 
 # ToDo: возможно стоит вынести инициализацию в app.py
 # Инициализация YaDisk
-y = yadisk.YaDisk(token=YANDEX_DISK_TOKEN)
+y = yadisk.YaDisk(token=get_settings().yandex_disk_token)
 
 
 def generate_unique_filename(image: UploadFile):
@@ -33,7 +33,7 @@ async def upload_to_yandex_disk(image: UploadFile):
     unique_filename = generate_unique_filename(image)
 
     # Загружаем изображение в Яндекс.Диск
-    file_cloud_path = YANDEX_DISK_IMAGES_FOLDER + "/" + unique_filename
+    file_cloud_path = get_settings().yandex_disk_images_folder + "/" + unique_filename
 
     if y.is_file(file_cloud_path):
         # Получаем информацию о файле
@@ -56,3 +56,20 @@ async def upload_to_yandex_disk(image: UploadFile):
     file_public_url = public_file.get_meta().FIELDS.get("public_url")
 
     return file_public_url
+
+
+async def delete_from_yandex_disk(public_url: str):
+    try:
+        # Получаем информацию о файле по публичной ссылке
+        meta_info = y.get_public_meta(public_url)
+
+        # Получаем путь к файлу на Яндекс.Диске
+        filename = meta_info.FIELDS.get("name")
+
+        file_path = get_settings().yandex_disk_images_folder + "/" + filename
+
+        # Удаляем файл
+        y.remove(file_path)
+        print(f"Файл {file_path} успешно удален.")
+    except yadisk.exceptions.BadRequestError as e:
+        print(f"Ошибка при удалении файла: {e}")

@@ -1,7 +1,6 @@
 from sqladmin import ModelView
 
 from app.modules.artworks.models.artwork import Artwork
-from app.modules.artworks.models.artwork_additions import ArtworkAdditions
 from app.modules.artworks.models.artwork_image import ArtworkImage
 from app.modules.artworks.models.artwork_location import ArtworkLocation
 from app.modules.artworks.models.artwork_moderation import ArtworkModeration
@@ -36,11 +35,6 @@ class ArtworkAdmin(ModelView, model=Artwork):
     # column_formatters = {
     #     'added_by_user': lambda v, c: f"{v.added_by_user.username} (ID: {v.added_by_user.id})"
     # }
-
-
-class ArtworkAdditionsAdmin(ModelView, model=ArtworkAdditions):
-    column_list = "__all__"
-    category = "Арт-объект"
 
 
 class ArtworkImageAdmin(ModelView, model=ArtworkImage):

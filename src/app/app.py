@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 
@@ -11,9 +9,6 @@ from app.db import engine, redis
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
-
-logging.basicConfig(level="DEBUG")
-logger = logging.getLogger()
 
 app = FastAPI(title="StreetArtWitnessesAPI")
 

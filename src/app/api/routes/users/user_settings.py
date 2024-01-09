@@ -110,6 +110,6 @@ async def get_user_by_id(
 
 
 @settings_router.get("/me/favorite_artworks")  # response_model=list[int]
-async def get_favorite_artworks_ids(uow: UOWDep, user: User = Depends(current_user)):
+async def get_favorite_artwork_ids(uow: UOWDep, user: User = Depends(current_user)):
     reactions = await UserService().get_user_reactions(uow, user.id)
     return reactions

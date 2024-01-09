@@ -19,7 +19,7 @@ class User(Base, SQLAlchemyBaseUserTable[int]):
     username: Mapped[str] = mapped_column(String(length=64), nullable=False)
 
     # отношение к добавленным арт-объектам
-    added_artworks = relationship(
+    added_artworks: Mapped[List["Artwork"]] = relationship(
         "Artwork",
         back_populates="added_by_user",
         foreign_keys=[Artwork.added_by_user_id],

@@ -77,7 +77,11 @@ def upgrade() -> None:
     # ### end Alembic commands ###
 
     # ИСПОЛЬЗУЕТСЯ ДЛЯ СОЗДАНИЯ ПОЛЕЙ (public_key & file_path) УЖЕ СОЗДАННЫХ ОБЪЕКТОВ
-    asyncio.run(update_images_fields())
+    # asyncio.create_task(update_images_fields())
+    try:
+        asyncio.create_task(update_images_fields())
+    except RuntimeError:
+        asyncio.run(update_images_fields())
 
 
 def downgrade() -> None:

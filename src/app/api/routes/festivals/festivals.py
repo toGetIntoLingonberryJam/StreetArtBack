@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi_filter import FilterDepends
-from fastapi_filter.contrib.sqlalchemy import Filter
+from app.api.utils.libs.fastapi_filter import FilterDepends
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import paginate
 
 from app.api.routes.artists.artists import artist_router

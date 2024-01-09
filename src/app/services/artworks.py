@@ -41,10 +41,10 @@ class ArtworksService:
 
         artwork_dict["added_by_user_id"] = user.id
         artwork_dict["artist_id"] = (
-            artwork_schem.artist_id if artwork_schem.artist_id else None
+            artwork_schema.artist_id if artwork_schema.artist_id else None
         )
         artwork_dict["festival_id"] = (
-            artwork_schem.festival_id if artwork_schem.festival_id else None
+            artwork_schema.festival_id if artwork_schema.festival_id else None
         )
 
         async with uow:
@@ -221,20 +221,20 @@ class ArtworksService:
     #         return locations
 
     async def update_artwork(
-        self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkUpdateSchema
+        self, uow: UnitOfWork, artwork_id: int, artwork_schema: ArtworkUpdateSchema
     ):
         location_dict = (
-            artwork_schem.location.model_dump(exclude_unset=True)
-            if artwork_schem.location
+            artwork_schema.location.model_dump(exclude_unset=True)
+            if artwork_schema.location
             else None
         )
         moderation_dict = (
-            artwork_schem.moderation.model_dump(exclude_unset=True)
-            if artwork_schem.moderation
+            artwork_schema.moderation.model_dump(exclude_unset=True)
+            if artwork_schema.moderation
             else None
         )
 
-        artwork_dict = artwork_schem.model_dump(
+        artwork_dict = artwork_schema.model_dump(
             exclude_unset=True, exclude={"location", "moderation"}
         )
 

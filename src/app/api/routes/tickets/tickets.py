@@ -196,7 +196,7 @@ async def create_artwork_ticket(
 #     artwork = await ArtworksService().create_artwork(
 #         uow=uow,
 #         user=user,
-#         artwork_schem=artwork_data,
+#         artwork_schema=artwork_data,
 #         images=images,
 #         thumbnail_image_index=thumbnail_image_index,
 #     )

@@ -35,9 +35,9 @@ class TicketsService:
     #     thumbnail_image_index: Optional[int] = None,
     # ):
     #     pass
-    # location_data = artwork_schem.location
+    # location_data = artwork_schema.location
     #
-    # artwork_dict = artwork_schem.model_dump(exclude={"location"})
+    # artwork_dict = artwork_schema.model_dump(exclude={"location"})
     #
     # artwork_dict["added_by_user_id"] = user.id
     #

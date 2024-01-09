@@ -1,4 +1,4 @@
-from fastapi_filter.contrib.sqlalchemy import Filter
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound

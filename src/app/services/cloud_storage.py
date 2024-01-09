@@ -7,7 +7,7 @@ from typing import Optional
 
 import yadisk
 from fastapi import UploadFile
-from yadisk.objects import AsyncPublicResourceObject
+from yadisk.objects import AsyncPublicResourceObject, AsyncResourceObject
 
 from app.modules import TicketBase, Artwork
 from config import get_settings
@@ -65,7 +65,7 @@ class CloudStorageService:
         return await client.is_file(file_path)
 
     @classmethod
-    async def get_file_info(cls, path: str) -> AsyncPublicResourceObject:
+    async def get_file_info(cls, path: str) -> AsyncResourceObject:
         client = cls.get_client()
         meta_info = await client.get_meta(path)
         return meta_info

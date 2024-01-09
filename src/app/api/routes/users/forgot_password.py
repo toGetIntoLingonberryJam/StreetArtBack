@@ -17,9 +17,9 @@ password_router = APIRouter()
 
 @password_router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
 async def forgot_password(
-        request: Request,
-        email: EmailStr = Body(..., embed=True),
-        user_manager=Depends(get_user_manager)
+    request: Request,
+    email: EmailStr = Body(..., embed=True),
+    user_manager=Depends(get_user_manager),
 ):
     try:
         user = await user_manager.get_by_email(email)
@@ -36,18 +36,18 @@ async def forgot_password(
 
 @password_router.post("/reset-password", responses=RESET_PASSWORD_RESPONSES)
 async def reset_password(
-        request: Request,
-        token: Annotated[str, Form()],
-        password: Annotated[str, Form()],
-        user_manager=Depends(get_user_manager),
+    request: Request,
+    token: Annotated[str, Form()],
+    password: Annotated[str, Form()],
+    user_manager=Depends(get_user_manager),
 ):
     try:
         await user_manager.reset_password(token, password, request)
         return HTTPException(status_code=200, detail={"Успешно изменен пароль."})
     except (
-            exceptions.InvalidResetPasswordToken,
-            exceptions.UserNotExists,
-            exceptions.UserInactive,
+        exceptions.InvalidResetPasswordToken,
+        exceptions.UserNotExists,
+        exceptions.UserInactive,
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -64,7 +64,5 @@ async def reset_password(
 
 
 @password_router.post("/verify_reset_password")
-async def reset_password(
-        token: Annotated[str, Form()]
-):
+async def reset_password(token: Annotated[str, Form()]):
     return HTMLResponse(content=get_reset_password_template(token), status_code=200)

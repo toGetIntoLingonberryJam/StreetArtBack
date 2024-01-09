@@ -25,7 +25,7 @@ class ArtworkLocation(ArtworkLocationBase):
 
     thumbnail_image: Optional[HttpUrl]
 
-    @field_validator('thumbnail_image', mode='before')
+    @field_validator("thumbnail_image", mode="before")
     def validate_image(cls, v):  # noqa
         if v:
             # Если значение - строка, вернуть его как URL-адрес

@@ -1,7 +1,17 @@
 from app.db import async_session_maker
-from app.repos.artworks import ArtworkRepository, ArtworkLocationRepository, ArtworkImageRepository, \
-    ArtworkModerationRepository, FestivalRepository
-from app.repos.users import ReactionRepository, ModeratorRepository, ArtistRepository, UsersRepository
+from app.repos.artworks import (
+    ArtworkRepository,
+    ArtworkLocationRepository,
+    ArtworkImageRepository,
+    ArtworkModerationRepository,
+    FestivalRepository,
+)
+from app.repos.users import (
+    ReactionRepository,
+    ModeratorRepository,
+    ArtistRepository,
+    UsersRepository,
+)
 
 
 class UnitOfWork:

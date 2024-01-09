@@ -9,4 +9,3 @@ router = APIRouter(prefix="/users", tags=["Users"])
 router.include_router(settings_router)
 router.include_router(verify_router)
 router.include_router(password_router)
-

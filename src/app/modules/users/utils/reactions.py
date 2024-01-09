@@ -9,4 +9,3 @@ class Reaction(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     artworks_id: Mapped[int] = mapped_column(ForeignKey("artworks.id"))
-

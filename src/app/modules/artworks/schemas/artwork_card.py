@@ -2,13 +2,13 @@ from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.modules.artists.schemas.artist_card import ArtistCard
+from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.models.artwork import ArtworkStatus
 from app.modules.artworks.schemas.artwork_image import ArtworkImage
 from app.modules.artworks.schemas.artwork_location import ArtworkLocation
 
 
-class ArtworkCard(BaseModel):
+class ArtworkCardSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     title: str
@@ -17,13 +17,15 @@ class ArtworkCard(BaseModel):
     status: ArtworkStatus
     images: Optional[List[ArtworkImage]] = Field(..., exclude=True)
     location: ArtworkLocation = Field(..., exclude=True)
-    artist: Optional[ArtistCard]
+    artist: Optional[ArtistCardSchema]
 
     address: Optional[str] = None
     card_image: Optional[ArtworkImage] = None
 
     @field_validator("images")
-    def images_valid(cls, img: List[ArtworkImage] | None) -> Optional[List[ArtworkImage]]:
+    def images_valid(
+        cls, img: List[ArtworkImage] | None
+    ) -> Optional[List[ArtworkImage]]:
         if img:
             cls.card_image = img[0]
         return img

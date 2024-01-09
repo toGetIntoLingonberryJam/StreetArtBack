@@ -3,6 +3,7 @@ from typing import AsyncGenerator
 
 from fastapi import HTTPException
 from sqlalchemy import MetaData
+
 # from sqlalchemy.exc import StatementError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base

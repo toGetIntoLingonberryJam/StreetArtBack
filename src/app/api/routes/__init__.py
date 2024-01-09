@@ -1,13 +1,7 @@
 from app.api.utils import remove_trailing_slashes_from_routes
 from fastapi import APIRouter
 
-from . import (
-    auth,
-    users,
-    artworks,
-    artists,
-    festivals
-)
+from . import auth, users, artworks, artists, festivals
 
 router = APIRouter(prefix="/v1", include_in_schema=True)
 

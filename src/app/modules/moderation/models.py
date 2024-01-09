@@ -18,6 +18,7 @@ class Moderator(Base):
 
 # get_current_moderator = get_current_moderator
 
+
 async def current_artist(user: User = Depends(current_user)):
     if not user.is_artist:
         raise HTTPException(status_code=403, detail="Нет доступа.")

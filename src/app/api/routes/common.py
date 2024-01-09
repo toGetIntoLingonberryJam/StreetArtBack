@@ -42,7 +42,9 @@ def generate_response(
                     error_code: {
                         "summary": summary,
                         "value": {
-                            "detail": generate_detail(error_code=error_code, message=message, data=data)
+                            "detail": generate_detail(
+                                error_code=error_code, message=message, data=data
+                            )
                         },
                     },
                 }

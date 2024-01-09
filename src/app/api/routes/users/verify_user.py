@@ -11,13 +11,13 @@ from app.modules.users.schemas import UserRead
 verify_router = APIRouter()
 
 
-@verify_router.post("/request-verify-token",
-                    status_code=status.HTTP_202_ACCEPTED,
-                    tags=['verify-front'])
+@verify_router.post(
+    "/request-verify-token", status_code=status.HTTP_202_ACCEPTED, tags=["verify-front"]
+)
 async def request_verify_token(
-        request: Request,
-        email: EmailStr = Body(..., embed=True),
-        user_manager=Depends(get_user_manager),
+    request: Request,
+    email: EmailStr = Body(..., embed=True),
+    user_manager=Depends(get_user_manager),
 ):
     try:
         user = await user_manager.get_by_email(email)
@@ -28,11 +28,11 @@ async def request_verify_token(
     return None
 
 
-@verify_router.get("/verify", response_model=UserRead, tags=['verify-back'])
+@verify_router.get("/verify", response_model=UserRead, tags=["verify-back"])
 async def verify(
-        token: str,
-        request: Request,
-        user_manager=Depends(get_user_manager),
+    token: str,
+    request: Request,
+    user_manager=Depends(get_user_manager),
 ):
     try:
         user = await user_manager.verify(token, request)

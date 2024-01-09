@@ -33,7 +33,11 @@ class SQLAlchemyRepository:
         # return new_obj
 
     async def get_all(
-        self, offset: int = 0, limit: int | None = None, filters: Filter | None = None, **filter_by
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+        filters: Filter | None = None,
+        **filter_by
     ) -> Sequence[ModelBase]:
         stmt = select(self.model).offset(offset=offset)
 

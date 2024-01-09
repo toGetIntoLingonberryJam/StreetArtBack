@@ -11,8 +11,14 @@ class AdminPanel:
     admin: Admin
 
     def __init__(self, app: FastAPI, engine: AsyncEngine):
-        self.admin = Admin(app, engine, title="StreetArt",
-                           authentication_backend=AdminAuth(secret_key=config.SECRET_VERIFICATION_TOKEN))
+        self.admin = Admin(
+            app,
+            engine,
+            title="StreetArt",
+            authentication_backend=AdminAuth(
+                secret_key=config.SECRET_VERIFICATION_TOKEN
+            ),
+        )
 
         self.admin.add_view(UserAdmin)
 
@@ -21,4 +27,3 @@ class AdminPanel:
         self.admin.add_view(ArtworkImageAdmin)
         self.admin.add_view(ArtworkLocationAdmin)
         self.admin.add_view(ArtworkModerationAdmin)
-

@@ -4,7 +4,11 @@ from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
 from app.modules.artists.schemas.artist import ArtistCreate
-from app.utils.exceptions import UserNotFoundException, IncorrectInput, ObjectNotFoundException
+from app.utils.exceptions import (
+    UserNotFoundException,
+    IncorrectInput,
+    ObjectNotFoundException,
+)
 from app.utils.unit_of_work import UnitOfWork
 
 
@@ -37,12 +41,13 @@ class ArtistsService:
             await uow.commit()
             return artist
 
-    async def get_all_artist(self,
-                             uow: UnitOfWork,
-                             pagination: Params | None = None,
-                             filters: Filter | None = None,
-                             **filter_by
-                             ):
+    async def get_all_artist(
+        self,
+        uow: UnitOfWork,
+        pagination: Params | None = None,
+        filters: Filter | None = None,
+        **filter_by
+    ):
         async with uow:
             offset: int = 0
             limit: int | None = None
@@ -51,10 +56,9 @@ class ArtistsService:
                 pagination_raw_params = pagination.to_raw_params()
                 offset = pagination_raw_params.offset
                 limit = pagination_raw_params.limit
-            artists = await uow.artist.get_all(offset=offset,
-                                               limit=limit,
-                                               filters=filters,
-                                               filter_by=filter_by)
+            artists = await uow.artist.get_all(
+                offset=offset, limit=limit, filters=filters, filter_by=filter_by
+            )
             return artists
 
     async def delete_artist(self, uow: UnitOfWork, artist_id: int):

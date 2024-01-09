@@ -66,14 +66,14 @@ async def show_artwork_locations(uow: UOWDep):
     },
 )
 async def create_artwork(
-        uow: UOWDep,
-        user: User = Depends(current_user),
-        artwork_data: ArtworkCreate = Body(...),
-        thumbnail_image_index: Annotated[int, Body()] = None,
-        images: Annotated[
-            List[UploadFile],
-            File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
-        ] = None,
+    uow: UOWDep,
+    user: User = Depends(current_user),
+    artwork_data: ArtworkCreate = Body(...),
+    thumbnail_image_index: Annotated[int, Body()] = None,
+    images: Annotated[
+        List[UploadFile],
+        File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
+    ] = None,
 ):
     if images:
         for image in images:
@@ -108,9 +108,9 @@ async def create_artwork(
     description="Выводит список подтверждённых арт-объектов, используя пагинацию. Лимит: 50 объектов.",
 )
 async def show_artworks(
-        uow: UOWDep,
-        pagination: MyParams = Depends(),
-        filters: Filter = FilterDepends(ArtworkFilter),
+    uow: UOWDep,
+    pagination: MyParams = Depends(),
+    filters: Filter = FilterDepends(ArtworkFilter),
 ):
     artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
     return paginate(artworks, pagination)
@@ -155,7 +155,7 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
             summary="Object not found",
             message="Artwork not found",
         )
-    }
+    },
 )
 async def edit_artwork(artwork_id: int, artwork_data: ArtworkEdit, uow: UOWDep):
     try:
@@ -183,7 +183,7 @@ async def edit_artwork(artwork_id: int, artwork_data: ArtworkEdit, uow: UOWDep):
             summary="Object not found",
             message="Artwork not found",
         )
-    }
+    },
 )
 async def delete_artwork(artwork_id: int, uow: UOWDep):
     try:
@@ -215,11 +215,9 @@ async def delete_artwork(artwork_id: int, uow: UOWDep):
             summary="Object not found",
             message="Artwork not found",
         )
-    }
+    },
 )
-async def toggle_like(artwork_id: int,
-                      uow: UOWDep,
-                      user: User = Depends(current_user)):
+async def toggle_like(artwork_id: int, uow: UOWDep, user: User = Depends(current_user)):
     try:
         artwork = await ArtworksService().get_artwork(uow, artwork_id)
         reaction = await UserService().make_reaction(uow, user.id, artwork.id)

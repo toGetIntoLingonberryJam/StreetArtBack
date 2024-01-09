@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base, get_async_session
 from app.modules.artists.models import Artist
 from app.modules.artworks.models.artwork import Artwork
-from app.modules.festivals.models import Festival   # TODO: перенести в __init__
+from app.modules.festivals.models import Festival  # TODO: перенести в __init__
 from app.modules.users.utils.reactions import Reaction
 
 
@@ -19,10 +19,16 @@ class User(Base, SQLAlchemyBaseUserTable[int]):
     username: Mapped[str] = mapped_column(String(length=64), nullable=False)
 
     # отношение к добавленным арт-объектам
-    added_artworks = relationship("Artwork", back_populates="added_by_user", foreign_keys=[Artwork.added_by_user_id])
+    added_artworks = relationship(
+        "Artwork",
+        back_populates="added_by_user",
+        foreign_keys=[Artwork.added_by_user_id],
+    )
 
     # отношение MANY-TO-MANY к любимым работам
-    favorite_artworks: Mapped[List["Artwork"]] = relationship("Artwork", secondary="reaction")
+    favorite_artworks: Mapped[List["Artwork"]] = relationship(
+        "Artwork", secondary="reaction"
+    )
 
     is_artist: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_moderator: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

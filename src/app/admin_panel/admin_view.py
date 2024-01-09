@@ -31,11 +31,12 @@ class ArtworkAdmin(ModelView, model=Artwork):
         Artwork.artist: lambda model, a: f"{model.artist.username} (ID: {model.artist.id})",
         Artwork.location: lambda model, a: f"lat: {model.location.latitude}\nlng: {model.location.longitude}",
         Artwork.images: lambda model, a: f"{len(model.images)}",
-        Artwork.moderation: lambda model, a: f"Status: {model.moderation.status.name}"
+        Artwork.moderation: lambda model, a: f"Status: {model.moderation.status.name}",
     }
     # column_formatters = {
     #     'added_by_user': lambda v, c: f"{v.added_by_user.username} (ID: {v.added_by_user.id})"
     # }
+
 
 class ArtworkAdditionsAdmin(ModelView, model=ArtworkAdditions):
     column_list = "__all__"

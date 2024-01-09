@@ -8,7 +8,10 @@ from fastapi_pagination import Params
 from app.api.utils.paginator import MyParams
 from app.modules import TicketBase, ArtworkTicket
 from app.modules.cloud_storage.schemas.image import ImageCreateSchema, ImageReadSchema
-from app.modules.tickets.schemas.ticket_artwork import ArtworkTicketCreateSchema, ArtworkTicketReadSchema
+from app.modules.tickets.schemas.ticket_artwork import (
+    ArtworkTicketCreateSchema,
+    ArtworkTicketReadSchema,
+)
 from app.modules.tickets.schemas.ticket_base import TicketCreateSchema, TicketReadSchema
 from app.modules.tickets.utils.classes import (
     TicketModel,
@@ -199,7 +202,7 @@ class TicketsService:
                     image_create = ImageCreateSchema(
                         image_url=cloud_file.public_url,
                         public_key=cloud_file.public_key,
-                        file_path=cloud_file.file_path
+                        file_path=cloud_file.file_path,
                     )
 
                     # Проверка отсутствия image_url в уникальных
@@ -218,21 +221,21 @@ class TicketsService:
                     if exist_image:
                         ticket_images.append(exist_image[0])
                     else:
-                        ticket_images.append(
-                            await uow.images.create(image_data)
-                        )
+                        ticket_images.append(await uow.images.create(image_data))
 
-                ticket_data["artwork_data"]["images"] = \
-                    [ImageReadSchema(**image.__dict__).model_dump_json() for image in ticket_images]
+                ticket_data["artwork_data"]["images"] = [
+                    ImageReadSchema(**image.__dict__).model_dump_json()
+                    for image in ticket_images
+                ]
 
                 if location_data:
                     if thumbnail_image_index:
                         if 0 <= thumbnail_image_index < len(ticket_images):
                             img = ticket_images[thumbnail_image_index]
                             # img.generate_thumbnail_url()
-                            ticket_data["artwork_data"]["location"]["thumbnail_image"] = img.image_url
-
-
+                            ticket_data["artwork_data"]["location"][
+                                "thumbnail_image"
+                            ] = img.image_url
 
             # ticket = await uow.tickets.create_ticket_by_ticket_model(
             #     user=user, ticket_model_enum_value=ticket_model, ticket_data=ticket_schema

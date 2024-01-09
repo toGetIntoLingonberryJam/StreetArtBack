@@ -145,11 +145,3 @@ class CloudStorageService:
             print(f"File {file_path} successfully deleted.")
         except yadisk.exceptions.BadRequestError as e:
             print(f"Error deleting file: {e}")
-
-
-if __name__ == "__main__":
-    asyncio.run(
-        CloudStorageService.get_file_info(
-            public_url="https://yadi.sk/i/cVAHcHYNIcLA0A"
-        )
-    )

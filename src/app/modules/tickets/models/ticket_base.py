@@ -7,7 +7,12 @@ from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.types import Enum
 
 from app.db import Base
-from app.modules.tickets.utils.classes import TicketType, TicketStatus, TicketModel, TicketRegistry
+from app.modules.tickets.utils.classes import (
+    TicketType,
+    TicketStatus,
+    TicketModel,
+    TicketRegistry,
+)
 
 
 @TicketRegistry.register(TicketModel.TICKET)

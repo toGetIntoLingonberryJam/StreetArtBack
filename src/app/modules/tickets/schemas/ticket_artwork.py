@@ -23,9 +23,7 @@ class ArtworkTicketBaseSchema(TicketBaseSchema):
     pass
 
 
-class ArtworkTicketCreateSchema(
-    TicketCreateSchema, ArtworkTicketBaseSchema
-):
+class ArtworkTicketCreateSchema(TicketCreateSchema, ArtworkTicketBaseSchema):
     artwork_data: ArtworkCreateSchema
 
     @model_validator(mode="before")
@@ -42,9 +40,7 @@ class ArtworkTicketReadSchema(TicketReadSchema, ArtworkTicketBaseSchema):
     artwork_data: dict
 
 
-class ArtworkTicketUpdateSchema(
-    TicketUpdateSchema, ArtworkTicketBaseSchema
-):
+class ArtworkTicketUpdateSchema(TicketUpdateSchema, ArtworkTicketBaseSchema):
     artwork_data: ArtworkUpdateSchema
 
 

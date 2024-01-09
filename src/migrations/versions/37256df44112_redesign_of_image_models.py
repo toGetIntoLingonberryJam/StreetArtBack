@@ -118,9 +118,7 @@ async def update_images_fields():
     print(images)
     for image in images:
         try:
-            image_data = await CloudStorageService().get_file_info(
-                image.image_url
-            )
+            image_data = await CloudStorageService().get_file_info(image.image_url)
             print(image_data)
             public_key = image_data.FIELDS.get("public_key")  # noqa
 

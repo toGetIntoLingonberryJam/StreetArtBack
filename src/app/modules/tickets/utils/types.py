@@ -1,4 +1,3 @@
-
 from typing import TypeVar
 
 from app.modules.tickets.schemas.ticket_base import TicketCreateSchema, TicketReadSchema

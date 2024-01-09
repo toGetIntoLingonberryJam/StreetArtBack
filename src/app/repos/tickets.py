@@ -3,11 +3,9 @@ from typing import Type
 from sqlalchemy.exc import NoResultFound
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
-from app.modules import User
 from app.modules.tickets.models import TicketBase, ArtworkTicket
 from app.modules.tickets.utils.classes import TicketRegistry, TicketModel
 from app.repos.SQLAlchemy_repository import SQLAlchemyRepository
-from app.modules.tickets.utils.types import TicketCreateSchemaType
 
 
 class TicketBaseRepository(SQLAlchemyRepository):

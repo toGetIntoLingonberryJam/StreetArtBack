@@ -1,9 +1,9 @@
-from typing import Sequence
+from typing import Sequence, Union, Any, Self
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel as BaseSchema
 
-from sqlalchemy import insert, select, update, delete, inspect
+from sqlalchemy import select, update, delete, inspect, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import RelationshipProperty, InstrumentedAttribute, with_polymorphic
 
@@ -17,8 +17,8 @@ class SQLAlchemyRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-
-    async def _select(self, model):
+    @staticmethod
+    async def _select(model) -> Select[Any]:
         mapper = inspect(model)
         if mapper.polymorphic_on is not None:
             # Модель является родительской, получить все дочерние классы
@@ -28,62 +28,9 @@ class SQLAlchemyRepository:
 
         return stmt
 
-
-    async def create(self, obj_data: BaseSchema | dict) -> ModelBase:
-        obj_data = (
-            obj_data if isinstance(obj_data, dict) else obj_data.model_dump()
-        )  # ?? exclude_none=True, exclude_unset=True
-
-        # stmt = insert(self.model).values(**obj_data).returning(self.model)
-        # res = await self.session.execute(stmt)
-        # return res.scalar_one()
-
-        new_obj = self.model(**obj_data)
-        self.session.add(new_obj)
-        await self.session.flush()
-        await self.session.refresh(new_obj)
-        return new_obj
-
-
-    async def get_all(
-            self, offset: int = 0, limit: int | None = None
-    ) -> Sequence[ModelBase]:
-        stmt = await self._select(self.model)
-
-        stmt = stmt.offset(offset=offset)
-
-        if limit:
-            stmt = stmt.limit(limit=limit)
-
-        result = await self.session.execute(stmt)
-        items = result.scalars().all()
-        return items
-
-
-    async def get(
-            self, obj_id: int, filters: Filter | None = None, **filter_by
-    ) -> ModelBase:
-
-        stmt = await self._select(self.model)
-        stmt = stmt.filter_by(id=obj_id)
-        result = await self.session.execute(stmt)
-        return result.scalar_one()
-
-
-    async def filter(
-            self,
-            offset: int = 0,
-            limit: int | None = None,
-            filters: Filter | None = None,
-            **filter_by
-    ):
-        stmt = await self._select(self.model)
-
-        stmt = stmt.offset(offset=offset)
-
-        if limit:
-            stmt = stmt.limit(limit=limit)
-
+    async def _filter(
+        self, stmt: Select, filters: Filter | None = None, **filter_by
+    ) -> Select[Any]:
         if filters:
             if hasattr(filters, "ordering_values"):
                 stmt = filters.sort(stmt)
@@ -107,7 +54,7 @@ class SQLAlchemyRepository:
             # Фильтрация через связь, если атрибут - связанное поле
             for attr, value in filters_by.items():
                 if isinstance(
-                        valid_attributes[attr], InstrumentedAttribute
+                    valid_attributes[attr], InstrumentedAttribute
                 ) and isinstance(valid_attributes[attr].property, RelationshipProperty):
                     related_model = valid_attributes[attr].mapper.class_
                     stmt = stmt.join(related_model)
@@ -124,10 +71,66 @@ class SQLAlchemyRepository:
                 else:
                     stmt = stmt.filter_by(**{attr: value})
 
+        return stmt
+
+    async def create(self, obj_data: BaseSchema | dict) -> ModelBase:
+        obj_data = (
+            obj_data if isinstance(obj_data, dict) else obj_data.model_dump()
+        )  # ?? exclude_none=True, exclude_unset=True
+
+        # stmt = insert(self.model).values(**obj_data).returning(self.model)
+        # res = await self.session.execute(stmt)
+        # return res.scalar_one()
+
+        new_obj = self.model(**obj_data)
+        self.session.add(new_obj)
+        await self.session.flush()
+        await self.session.refresh(new_obj)
+        return new_obj
+
+    async def get_all(
+        self, offset: int = 0, limit: int | None = None
+    ) -> Sequence[ModelBase]:
+        stmt = await self._select(self.model)
+
+        stmt = stmt.offset(offset=offset)
+
+        if limit:
+            stmt = stmt.limit(limit=limit)
+
+        result = await self.session.execute(stmt)
+        items = result.scalars().all()
+        return items
+
+    async def get(
+        self, obj_id: int, filters: Filter | None = None, **filter_by
+    ) -> ModelBase:
+        stmt = await self._select(self.model)
+        stmt = stmt.filter_by(id=obj_id)
+        result = await self.session.execute(stmt)
+        # filter_by["id"] = obj_id
+        # a = await self._filter(filters=filters, **filter_by)
+        return result.scalar_one()
+
+    async def filter(
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+        filters: Filter | None = None,
+        **filter_by
+    ):
+        stmt = await self._select(self.model)
+
+        stmt = stmt.offset(offset=offset)
+
+        if limit:
+            stmt = stmt.limit(limit=limit)
+
+        stmt = await self._filter(query=stmt, filters=filters, **filter_by)
+
         result = await self.session.execute(stmt)
 
         return result.scalars().all()
-
 
     async def edit(self, obj_id: int, obj_data: BaseSchema | dict) -> int:
         obj_data = (
@@ -144,7 +147,6 @@ class SQLAlchemyRepository:
         )
         res = await self.session.execute(stmt)
         return res.scalar_one()
-
 
     async def delete(self, obj_id: int):
         stmt = delete(self.model).filter_by(id=obj_id)

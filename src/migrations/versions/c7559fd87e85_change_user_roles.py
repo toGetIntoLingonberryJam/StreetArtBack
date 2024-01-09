@@ -47,10 +47,7 @@ def upgrade() -> None:
     op.add_column(
         "user",
         sa.Column(
-            "is_artist",
-            sa.Boolean(),
-            server_default=sa.text("false"),
-            nullable=False
+            "is_artist", sa.Boolean(), server_default=sa.text("false"), nullable=False
         ),
     )
     op.add_column(

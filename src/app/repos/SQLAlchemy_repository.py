@@ -1,15 +1,14 @@
 from typing import Sequence
 
-from fastapi_filter.contrib.sqlalchemy import Filter
-from fastapi_pagination import Params
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel as BaseSchema
 
 from sqlalchemy import insert, select, update, delete
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import RelationshipProperty, InstrumentedAttribute
 
-from app.db import async_session_maker, Base as ModelBase
+from app.db import Base as ModelBase
+from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 
 
 class SQLAlchemyRepository:
@@ -33,74 +32,78 @@ class SQLAlchemyRepository:
         # return new_obj
 
     async def get_all(
-        self, offset: int = 0, limit: int | None = None, filters: Filter | None = None, **filter_by
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+        filters: Filter | None = None,
+        **filter_by
     ) -> Sequence[ModelBase]:
         stmt = select(self.model).offset(offset=offset)
 
         if limit:
             stmt = stmt.limit(limit=limit)
 
+        result = await self.session.execute(stmt)
+        items = result.scalars().all()
+        return items
+
+    async def get(self, obj_id: int) -> ModelBase:
+        stmt = select(self.model).filter_by(id=obj_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def filter(
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+        filters: Filter | None = None,
+        **filter_by
+    ):
+        stmt = select(self.model).offset(offset=offset)
+
+        if limit:
+            stmt = stmt.limit(limit=limit)
+
         if filters:
-            stmt = filters.sort(stmt)
-            stmt = filters.filter(stmt)
+            if hasattr(filters, "ordering_values"):
+                stmt = filters.sort(stmt)
+            if hasattr(filters, "filtering_fields"):
+                stmt = filters.filter(stmt)
 
         if filter_by:
-            # TODO: как-то бы вынести и переработать
+            # TODO: Проработать тот вариант, что может быть передано вложенное связное поле (artwork__artist__username)
             # Проверяем, что переданные атрибуты существуют в модели и стоим фильтр используя только существующие
             valid_attributes = {
                 attr: getattr(self.model, attr)
                 for attr in filter_by.keys()
                 if hasattr(self.model, attr)
             }
-            filters = {
+            filters_by = {
                 attr: value
                 for attr, value in filter_by.items()
                 if attr in valid_attributes
             }
 
             # Фильтрация через связь, если атрибут - связанное поле
-            for attr, value in filters.items():
-                if isinstance(valid_attributes[attr], InstrumentedAttribute):
-                    if isinstance(
-                        valid_attributes[attr].property, RelationshipProperty
-                    ):
-                        related_model = valid_attributes[attr].mapper.class_
-                        stmt = stmt.join(related_model)
-                        for rm_attr, rm_value in value.items():
-                            if isinstance(rm_attr, InstrumentedAttribute):
-                                rm_attr = rm_attr.name
+            for attr, value in filters_by.items():
+                if isinstance(
+                    valid_attributes[attr], InstrumentedAttribute
+                ) and isinstance(valid_attributes[attr].property, RelationshipProperty):
+                    related_model = valid_attributes[attr].mapper.class_
+                    stmt = stmt.join(related_model)
+                    for rm_attr, rm_value in value.items():
+                        if isinstance(rm_attr, InstrumentedAttribute):
+                            rm_attr = rm_attr.name
 
-                            stmt = stmt.filter(
-                                valid_attributes[attr].has(**{rm_attr: rm_value})
-                            )
+                        stmt = stmt.filter(
+                            valid_attributes[attr].any(**{rm_attr: rm_value})
+                        )
+
+                        # ToDo: костыль жопа
+                        stmt = stmt.distinct()
                 else:
                     stmt = stmt.filter_by(**{attr: value})
 
-        result = await self.session.execute(stmt)
-        items = result.scalars().all()
-        return items
-
-    async def get(self, obj_id: int, **filter_by) -> ModelBase:
-        stmt = select(self.model).filter_by(id=obj_id, **filter_by)
-        result = await self.session.execute(stmt)
-        return result.scalar_one()
-        # return await self.session.execute(
-        #     self.model.__table__.
-        #     select().
-        #     where(self.model.id == obj_id)
-        # ).scalar_one()
-
-    async def filter(self, **filter_by):
-        # # Проверяем, что переданные атрибуты существуют в модели
-        # valid_attributes = [attr for attr in kwargs.keys() if hasattr(self.model, attr)]
-        # # Строим фильтр, используя только существующие атрибуты
-        # filters = [getattr(self.model, attr) == value for attr, value in kwargs.items() if attr in valid_attributes]
-        stmt = select(self.model).filter_by(**filter_by)
-        # result = await self.session.execute(
-        #     self.model.__table__.
-        #     select().
-        #     filter_by(**filter_by)
-        # )
         result = await self.session.execute(stmt)
 
         return result.scalars().all()

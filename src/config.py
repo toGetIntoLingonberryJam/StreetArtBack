@@ -1,28 +1,38 @@
-import os
+from functools import lru_cache
+from pydantic import PostgresDsn, RedisDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from dotenv import load_dotenv
 
-# TODO: Переделать в pydantic_settings
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file="/etc/secrets/.env", env_file_encoding="utf-8")
 
-load_dotenv()
+    db_host: str
+    db_port: int
+    db_pass: str
+    db_name: str
+    db_user: str
+    redis_url: RedisDsn
+    secret_key_jwt: str
+    secret_verification_token: str
+    secret_reset_token: str
+    yandex_disk_token: str
+    yandex_disk_images_folder: str
+    email_sender: str
+    email_password: str
+    backend_url: str
 
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_PASS = os.getenv("DB_PASS")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-# DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
+    @property
+    def database_url(self) -> PostgresDsn:
+        return PostgresDsn.build(
+            scheme="postgresql+asyncpg",
+            username=self.db_user,
+            password=self.db_pass,
+            host=self.db_host,
+            port=self.db_port,
+            path=f"{self.db_name}",
+        )
 
-REDIS_URL = os.getenv("REDIS_URL")
 
-SECRET_VERIFICATION_TOKEN = os.getenv("SECRET_VERIFICATION_TOKEN")
-SECRET_RESET_TOKEN = os.getenv("SECRET_RESET_TOKEN")
-
-YANDEX_DISK_TOKEN = os.getenv("YANDEX_DISK_TOKEN")
-YANDEX_DISK_IMAGES_FOLDER = os.getenv("YANDEX_DISK_IMAGES_FOLDER")
-
-EMAIL_SENDER = os.getenv("EMAIL_SENDER")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-
-BACKEND_URL = os.getenv("BACKEND_URL")
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

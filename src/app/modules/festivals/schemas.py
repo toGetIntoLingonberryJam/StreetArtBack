@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, HttpUrl, field_validator, ConfigDict
 
@@ -10,7 +10,7 @@ class FestivalBaseSchema(BaseModel):
 
     name: str
     description: str
-    links: List[HttpUrl]
+    links: Optional[List[HttpUrl]] = None
 
 
 class FestivalCreateSchema(FestivalBaseSchema):

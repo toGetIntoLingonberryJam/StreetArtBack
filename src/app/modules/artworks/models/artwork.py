@@ -4,7 +4,7 @@ from enum import Enum as PyEnum
 from typing import List
 
 import pytz
-from sqlalchemy import Integer, String, ForeignKey, DateTime, func
+from sqlalchemy import Integer, String, ForeignKey, DateTime, func, ARRAY
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.types import Enum
 
@@ -25,8 +25,9 @@ class Artwork(Base):
 
     year_created: Mapped[int] = mapped_column(Integer)
     festival: Mapped[str] = mapped_column(String)
-    description: Mapped[str] = mapped_column(String)
-    source_description: Mapped[str] = mapped_column(String)
+    description: Mapped[str] = mapped_column(String, nullable=True)
+    source_description: Mapped[str] = mapped_column(String, nullable=True)
+    links: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
 
     # отношение к пользователю, который добавил арт-объект
     added_by_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
@@ -42,7 +43,7 @@ class Artwork(Base):
 
     festival_id = mapped_column(ForeignKey("festival.id"), nullable=True)
     festival: Mapped["Festival"] = relationship(
-        "Festival", foreign_keys=festival_id, back_populates="artworks", lazy="subquery"
+        "Festival", foreign_keys=festival_id, back_populates="artworks", lazy="joined"
     )
     # Отношение "один-ко-одному" к ArtworkLocation
     location: Mapped["ArtworkLocation"] = relationship(
@@ -88,7 +89,3 @@ class Artwork(Base):
 
     def __repr__(self):
         return f"{self.title} (ID: {self.id})"
-
-
-
-

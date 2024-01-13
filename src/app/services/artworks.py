@@ -129,6 +129,7 @@ class ArtworksService:
         uow: UnitOfWork,
         pagination: Optional[Params] = None,
         filters: Optional[Filter] = None,
+        **filter_by
     ) -> list[Artwork]:
         async with uow:
             offset: int = 0
@@ -140,7 +141,7 @@ class ArtworksService:
                 limit = pagination_raw_params.limit
 
             artworks = await uow.artworks.filter(
-                offset=offset, limit=limit, filters=filters
+                offset=offset, limit=limit, filters=filters, **filter_by
             )
             return artworks
 
@@ -160,6 +161,7 @@ class ArtworksService:
         uow: UnitOfWork,
         pagination: Optional[Params] = None,
         filters: Optional[Filter] = None,
+        **filter_by
     ) -> list[Artwork]:
         # filters.add_filtering_field(artwork_moderation__status='approved')
         # filters.add_searching_field("artwork_moderation__status")
@@ -170,7 +172,7 @@ class ArtworksService:
         )
 
         return await self.get_artworks_by_moderation_status(
-            uow=uow, pagination=pagination, filters=filters
+            uow=uow, pagination=pagination, filters=filters, **filter_by
         )
 
     async def get_rejected_artworks(

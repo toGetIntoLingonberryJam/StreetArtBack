@@ -22,6 +22,6 @@ class Artist(Base):
         "Artwork", back_populates="artist", lazy="joined"
     )
 
-    links: Mapped[List[str]] = mapped_column(ARRAY(String))
+    links: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
 
     likes: Mapped[List["User"]] = relationship("User", secondary="artist_like")

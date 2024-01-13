@@ -5,7 +5,12 @@ from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import paginate
 from starlette import status
 
-from app.api.routes.common import generate_response, ErrorModel, ErrorCode, generate_detail
+from app.api.routes.common import (
+    generate_response,
+    ErrorModel,
+    ErrorCode,
+    generate_detail,
+)
 from app.api.utils.filters.artists.artist import ArtistFilter
 from app.api.utils.paginator import MyParams, Page
 from app.modules import User
@@ -74,9 +79,9 @@ async def create_artist(artist: ArtistCreate, uow: UOWDep):
     "/", response_model=Page[ArtistCardSchema], description="Получение списка артистов"
 )
 async def get_artist_list(
-        uow: UOWDep,
-        pagination: MyParams = Depends(),
-        filters: Filter = FilterDepends(ArtistFilter),
+    uow: UOWDep,
+    pagination: MyParams = Depends(),
+    filters: Filter = FilterDepends(ArtistFilter),
 ):
     artists = await ArtistsService().get_all_artist(uow, pagination, filters)
     return paginate(artists, pagination)
@@ -88,7 +93,7 @@ async def get_artist_list(
     description="Получение списка артистов",
 )
 async def get_artist_list(
-        uow: UOWDep, artist_id: int, pagination: MyParams = Depends()
+    uow: UOWDep, artist_id: int, pagination: MyParams = Depends()
 ):
     artists = await ArtworksService().get_approved_artworks(
         uow, pagination, filter_by={"artist_id", artist_id}
@@ -126,7 +131,9 @@ async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
 async def toggle_like(artist_id: int, uow: UOWDep, user: User = Depends(current_user)):
     try:
         artist = await ArtistsService().get_artist_by_id(uow, artist_id)
-        reaction_add = await CollectionService().toggle_artist_like(uow, user.id, artist.id)
+        reaction_add = await CollectionService().toggle_artist_like(
+            uow, user.id, artist.id
+        )
         return reaction_add
     except ObjectNotFoundException as e:
         raise HTTPException(

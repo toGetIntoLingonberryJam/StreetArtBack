@@ -17,7 +17,7 @@ from app.repos.users import (
 from app.repos.collection import (
     ArtworkLikeRepository,
     ArtistLikeRepository,
-    FestivalLikeRepository
+    FestivalLikeRepository,
 )
 
 

@@ -14,8 +14,6 @@ from app.modules.users.schemas import (
     UserUpdate,
     UserUpdateUsername,
 )
-from app.services.user import UserService
-from app.utils.dependencies import UOWDep
 
 settings_router = APIRouter()
 

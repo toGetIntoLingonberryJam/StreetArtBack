@@ -1,4 +1,4 @@
-from fastapi import Body, Depends, APIRouter, HTTPException, Form
+from fastapi import Body, Depends, APIRouter, HTTPException
 from fastapi_users import exceptions
 from fastapi_users.router import ErrorCode
 from pydantic import EmailStr

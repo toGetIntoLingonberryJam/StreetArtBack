@@ -16,6 +16,6 @@ class Festival(Base):
     artworks: Mapped[List["Artwork"]] = relationship(
         "Artwork", back_populates="festival", lazy="subquery"
     )
+    links: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
 
-    links: Mapped[List[str]] = mapped_column(ARRAY(String))
     likes: Mapped[List["User"]] = relationship(secondary="festival_like")

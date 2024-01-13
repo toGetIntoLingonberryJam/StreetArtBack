@@ -25,9 +25,15 @@ class User(Base, SQLAlchemyBaseUserTable[int]):
     )
 
     # отношение MANY-TO-MANY к любимым работам
-    favorite_artworks: Mapped[List["Artwork"]] = relationship(secondary="artwork_like", back_populates="likes")
-    favorite_artist: Mapped[List["Artist"]] = relationship(secondary="artist_like", back_populates="likes")
-    favorite_festivals: Mapped[List["Festival"]] = relationship(secondary="festival_like", back_populates="likes")
+    favorite_artworks: Mapped[List["Artwork"]] = relationship(
+        secondary="artwork_like", back_populates="likes"
+    )
+    favorite_artist: Mapped[List["Artist"]] = relationship(
+        secondary="artist_like", back_populates="likes"
+    )
+    favorite_festivals: Mapped[List["Festival"]] = relationship(
+        secondary="festival_like", back_populates="likes"
+    )
 
     tickets: Mapped[List["TicketBase"]] = relationship(back_populates="user")
 

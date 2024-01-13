@@ -1,8 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.exc import NoResultFound
 from starlette import status
 
-from app.api.routes.common import generate_response, ErrorModel, ErrorCode, generate_detail
+from app.api.routes.common import (
+    generate_response,
+    ErrorModel,
+    ErrorCode,
+    generate_detail,
+)
 from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import paginate
@@ -50,9 +54,9 @@ async def create_festival(uow: UOWDep, festival: FestivalCreateSchema):
     description="Выводит список фестивалей, использую пагинацию.",
 )
 async def get_festival_list(
-        uow: UOWDep,
-        pagination: MyParams = Depends(),
-        filters: Filter = FilterDepends(FestivalFilter),
+    uow: UOWDep,
+    pagination: MyParams = Depends(),
+    filters: Filter = FilterDepends(FestivalFilter),
 ):
     festivals = await FestivalService().get_all_festival(uow, pagination, filters)
     return paginate(festivals, pagination)
@@ -85,10 +89,14 @@ async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
         )
     },
 )
-async def toggle_like(festival_id: int, uow: UOWDep, user: User = Depends(current_user)):
+async def toggle_like(
+    festival_id: int, uow: UOWDep, user: User = Depends(current_user)
+):
     try:
         festival = await FestivalService().get_festival_by_id(uow, festival_id)
-        reaction_add = await CollectionService().toggle_festival_like(uow, user.id, festival.id)
+        reaction_add = await CollectionService().toggle_festival_like(
+            uow, user.id, festival.id
+        )
         return reaction_add
     except ObjectNotFoundException as e:
         raise HTTPException(

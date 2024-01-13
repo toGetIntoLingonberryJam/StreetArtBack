@@ -134,7 +134,3 @@ async def update_images_fields():
 
     await session.commit()
     await session.close()
-
-
-if __name__ == "__main__":
-    asyncio.run(update_images_fields())

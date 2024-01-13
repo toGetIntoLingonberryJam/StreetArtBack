@@ -18,3 +18,4 @@ class Festival(Base):
     )
 
     links: Mapped[List[str]] = mapped_column(ARRAY(String))
+    likes: Mapped[List["User"]] = relationship(secondary="festival_like")

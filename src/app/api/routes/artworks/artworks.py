@@ -28,8 +28,10 @@ from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSch
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
 from app.services.artworks import ArtworksService
+from app.services.collection import CollectionService
 from app.services.user import UserService
 from app.utils.dependencies import UOWDep
+from app.utils.exceptions import ObjectNotFoundException
 
 router_artworks = APIRouter(tags=["Artworks"])
 
@@ -224,12 +226,12 @@ async def delete_artwork(artwork_id: int, uow: UOWDep):
 async def toggle_like(artwork_id: int, uow: UOWDep, user: User = Depends(current_user)):
     try:
         artwork = await ArtworksService().get_artwork(uow, artwork_id)
-        reaction = await UserService().make_reaction(uow, user.id, artwork.id)
-        return True if reaction else False
-    except NoResultFound:
+        reaction_add = await CollectionService().toggle_artwork_like(uow, user.id, artwork.id)
+        return reaction_add
+    except ObjectNotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=generate_detail(
-                error_code=ErrorCode.OBJECT_NOT_FOUND, message="Artwork not found"
+                error_code=ErrorCode.OBJECT_NOT_FOUND, message=e.__str__()
             ),
         )

@@ -2,6 +2,8 @@ import asyncio
 from typing import Optional, List
 
 from fastapi import UploadFile
+from sqlalchemy.exc import NoResultFound
+
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 
@@ -18,6 +20,7 @@ from app.modules.artworks.schemas.artwork_moderation import (
 )
 from app.modules.users.models import User
 from app.services.cloud_storage import CloudStorageService
+from app.utils.exceptions import ObjectNotFoundException
 
 # from app.utils.cloud_storage_config import (
 #     upload_to_yandex_disk,
@@ -41,10 +44,10 @@ class ArtworksService:
 
         artwork_dict["added_by_user_id"] = user.id
         artwork_dict["artist_id"] = (
-            artwork_schem.artist_id if artwork_schem.artist_id else None
+            artwork_schema.artist_id if artwork_schema.artist_id else None
         )
         artwork_dict["festival_id"] = (
-            artwork_schem.festival_id if artwork_schem.festival_id else None
+            artwork_schema.festival_id if artwork_schema.festival_id else None
         )
 
         async with uow:
@@ -185,9 +188,12 @@ class ArtworksService:
         )
 
     async def get_artwork(self, uow: UnitOfWork, artwork_id: int):
-        async with uow:
-            artwork = await uow.artworks.get(artwork_id)
-            return artwork
+        try:
+            async with uow:
+                artwork = await uow.artworks.get(artwork_id)
+                return artwork
+        except NoResultFound:
+            raise ObjectNotFoundException("Artwork not found")
 
     async def get_all_artworks(self, uow: UnitOfWork):
         async with uow:
@@ -221,20 +227,20 @@ class ArtworksService:
     #         return locations
 
     async def update_artwork(
-        self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkUpdateSchema
+        self, uow: UnitOfWork, artwork_id: int, artwork_schema: ArtworkUpdateSchema
     ):
         location_dict = (
-            artwork_schem.location.model_dump(exclude_unset=True)
-            if artwork_schem.location
+            artwork_schema.location.model_dump(exclude_unset=True)
+            if artwork_schema.location
             else None
         )
         moderation_dict = (
-            artwork_schem.moderation.model_dump(exclude_unset=True)
-            if artwork_schem.moderation
+            artwork_schema.moderation.model_dump(exclude_unset=True)
+            if artwork_schema.moderation
             else None
         )
 
-        artwork_dict = artwork_schem.model_dump(
+        artwork_dict = artwork_schema.model_dump(
             exclude_unset=True, exclude={"location", "moderation"}
         )
 

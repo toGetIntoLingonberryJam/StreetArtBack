@@ -1,6 +1,5 @@
-from fastapi_filter.contrib.sqlalchemy import Filter
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
-from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
 from app.modules.artists.schemas.artist import ArtistCreate
@@ -18,8 +17,8 @@ class ArtistsService:
             async with uow:
                 artist = await uow.artist.get(artist_id)
                 return artist
-        except exc.NoResultFound:
-            return None
+        except NoResultFound:
+            raise ObjectNotFoundException("Artist not found")
 
     async def create_artist(self, uow: UnitOfWork, artist_schema: ArtistCreate):
         async with uow:
@@ -38,6 +37,7 @@ class ArtistsService:
             else:
                 artist_schema.user_id = None
             artist = await uow.artist.create(artist_schema)
+            artist.artworks = []
             await uow.commit()
             return artist
 
@@ -56,7 +56,7 @@ class ArtistsService:
                 pagination_raw_params = pagination.to_raw_params()
                 offset = pagination_raw_params.offset
                 limit = pagination_raw_params.limit
-            artists = await uow.artist.get_all(
+            artists = await uow.artist.filter(
                 offset=offset, limit=limit, filters=filters, filter_by=filter_by
             )
             return artists

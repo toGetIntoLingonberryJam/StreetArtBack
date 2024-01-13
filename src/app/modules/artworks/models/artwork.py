@@ -41,7 +41,7 @@ class Artwork(Base):
     )
 
     festival_id = mapped_column(ForeignKey("festival.id"), nullable=True)
-    festival = relationship(
+    festival: Mapped["Festival"] = relationship(
         "Festival", foreign_keys=festival_id, back_populates="artworks", lazy="subquery"
     )
     # Отношение "один-ко-одному" к ArtworkLocation
@@ -84,5 +84,11 @@ class Artwork(Base):
         DateTime(timezone=True), default=datetime.now(tz=pytz.UTC), onupdate=func.now()
     )
 
+    likes: Mapped[List["User"]] = relationship(secondary="artwork_like")
+
     def __repr__(self):
         return f"{self.title} (ID: {self.id})"
+
+
+
+

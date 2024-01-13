@@ -2,6 +2,8 @@ import asyncio
 from typing import Optional, List
 
 from fastapi import UploadFile
+from sqlalchemy.exc import NoResultFound
+
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 
@@ -18,6 +20,7 @@ from app.modules.artworks.schemas.artwork_moderation import (
 )
 from app.modules.users.models import User
 from app.services.cloud_storage import CloudStorageService
+from app.utils.exceptions import ObjectNotFoundException
 
 # from app.utils.cloud_storage_config import (
 #     upload_to_yandex_disk,
@@ -185,9 +188,12 @@ class ArtworksService:
         )
 
     async def get_artwork(self, uow: UnitOfWork, artwork_id: int):
-        async with uow:
-            artwork = await uow.artworks.get(artwork_id)
-            return artwork
+        try:
+            async with uow:
+                artwork = await uow.artworks.get(artwork_id)
+                return artwork
+        except NoResultFound:
+            raise ObjectNotFoundException("Artwork not found")
 
     async def get_all_artworks(self, uow: UnitOfWork):
         async with uow:

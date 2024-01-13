@@ -15,7 +15,7 @@ class FestivalService:
                 festival = await uow.festival.get(festival_id)
                 return festival
         except exc.NoResultFound:
-            raise ObjectNotFoundException("Фестиваль не найден.")
+            raise ObjectNotFoundException("Festival not found")
 
     async def create_festival(
         self, uow: UnitOfWork, festival_schema: FestivalCreateSchema

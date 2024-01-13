@@ -27,8 +27,8 @@ from app.utils.unit_of_work import UnitOfWork
 
 
 class ArtworksService:
+    @staticmethod
     async def create_artwork(
-        self,
         uow: UnitOfWork,
         user: User,
         artwork_schema: ArtworkCreateSchema,
@@ -121,8 +121,8 @@ class ArtworksService:
             await uow.commit()
             return artwork
 
+    @staticmethod
     async def get_artworks_by_moderation_status(
-        self,
         uow: UnitOfWork,
         pagination: Optional[Params] = None,
         filters: Optional[Filter] = None,
@@ -184,18 +184,31 @@ class ArtworksService:
             uow=uow, pagination=pagination, filters=filters
         )
 
-    async def get_artwork(self, uow: UnitOfWork, artwork_id: int):
+    @staticmethod
+    async def get_artwork(
+        uow: UnitOfWork, artwork_id: int, filters: Filter | None = None, **filter_by
+    ):
         async with uow:
-            artwork = await uow.artworks.get(artwork_id)
+            artwork = await uow.artworks.get(
+                obj_id=artwork_id, filters=filters, **filter_by
+            )
             return artwork
 
-    async def get_all_artworks(self, uow: UnitOfWork):
+    @staticmethod
+    async def get_artworks(uow: UnitOfWork, filters: Filter | None = None, **filter_by):
+        async with uow:
+            artworks = await uow.artworks.filter(filters=filters, **filter_by)
+            return artworks
+
+    @staticmethod
+    async def get_all_artworks(uow: UnitOfWork):
         async with uow:
             artworks = await uow.artworks.get_all()
             return artworks
 
+    @staticmethod
     async def get_locations_approved_artworks(
-        self, uow: UnitOfWork, filters: Optional[Filter] = None
+        uow: UnitOfWork, filters: Optional[Filter] = None
     ):
         async with uow:
             filters.add_filtering_fields(
@@ -220,8 +233,9 @@ class ArtworksService:
     #
     #         return locations
 
+    @staticmethod
     async def update_artwork(
-        self, uow: UnitOfWork, artwork_id: int, artwork_schema: ArtworkUpdateSchema
+        uow: UnitOfWork, artwork_id: int, artwork_schema: ArtworkUpdateSchema
     ):
         location_dict = (
             artwork_schema.location.model_dump(exclude_unset=True)

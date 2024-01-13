@@ -15,6 +15,7 @@ from app.modules import User
 from app.modules.tickets.schemas.ticket_artwork import (
     ArtworkTicketCreateSchema,
     ArtworkTicketReadSchema,
+    ArtworkTicketUpdateSchema,
 )
 from app.modules.tickets.schemas.ticket_base import TicketReadSchema, TicketCreateSchema
 from app.modules.tickets.utils.classes import (
@@ -95,7 +96,7 @@ async def create_ticket(
 @router.post(
     "/artwork/",
     response_model=TicketReadSchemaType,
-    description="Создаёт тикет .",
+    description="Создаёт тикет.",
     responses={
         status.HTTP_400_BAD_REQUEST: generate_response(
             error_model=ErrorModel,
@@ -109,7 +110,7 @@ async def create_ticket(
 async def create_artwork_ticket(
     uow: UOWDep,
     user: User = Depends(current_user),
-    ticket_schema: ArtworkTicketCreateSchema = Body(...),
+    artwork_ticket_schema: ArtworkTicketCreateSchema = Body(...),
     thumbnail_image_index: Annotated[int, Body()] = None,
     images: Annotated[
         List[UploadFile],
@@ -131,7 +132,47 @@ async def create_artwork_ticket(
     artwork_ticket = await TicketsService.create_artwork_ticket(
         uow=uow,
         user=user,
-        artwork_ticket_schema=ticket_schema,
+        artwork_ticket_schema=artwork_ticket_schema,
+        thumbnail_image_index=thumbnail_image_index,
+        images=images,
+    )
+
+    return artwork_ticket
+
+
+@router.patch(
+    "/{artwork_ticket_id}",
+    response_model=ArtworkTicketReadSchema,
+    description="ДЛЯ ПОЛЬЗОВАТЕЛЯ!!! Даёт возможность изменить поля",
+)
+async def update_artwork_ticket(
+    uow: UOWDep,
+    artwork_ticket_id: int,
+    user: User = Depends(current_user),
+    artwork_ticket_schema: ArtworkTicketUpdateSchema = Body(None),
+    thumbnail_image_index: Annotated[int, Body()] = None,
+    images: Annotated[
+        List[UploadFile],
+        File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
+    ] = None,
+):
+    if images:
+        for image in images:
+            if not is_image(image):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=generate_detail(
+                        error_code=ErrorCode.INVALID_IMAGE_FILE_EXTENSION,
+                        message="Invalid image file extension",
+                        data={"filename": image.filename},
+                    ),
+                )
+
+    artwork_ticket = await TicketsService.update_artwork_ticket(
+        uow=uow,
+        artwork_ticket_id=artwork_ticket_id,
+        user=user,
+        artwork_ticket_schema=artwork_ticket_schema,
         thumbnail_image_index=thumbnail_image_index,
         images=images,
     )

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
+
 from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import paginate
@@ -20,6 +21,7 @@ from app.utils.exceptions import (
 )
 
 artist_router = APIRouter(prefix="/artists", tags=["artist"])
+
 
 @artist_router.get(
     "/{artist_id}",

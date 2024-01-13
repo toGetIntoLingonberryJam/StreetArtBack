@@ -126,13 +126,13 @@ class SQLAlchemyRepository:
         if limit:
             stmt = stmt.limit(limit=limit)
 
-        stmt = await self._filter(query=stmt, filters=filters, **filter_by)
+        stmt = await self._filter(stmt=stmt, filters=filters, **filter_by)
 
         result = await self.session.execute(stmt)
 
         return result.scalars().all()
 
-    async def edit(self, obj_id: int, obj_data: BaseSchema | dict) -> int:
+    async def edit(self, obj_id: int, obj_data: BaseSchema | dict | None):
         obj_data = (
             obj_data
             if isinstance(obj_data, dict)
@@ -149,8 +149,7 @@ class SQLAlchemyRepository:
         return res.scalar_one()
 
     async def delete(self, obj_id: int):
-        stmt = delete(self.model).filter_by(id=obj_id)
+        stmt = delete(self.model).filter_by(id=obj_id).returning()
         res = await self.session.execute(stmt)
 
-        # if res.rowcount == 0:
-        #     raise NoResultFound(f"Object with ID {obj_id} not found") # TODO: ?
+        return res.scalar_one()

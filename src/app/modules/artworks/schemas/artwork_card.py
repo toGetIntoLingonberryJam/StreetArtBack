@@ -31,6 +31,8 @@ class ArtworkCardSchema(BaseModel):
         return img
 
     @field_validator("location")
-    def loc_valid(cls, location: ArtworkLocationReadSchema) -> ArtworkLocationReadSchema:
+    def loc_valid(
+        cls, location: ArtworkLocationReadSchema
+    ) -> ArtworkLocationReadSchema:
         cls.address = location.address
         return location

@@ -11,6 +11,7 @@ from app.modules.cloud_storage.schemas.image import ImageCreateSchema, ImageRead
 from app.modules.tickets.schemas.ticket_artwork import (
     ArtworkTicketCreateSchema,
     ArtworkTicketReadSchema,
+    ArtworkTicketUpdateSchema,
 )
 from app.modules.tickets.schemas.ticket_base import TicketCreateSchema, TicketReadSchema
 from app.modules.tickets.utils.classes import (
@@ -246,4 +247,53 @@ class TicketsService:
             artwork_ticket = await uow.artwork_tickets.create(ticket_data)
 
             await uow.commit()
+            return artwork_ticket
+
+    async def update_artwork_ticket(
+        self,
+        uow: UnitOfWork,
+        user: User,
+        artwork_ticket_id: int,
+        artwork_ticket_schema: Optional[ArtworkTicketUpdateSchema] = None,
+        images: Optional[List[UploadFile]] = None,
+        thumbnail_image_index: Optional[int] = None,
+    ):
+        async with uow:
+            # Получаем текущий объект в БД
+            artwork_ticket_current: ArtworkTicket = await uow.artwork_tickets.get(
+                obj_id=artwork_ticket_id
+            )
+            cur_artwork_ticket_artwork_data: dict = (
+                artwork_ticket_current.artwork_data
+                if artwork_ticket_current.artwork_data
+                else dict()
+            )
+
+            # Обновлённая схема. Исключаем все None (null) и пустые поля
+            new_artwork_ticket_data: dict = artwork_ticket_schema.model_dump(
+                exclude_none=True, exclude_unset=True
+            )
+            if hasattr(
+                artwork_ticket_schema, "artwork_data"
+            ) and cur_artwork_ticket_artwork_data.get("images"):
+                ...
+
+            # if hasattr(artwork_ticket_schema, "artwork_data"):
+            #     new_artwork_ticket_artwork_data: dict = artwork_ticket_schema.artwork_data.model_dump()
+            #     cur_artwork_ticket_artwork_data: dict = artwork_ticket_current.artwork_data if artwork_ticket_current.artwork_data else dict()
+            #
+            #     combined_artwork_tickets_data = cur_artwork_ticket_artwork_data | new_artwork_ticket_artwork_data
+            #
+            #     try:
+            #         artwork_ticket_current_update_schema = ArtworkTicketUpdateSchema(**combined_artwork_tickets_data)
+            #     except:
+            #         print("Не получилось создать схему из artwork_data.")
+
+            # Редактирование тикета арт-объекта
+            artwork_ticket = await uow.artwork_tickets.edit(
+                obj_id=artwork_ticket_id, obj_data=new_artwork_ticket_data
+            )
+
+            await uow.commit()
+
             return artwork_ticket

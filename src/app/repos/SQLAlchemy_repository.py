@@ -149,7 +149,7 @@ class SQLAlchemyRepository:
         return res.scalar_one()
 
     async def delete(self, obj_id: int):
-        stmt = delete(self.model).filter_by(id=obj_id).returning()
+        stmt = delete(self.model).filter_by(id=obj_id)
         res = await self.session.execute(stmt)
 
-        return res.scalar_one()
+        # return res.scalar_one()

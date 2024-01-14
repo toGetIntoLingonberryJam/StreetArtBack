@@ -275,6 +275,12 @@ class ArtworksService:
     async def delete_artwork(self, uow: UnitOfWork, artwork_id: int):
         async with uow:
             artwork = await self.get_artwork(uow=uow, artwork_id=artwork_id)
+
+            artwork_ticket = await uow.artwork_tickets.filter(artwork_id=artwork.id)
+            artwork_ticket = artwork_ticket[0]
+
+            artwork_ticket.artwork_id = None
+
             artwork_images = artwork.images
             for img in artwork_images:
                 # ToDo: Переделать фильтр

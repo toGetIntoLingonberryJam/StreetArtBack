@@ -34,7 +34,7 @@ class ArtworkBaseSchema(BaseModel):
         gt=1900,
         le=datetime.today().year,
         description="The year of creation cannot be less than 1900 and more than the current "
-        "year.",
+                    "year.",
     )
     description: Optional[str] = None
     source_description: Optional[str] = None
@@ -49,7 +49,7 @@ class ArtworkCreateSchema(ArtworkBaseSchema):
 
     @model_validator(mode="before")
     def validate_to_json(
-        cls, value
+            cls, value
     ):  # noqa Костыль, без которого не работает multipart/form data заспросы
         if isinstance(value, str):
             return cls(**json.loads(value))  # noqa

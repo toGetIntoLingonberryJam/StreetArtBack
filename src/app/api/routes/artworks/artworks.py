@@ -1,6 +1,6 @@
 from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends, status
+from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends, status, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import NoResultFound
 
@@ -76,6 +76,7 @@ async def create_artwork(
         List[UploadFile],
         File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
     ] = None,
+    images_urls: Annotated[list[str], Query()] = None
 ):
     if images:
         for image in images:
@@ -94,6 +95,7 @@ async def create_artwork(
         moderator=moderator,
         artwork_schema=artwork_data,
         images=images,
+        images_urls=images_urls,
         thumbnail_image_index=thumbnail_image_index,
     )
 

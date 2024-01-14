@@ -188,7 +188,7 @@ class TicketsService:
         images: Optional[List[UploadFile]] = None,
         thumbnail_image_index: Optional[int] = None,
     ):
-        if thumbnail_image_index:
+        if not thumbnail_image_index:
             thumbnail_image_index = 0
 
         async with uow:

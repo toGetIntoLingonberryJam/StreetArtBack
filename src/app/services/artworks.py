@@ -40,7 +40,7 @@ class ArtworksService:
         images_urls: Optional[List[str]] = None,
         thumbnail_image_index: Optional[int] = None,
     ):
-        if thumbnail_image_index:
+        if not thumbnail_image_index:
             thumbnail_image_index = 0
 
         location_data = artwork_schema.location

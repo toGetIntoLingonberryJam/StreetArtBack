@@ -85,10 +85,10 @@ async def get_festival_list(
     response_model=ArtworkCardSchema,
     description="Присвоение фестивалю работы.",
 )
-async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
+async def assignee_artwork(uow: UOWDep, artwork_id: int, festival_id: int):
     try:
         artwork = await FestivalService().update_artwork_festival(
-            uow, artwork_id, artist_id
+            uow, artwork_id, festival_id
         )
         return artwork
     except ObjectNotFoundException as e:

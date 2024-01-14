@@ -18,7 +18,8 @@ class FestivalBaseSchema(BaseModel):
 class FestivalCreateSchema(FestivalBaseSchema):
     @field_validator("links")
     def links_validator(cls, v: List[HttpUrl]) -> List[str]:
-        return [i.__str__() for i in v]
+        if v:
+            return [i.__str__() for i in v]
 
     @model_validator(mode="before")
     def validate_to_json(

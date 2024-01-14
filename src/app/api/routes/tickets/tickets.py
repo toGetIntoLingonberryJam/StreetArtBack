@@ -188,12 +188,10 @@ async def create_artwork_ticket(
 async def approve_artwork_ticket(
     uow: UOWDep,
     artwork_ticket_id: int,
-    moderator: Moderator = Depends(get_current_moderator)
+    moderator: Moderator = Depends(get_current_moderator),
 ):
     artwork_ticket = await TicketsService.approve_artwork_ticket(
-        uow=uow,
-        moderator=moderator,
-        artwork_ticket_id=artwork_ticket_id
+        uow=uow, moderator=moderator, artwork_ticket_id=artwork_ticket_id
     )
 
     return artwork_ticket
@@ -207,12 +205,10 @@ async def approve_artwork_ticket(
 async def approve_artwork_ticket(
     uow: UOWDep,
     artwork_ticket_id: int,
-    moderator: Moderator = Depends(get_current_moderator)
+    moderator: Moderator = Depends(get_current_moderator),
 ):
     artwork_ticket = await TicketsService.reject_artwork_ticket(
-        uow=uow,
-        moderator=moderator,
-        artwork_ticket_id=artwork_ticket_id
+        uow=uow, moderator=moderator, artwork_ticket_id=artwork_ticket_id
     )
 
     return artwork_ticket

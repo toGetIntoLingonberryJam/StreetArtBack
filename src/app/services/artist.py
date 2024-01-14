@@ -26,10 +26,12 @@ class ArtistsService:
         except NoResultFound:
             raise ObjectNotFoundException("Artist not found")
 
-    async def create_artist(self,
-                            uow: UnitOfWork,
-                            artist_schema: ArtistCreateSchema,
-                            image: Optional[UploadFile] = None):
+    async def create_artist(
+        self,
+        uow: UnitOfWork,
+        artist_schema: ArtistCreateSchema,
+        image: Optional[UploadFile] = None,
+    ):
         async with uow:
             if artist_schema.user_id:
                 try:

@@ -24,7 +24,7 @@ class ArtistCreateSchema(ArtistBaseSchema):
 
     @model_validator(mode="before")
     def validate_to_json(
-            cls, value
+        cls, value
     ):  # noqa Костыль, без которого не работает multipart/form data заспросы
         if isinstance(value, str):
             return cls(**json.loads(value))  # noqa

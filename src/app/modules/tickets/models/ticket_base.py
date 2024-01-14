@@ -35,7 +35,9 @@ class TicketBase(Base):
     moderator_comment = mapped_column(Text, nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="tickets", lazy="selectin")
-    moderator: Mapped["Moderator"] = relationship(back_populates="answered_tickets", lazy="selectin")
+    moderator: Mapped["Moderator"] = relationship(
+        back_populates="answered_tickets", lazy="selectin"
+    )
 
     discriminator = mapped_column(String(50), nullable=False)
 

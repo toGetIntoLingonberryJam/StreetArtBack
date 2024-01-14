@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends, status
 from fastapi.responses import JSONResponse
@@ -71,7 +71,7 @@ async def create_artwork(
     uow: UOWDep,
     moderator: Moderator = Depends(get_current_moderator),
     artwork_data: ArtworkCreateSchema = Body(...),
-    thumbnail_image_index: Annotated[int, Body()] = None,
+    thumbnail_image_index: Annotated[Optional[int], Optional[Body(None)]] = None,
     images: Annotated[
         List[UploadFile],
         File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),

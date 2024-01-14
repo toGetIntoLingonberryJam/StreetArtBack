@@ -10,6 +10,8 @@ from app.api.routes.common import (
     ErrorModel,
 )
 from app.api.utils import is_image
+from app.api.utils.libs.fastapi_filter import FilterDepends
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from app.api.utils.paginator import MyParams
 from app.modules import User, Moderator
 from app.modules.tickets.schemas.ticket_artwork import (
@@ -41,7 +43,9 @@ router = APIRouter(tags=["Tickets"])
 )
 # @cache(expire=15)
 async def show_tickets(
-    uow: UOWDep, ticket_model: TicketModel = None, pagination: MyParams = Depends()
+    uow: UOWDep,
+        ticket_model: TicketModel = None,
+        pagination: MyParams = Depends(),
 ):
     # ticket_model_class = TicketRegistry.ticket_classes.get(ticket_model)
     # if ticket_model_class is None:

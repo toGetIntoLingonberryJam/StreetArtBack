@@ -68,12 +68,13 @@ async def get_artist(artist_id: int, uow: UOWDep):
         )
     },
 )
-async def create_artist(artist: ArtistCreateSchema,
-                        uow: UOWDep,
-                        image: Annotated[
-                            UploadFile,
-                            File(..., description="Изображение в формате jpeg, png или heic.")
-                        ] = None):
+async def create_artist(
+    artist: ArtistCreateSchema,
+    uow: UOWDep,
+    image: Annotated[
+        UploadFile, File(..., description="Изображение в формате jpeg, png или heic.")
+    ] = None,
+):
     if image and not is_image(image):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -46,8 +46,8 @@ async def show_artwork_locations(
     uow: UOWDep, filters: Filter = FilterDepends(ArtworkLocationFilter)
 ):
     # Возвращает локации подтверждённых арт-объектов.
-    # locations = await ArtworksService().get_artworks_locations(uow, filters)
-    locations = await ArtworksService().get_locations_approved_artworks(uow, filters)
+    locations = await ArtworksService().get_artworks_locations(uow, filters)
+    # locations = await ArtworksService().get_locations_approved_artworks(uow, filters)
     return locations
 
 
@@ -56,7 +56,7 @@ async def show_artwork_locations(
     response_model=ArtworkReadSchema,
     status_code=status.HTTP_201_CREATED,
     description="ТОЛЬКО ДЛЯ МОДЕРАТОРА. Убрать (После создания арт-объекта, его статус модерации будет 'Ожидает "
-                "проверки').",
+    "проверки').",
     responses={
         status.HTTP_400_BAD_REQUEST: generate_response(
             error_model=ErrorModel,
@@ -116,7 +116,11 @@ async def show_artworks(
     pagination: MyParams = Depends(),
     filters: Filter = FilterDepends(ArtworkFilter),
 ):
-    artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
+    # artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
+    artworks = await ArtworksService().get_artworks(
+        uow=uow, pagination=pagination, filters=filters
+    )
+
     return paginate(artworks, pagination)
 
 
@@ -195,7 +199,9 @@ async def update_artwork(
         )
     },
 )
-async def delete_artwork(artwork_id: int, uow: UOWDep, moderator: Moderator = Depends(get_current_moderator)):
+async def delete_artwork(
+    artwork_id: int, uow: UOWDep, moderator: Moderator = Depends(get_current_moderator)
+):
     try:
         await ArtworksService().delete_artwork(uow, artwork_id)
         return JSONResponse(

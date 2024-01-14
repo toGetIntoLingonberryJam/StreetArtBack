@@ -24,9 +24,10 @@ class FestivalService:
             raise ObjectNotFoundException("Festival not found")
 
     async def create_festival(
-        self, uow: UnitOfWork,
-            festival_schema: FestivalCreateSchema,
-            image: Optional[UploadFile] = None
+        self,
+        uow: UnitOfWork,
+        festival_schema: FestivalCreateSchema,
+        image: Optional[UploadFile] = None,
     ):
         async with uow:
             festival_dict = festival_schema.model_dump()

@@ -23,8 +23,7 @@ class Artist(Base):
     )
 
     image_id: Mapped[int] = mapped_column(ForeignKey("image.id"), nullable=True)
-    image: Mapped["Image"] = relationship(lazy="joined",
-                                          foreign_keys="Artist.image_id")
+    image: Mapped["Image"] = relationship(lazy="joined", foreign_keys="Artist.image_id")
 
     links: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
 

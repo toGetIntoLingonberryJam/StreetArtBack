@@ -17,8 +17,9 @@ class Festival(Base):
         "Artwork", back_populates="festival", lazy="subquery"
     )
     image_id: Mapped[int] = mapped_column(ForeignKey("image.id"), nullable=True)
-    image: Mapped["Image"] = relationship(lazy="joined",
-                                          foreign_keys="Festival.image_id")
+    image: Mapped["Image"] = relationship(
+        lazy="joined", foreign_keys="Festival.image_id"
+    )
 
     links: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
 

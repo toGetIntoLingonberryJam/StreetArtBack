@@ -225,19 +225,15 @@ class ArtworksService:
 
             return locations
 
-    # async def get_artworks_locations(
-    #     self,
-    #     uow: UnitOfWork,
-    #     filters: Optional[Filter] = None,
-    # ):
-    #     async with uow:
-    #         artworks = await self.get_approved_artworks(uow=uow, filters=filters)
-    #
-    #         locations = [
-    #             artwork.location for artwork in artworks if artwork.location is not None
-    #         ]
-    #
-    #         return locations
+    @staticmethod
+    async def get_artworks_locations(
+        uow: UnitOfWork,
+        filters: Optional[Filter] = None,
+    ):
+        async with uow:
+            locations = await uow.artwork_locations.filter(filters=filters)
+
+            return locations
 
     @staticmethod
     async def update_artwork(

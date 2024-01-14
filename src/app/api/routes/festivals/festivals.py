@@ -44,17 +44,15 @@ async def get_festival_by_id(uow: UOWDep, festival_id: int):
 
 
 @festival_router.post(
-    "/",
-    response_model=FestivalReadSchema,
-    description="Создание фестиваля."
+    "/", response_model=FestivalReadSchema, description="Создание фестиваля."
 )
-async def create_festival(uow: UOWDep,
-                          festival: FestivalCreateSchema,
-                          image: Annotated[
-                              UploadFile,
-                              File(..., description="Изображение в формате jpeg, png или heic.")
-                          ] = None
-                          ):
+async def create_festival(
+    uow: UOWDep,
+    festival: FestivalCreateSchema,
+    image: Annotated[
+        UploadFile, File(..., description="Изображение в формате jpeg, png или heic.")
+    ] = None,
+):
     if image and not is_image(image):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -74,9 +72,9 @@ async def create_festival(uow: UOWDep,
     description="Выводит список фестивалей, использую пагинацию.",
 )
 async def get_festival_list(
-        uow: UOWDep,
-        pagination: MyParams = Depends(),
-        filters: Filter = FilterDepends(FestivalFilter),
+    uow: UOWDep,
+    pagination: MyParams = Depends(),
+    filters: Filter = FilterDepends(FestivalFilter),
 ):
     festivals = await FestivalService().get_all_festival(uow, pagination, filters)
     return paginate(festivals, pagination)
@@ -103,7 +101,7 @@ async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
     description="Получение списка работ фестиваля по id",
 )
 async def get_festival_artworks(
-        uow: UOWDep, festival_id: int, pagination: MyParams = Depends()
+    uow: UOWDep, festival_id: int, pagination: MyParams = Depends()
 ):
     artworks = await ArtworksService().get_approved_artworks(
         uow, pagination, festival_id=festival_id
@@ -124,7 +122,7 @@ async def get_festival_artworks(
     },
 )
 async def toggle_like(
-        festival_id: int, uow: UOWDep, user: User = Depends(current_user)
+    festival_id: int, uow: UOWDep, user: User = Depends(current_user)
 ):
     try:
         festival = await FestivalService().get_festival_by_id(uow, festival_id)

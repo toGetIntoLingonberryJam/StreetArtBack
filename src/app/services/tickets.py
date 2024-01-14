@@ -8,7 +8,13 @@ from fastapi_pagination import Params
 from pydantic import BaseModel
 
 from app.api.utils.paginator import MyParams
-from app.modules import TicketBase, ArtworkTicket, Moderator, ArtworkImage, ArtworkLocation
+from app.modules import (
+    TicketBase,
+    ArtworkTicket,
+    Moderator,
+    ArtworkImage,
+    ArtworkLocation,
+)
 from app.modules.artworks.schemas.artwork import ArtworkCreateSchema
 from app.modules.artworks.schemas.artwork_image import ArtworkImageCreateSchema
 from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreateSchema
@@ -21,7 +27,8 @@ from app.modules.tickets.schemas.ticket_artwork import (
 from app.modules.tickets.schemas.ticket_base import TicketCreateSchema, TicketReadSchema
 from app.modules.tickets.utils.classes import (
     TicketModel,
-    TicketRegistry, TicketStatus,
+    TicketRegistry,
+    TicketStatus,
 )
 from app.modules.tickets.utils.types import (
     TicketCreateSchemaType,
@@ -117,7 +124,7 @@ class TicketsService:
     # region Ticket
     @staticmethod
     async def get_ticket(
-            uow: UnitOfWork, ticket_id: int, ticket_model: Optional[TicketModel] = None
+        uow: UnitOfWork, ticket_id: int, ticket_model: Optional[TicketModel] = None
     ):
         async with uow:
             if ticket_model:
@@ -130,9 +137,9 @@ class TicketsService:
 
     @staticmethod
     async def get_tickets(
-            uow: UnitOfWork,
-            pagination: Optional[Params] = None,
-            ticket_model: Optional[TicketModel] = None,
+        uow: UnitOfWork,
+        pagination: Optional[Params] = None,
+        ticket_model: Optional[TicketModel] = None,
     ):
         async with uow:
             if pagination:
@@ -151,9 +158,9 @@ class TicketsService:
 
     @staticmethod
     async def create_ticket(
-            uow: UnitOfWork,
-            user: User,
-            ticket_schema: TicketCreateSchema,
+        uow: UnitOfWork,
+        user: User,
+        ticket_schema: TicketCreateSchema,
     ):
         async with uow:
             ticket_data = ticket_schema.model_dump()
@@ -174,12 +181,15 @@ class TicketsService:
 
     @staticmethod
     async def create_artwork_ticket(
-            uow: UnitOfWork,
-            user: User,
-            artwork_ticket_schema: ArtworkTicketCreateSchema,
-            images: Optional[List[UploadFile]] = None,
-            thumbnail_image_index: Optional[int] = None,
+        uow: UnitOfWork,
+        user: User,
+        artwork_ticket_schema: ArtworkTicketCreateSchema,
+        images: Optional[List[UploadFile]] = None,
+        thumbnail_image_index: Optional[int] = None,
     ):
+        if thumbnail_image_index:
+            thumbnail_image_index = 0
+
         async with uow:
             location_data = artwork_ticket_schema.artwork_data.location
 
@@ -232,13 +242,12 @@ class TicketsService:
                 ]
 
                 if location_data:
-                    if thumbnail_image_index:
-                        if 0 <= thumbnail_image_index < len(ticket_images):
-                            img = ticket_images[thumbnail_image_index]
-                            # img.generate_thumbnail_url()
-                            ticket_data["artwork_data"]["location"][
-                                "thumbnail_image"
-                            ] = img.image_url
+                    if 0 <= thumbnail_image_index < len(ticket_images):
+                        img = ticket_images[thumbnail_image_index]
+                        # img.generate_thumbnail_url()
+                        ticket_data["artwork_data"]["location"][
+                            "thumbnail_image"
+                        ] = img.image_url
 
             # ticket = await uow.tickets.create_ticket_by_ticket_model(
             #     user=user, ticket_model_enum_value=ticket_model, ticket_data=ticket_schema
@@ -252,13 +261,13 @@ class TicketsService:
             return artwork_ticket
 
     async def update_artwork_ticket(
-            self,
-            uow: UnitOfWork,
-            user: User,
-            artwork_ticket_id: int,
-            artwork_ticket_schema: Optional[ArtworkTicketUpdateSchema] = None,
-            images: Optional[List[UploadFile]] = None,
-            thumbnail_image_index: Optional[int] = None,
+        self,
+        uow: UnitOfWork,
+        user: User,
+        artwork_ticket_id: int,
+        artwork_ticket_schema: Optional[ArtworkTicketUpdateSchema] = None,
+        images: Optional[List[UploadFile]] = None,
+        thumbnail_image_index: Optional[int] = None,
     ):
         async with uow:
             # Получаем текущий объект в БД
@@ -267,7 +276,9 @@ class TicketsService:
             )
 
             if artwork_ticket_current.status != TicketStatus.PENDING:
-                raise ValueError("Нельзя изменить уже подтверждённый или отклонённый запрос")
+                raise ValueError(
+                    "Нельзя изменить уже подтверждённый или отклонённый запрос"
+                )
 
             cur_artwork_ticket_artwork_data: dict = (
                 artwork_ticket_current.artwork_data
@@ -280,10 +291,9 @@ class TicketsService:
                 exclude_none=True, exclude_unset=True
             )
             if hasattr(
-                    artwork_ticket_schema, "artwork_data"
+                artwork_ticket_schema, "artwork_data"
             ) and cur_artwork_ticket_artwork_data.get("images"):
                 ...  # TODO:  Ничего ты не сделал, обманщик!
-
 
             # if hasattr(artwork_ticket_schema, "artwork_data"):
             #     new_artwork_ticket_artwork_data: dict = artwork_ticket_schema.artwork_data.model_dump()
@@ -325,11 +335,15 @@ class TicketsService:
             # artwork_ticket.moderator = moderator
 
             # Из artwork_ticket.artwork_data -> Artwork
-            ticket_artwork_data: dict = artwork_ticket.artwork_data # Тут, по факту, ArtworkCreateSchema,
+            ticket_artwork_data: dict = (
+                artwork_ticket.artwork_data
+            )  # Тут, по факту, ArtworkCreateSchema,
             # но с доп. полем images. Исправлю в следующем обновлении.
 
             artwork_location_data = ticket_artwork_data.get("location")
-            ticket_artwork_images = ticket_artwork_data.get("images")  # TODO: В схеме не указано! Но оно есть. Переделать.
+            ticket_artwork_images = ticket_artwork_data.get(
+                "images"
+            )  # TODO: В схеме не указано! Но оно есть. Переделать.
 
             # artwork_dict = ticket_artwork_data.model_dump(exclude={"location", "images"})
             ticket_artwork_data.pop("location", None)
@@ -341,10 +355,14 @@ class TicketsService:
 
             artwork_dict["added_by_user_id"] = artwork_ticket.user_id
             artwork_dict["artist_id"] = (
-                ticket_artwork_data.get("artist_id") if ticket_artwork_data.get("artist_id") else None
+                ticket_artwork_data.get("artist_id")
+                if ticket_artwork_data.get("artist_id")
+                else None
             )
             artwork_dict["festival_id"] = (
-                ticket_artwork_data.get("festival_id") if ticket_artwork_data.get("festival_id") else None
+                ticket_artwork_data.get("festival_id")
+                if ticket_artwork_data.get("festival_id")
+                else None
             )
 
             # region Создание Арт-объекта из подготовленного словаря
@@ -373,14 +391,15 @@ class TicketsService:
                     # image.artwork_id = artwork.id
                     # image.artwork = artwork
 
-
                     # TODO: Под вопросом...
                     # artwork_image = image
                     # artwork_image.__class__ = ArtworkImage
                     #
                     # artwork_image.discriminator = "artwork_image"
 
-                    artwork_image = await uow.artwork_images.create(artwork_image_schema)
+                    artwork_image = await uow.artwork_images.create(
+                        artwork_image_schema
+                    )
                     artwork_images.append(artwork_image)
 
                 artwork.images = artwork_images
@@ -390,12 +409,14 @@ class TicketsService:
                     artwork_id=artwork.id,
                     latitude=artwork_location_data.get("latitude"),
                     longitude=artwork_location_data.get("longitude"),
-                    address=artwork_location_data.get("address")
+                    address=artwork_location_data.get("address"),
                 )
 
-                artwork_location: ArtworkLocation = await uow.artwork_locations.create(artwork_location_schema)
+                artwork_location: ArtworkLocation = await uow.artwork_locations.create(
+                    artwork_location_schema
+                )
 
-                thumbnail_image = artwork_location_data.get('thumbnail_image')  # url
+                thumbnail_image = artwork_location_data.get("thumbnail_image")  # url
                 if thumbnail_image is not None:
                     exist_image = await uow.artwork_images.filter(
                         image_url=thumbnail_image
@@ -416,9 +437,7 @@ class TicketsService:
 
     @staticmethod
     async def reject_artwork_ticket(
-        uow: UnitOfWork,
-        moderator: Moderator,
-        artwork_ticket_id: int
+        uow: UnitOfWork, moderator: Moderator, artwork_ticket_id: int
     ):
         async with uow:
             # Получаем объект ArtworkTicket в БД
@@ -436,4 +455,5 @@ class TicketsService:
             # artwork_ticket.moderator = moderator
 
             return artwork_ticket
+
     # endregion ArtworkTicket

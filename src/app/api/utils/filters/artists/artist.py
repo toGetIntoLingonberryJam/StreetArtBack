@@ -15,4 +15,3 @@ class ArtistFilter(Filter):
     class Constants(Filter.Constants):
         model = Artist
         search_model_fields = ["name", "description"]
-

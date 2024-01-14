@@ -35,16 +35,15 @@ current_artist = Annotated[Artist, Depends(get_current_artist)]
 async def get_current_moderator(uow: UOWDep, user: User = Depends(current_user)):
     try:
         moderator = await ModeratorsService.get_moderator_by_user_id(
-            uow=uow,
-            user_id=user.id
+            uow=uow, user_id=user.id
         )
     except NoResultFound:
         raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=generate_detail(
-                    error_code=ErrorCode.NO_ACCESS_TO_RESOURCE,
-                    message="You don't have access",
-                )
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=generate_detail(
+                error_code=ErrorCode.NO_ACCESS_TO_RESOURCE,
+                message="You don't have access",
+            ),
         )
 
     return moderator

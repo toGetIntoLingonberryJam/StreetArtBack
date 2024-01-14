@@ -45,3 +45,9 @@ def get_reset_password_template(token: str) -> str:
     return _env.get_template("forgot_password_template.html").render(
         {"token": token, "BACKEND_URL": get_settings().backend_url}
     )
+
+
+def get_result_password_template(is_success: bool) -> str:
+    if is_success:
+        return _env.get_template("password_success.html").render()
+    return _env.get_template("password_fall.html").render()

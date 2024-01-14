@@ -24,12 +24,14 @@ async def send_verify_email(token, receiver, username: str) -> bool:
         return False
 
 
+env = Environment(
+    loader=FileSystemLoader("static"), autoescape=select_autoescape(["html"])
+)
+
+
 def __get_verify_message(token, username: str) -> EmailMessage:
     msg = EmailMessage()
     msg["Subject"] = "noreply"
-    env = Environment(
-        loader=FileSystemLoader("static"), autoescape=select_autoescape(["html"])
-    )
     template = env.get_template("confirm_email.html").render(
         {
             "token": token,
@@ -39,3 +41,9 @@ def __get_verify_message(token, username: str) -> EmailMessage:
     )
     msg.set_content(template, subtype="html")
     return msg
+
+
+def get_result_template(is_success: bool) -> str:
+    if is_success:
+        return env.get_template("verification_success.html").render()
+    return env.get_template("verification_fall.html").render()

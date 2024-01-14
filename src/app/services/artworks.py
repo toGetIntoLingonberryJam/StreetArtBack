@@ -40,6 +40,9 @@ class ArtworksService:
         images_urls: Optional[List[str]] = None,
         thumbnail_image_index: Optional[int] = None,
     ):
+        if thumbnail_image_index:
+            thumbnail_image_index = 0
+
         location_data = artwork_schema.location
 
         artwork_dict = artwork_schema.model_dump(exclude={"location"})
@@ -120,11 +123,10 @@ class ArtworksService:
                 artwork.images = artwork_images
 
                 if location_data:
-                    if thumbnail_image_index:
-                        if 0 <= thumbnail_image_index < len(artwork_images):
-                            img = artwork_images[thumbnail_image_index]
-                            # img.generate_thumbnail_url()
-                            artwork.location.thumbnail_image = img
+                    if 0 <= thumbnail_image_index < len(artwork_images):
+                        img = artwork_images[thumbnail_image_index]
+                        # img.generate_thumbnail_url()
+                        artwork.location.thumbnail_image = img
 
             if artwork.artist_id:
                 artwork.artist = await uow.artist.get(artwork.artist_id)

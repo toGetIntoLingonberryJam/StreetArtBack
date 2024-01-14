@@ -15,8 +15,8 @@ class ImageCreateSchema(ImageBaseSchema):
 class ImageReadSchema(ImageBaseSchema):
     model_config = ConfigDict(from_attributes=True)
 
-    discriminator: str
-    id: int
+    # discriminator: str
+    # id: int
 
     created_at: datetime
 

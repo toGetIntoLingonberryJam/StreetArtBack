@@ -15,7 +15,7 @@ class Image(Base):
     }
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    image_url: Mapped[str] = mapped_column(String, unique=True)
+    image_url: Mapped[str] = mapped_column(String)
     public_key: Mapped[str] = mapped_column(String)
     file_path: Mapped[str] = mapped_column(String)
 

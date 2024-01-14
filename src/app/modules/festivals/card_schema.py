@@ -1,4 +1,8 @@
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict
+
+from app.modules.cloud_storage.schemas.image import ImageReadSchema
 
 
 class FestivalCardSchema(BaseModel):
@@ -6,3 +10,4 @@ class FestivalCardSchema(BaseModel):
 
     id: int
     name: str
+    image: Optional[ImageReadSchema] = None

@@ -1,5 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
+from typing import Annotated
 
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+
+from app.api.utils import is_image
 from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import paginate
@@ -14,7 +17,7 @@ from app.api.routes.common import (
 from app.api.utils.filters.artists.artist import ArtistFilter
 from app.api.utils.paginator import MyParams, Page
 from app.modules import User
-from app.modules.artists.schemas.artist import ArtistRead, ArtistCreate
+from app.modules.artists.schemas.artist import ArtistReadSchema, ArtistCreateSchema
 from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
 from app.modules.users.fastapi_users_config import current_user
@@ -33,7 +36,7 @@ artist_router = APIRouter(prefix="/artists", tags=["Artist"])
 
 @artist_router.get(
     "/{artist_id}",
-    response_model=ArtistRead,
+    response_model=ArtistReadSchema,
     description="Получение артиста по id",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -54,7 +57,7 @@ async def get_artist(artist_id: int, uow: UOWDep):
 
 @artist_router.post(
     "/",
-    response_model=ArtistRead,
+    response_model=ArtistReadSchema,
     description="Создание артиста",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -65,9 +68,23 @@ async def get_artist(artist_id: int, uow: UOWDep):
         )
     },
 )
-async def create_artist(artist: ArtistCreate, uow: UOWDep):
+async def create_artist(artist: ArtistCreateSchema,
+                        uow: UOWDep,
+                        image: Annotated[
+                            UploadFile,
+                            File(..., description="Изображение в формате jpeg, png или heic.")
+                        ] = None):
+    if image and not is_image(image):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=generate_detail(
+                error_code=ErrorCode.INVALID_IMAGE_FILE_EXTENSION,
+                message="Invalid image file extension",
+                data={"filename": image.filename},
+            ),
+        )
     try:
-        artist = await ArtistsService().create_artist(uow, artist)
+        artist = await ArtistsService().create_artist(uow, artist, image)
     except UserNotFoundException:
         raise HTTPException(status_code=404)
     except IncorrectInput as e:
@@ -90,15 +107,15 @@ async def get_artist_list(
 @artist_router.get(
     "/{artist_id}/artworks",
     response_model=Page[ArtworkCardSchema],
-    description="Получение списка артистов",
+    description="Получение списка работ художника по id",
 )
-async def get_artist_list(
+async def get_artist_artworks(
     uow: UOWDep, artist_id: int, pagination: MyParams = Depends()
 ):
-    artists = await ArtworksService().get_approved_artworks(
-        uow, pagination, filter_by={"artist_id", artist_id}
+    artworks = await ArtworksService().get_approved_artworks(
+        uow, pagination, artist_id=artist_id
     )
-    return paginate(artists, pagination)
+    return paginate(artworks, pagination)
 
 
 @artist_router.post(

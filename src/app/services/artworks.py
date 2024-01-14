@@ -167,10 +167,10 @@ class ArtworksService:
         # filters.add_filtering_field(artwork_moderation__status='approved')
         # filters.add_searching_field("artwork_moderation__status")
         # filters.add_ordering_field("artwork_moderation__status")
-
-        filters.add_filtering_fields(
-            moderation__status=ArtworkModerationStatus.APPROVED
-        )
+        if filters:
+            filters.add_filtering_fields(
+                moderation__status=ArtworkModerationStatus.APPROVED,
+            )
 
         return await self.get_artworks_by_moderation_status(
             uow=uow, pagination=pagination, filters=filters, **filter_by

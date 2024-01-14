@@ -26,6 +26,8 @@ from app.modules.artworks.schemas.artwork_moderation import (
 
 from pydantic_partial import create_partial_model
 
+from app.modules.festivals.card_schema import FestivalCardSchema
+
 
 class ArtworkBaseSchema(BaseModel):
     title: str
@@ -70,6 +72,7 @@ class ArtworkReadSchema(ArtworkBaseSchema):
     location: ArtworkLocationReadSchema
     images: Optional[List[ArtworkImageReadSchema]]
     artist: Optional[ArtistCardSchema]
+    festival: Optional[FestivalCardSchema]
 
     created_at: datetime = Field(exclude=True)
     updated_at: datetime

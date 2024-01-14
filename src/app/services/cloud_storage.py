@@ -230,8 +230,3 @@ class CloudStorageService:
             print(f"File {file_path} successfully deleted.")
         except yadisk.exceptions.BadRequestError as e:
             print(f"Error deleting file: {e}")
-
-
-if __name__ == "__main__":
-    print('jopa govno')
-    asyncio.run(CloudStorageService.upload_to_yandex_disk_by_url("https://sun9-3.userapi.com/impg/tzrujeCCDn_BCJ5WJ60wUNI1RcGpaHkIABVXWA/wwnalFtu56E.jpg?size=1800x1200&quality=96&sign=a2cbee786cef930c83daeea2e747e0f0&type=album"))

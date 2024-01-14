@@ -28,7 +28,7 @@ from app.utils.exceptions import (
     ObjectNotFoundException,
 )
 
-artist_router = APIRouter(prefix="/artists", tags=["artist"])
+artist_router = APIRouter(prefix="/artists", tags=["Artist"])
 
 
 @artist_router.get(

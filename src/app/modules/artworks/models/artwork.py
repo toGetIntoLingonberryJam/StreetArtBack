@@ -23,10 +23,9 @@ class Artwork(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String, index=True)
 
-    year_created: Mapped[int] = mapped_column(Integer)
-    festival: Mapped[str] = mapped_column(String)
+    year_created: Mapped[int] = mapped_column(Integer, nullable=True)
     description: Mapped[str] = mapped_column(String, nullable=True)
-    source_description: Mapped[str] = mapped_column(String, nullable=True)
+    # source_description: Mapped[str] = mapped_column(String, nullable=True)
     links: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
 
     # отношение к пользователю, который добавил арт-объект

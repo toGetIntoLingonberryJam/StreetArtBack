@@ -13,6 +13,8 @@ class AdminPanel:
     def _add_views(self):
         views = [
             UserAdmin,
+            ArtistAdmin,
+            ModeratorAdmin,
             ArtworkAdmin,
             ArtworkImageAdmin,
             ArtworkLocationAdmin,

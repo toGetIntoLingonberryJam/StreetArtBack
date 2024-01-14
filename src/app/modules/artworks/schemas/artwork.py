@@ -29,15 +29,15 @@ from pydantic_partial import create_partial_model
 
 class ArtworkBaseSchema(BaseModel):
     title: str
-    year_created: int = Field(
-        ...,
-        gt=1900,
+    year_created: Optional[int] = Field(
+        None,
+        ge=1900,
         le=datetime.today().year,
         description="The year of creation cannot be less than 1900 and more than the current "
         "year.",
     )
     description: Optional[str] = None
-    source_description: Optional[str] = None
+    # source_description: Optional[str] = None
     artist_id: Optional[int]
     festival_id: Optional[int]
     status: ArtworkStatus
@@ -74,11 +74,11 @@ class ArtworkReadSchema(ArtworkBaseSchema):
     created_at: datetime = Field(exclude=True)
     updated_at: datetime
 
-    @field_validator("links", mode="before")
-    def links_validator(cls, v: List[str]) -> List[str]:
-        if v:
-            links = "".join(v).strip("{}").split(",")
-            return links
+    # @field_validator("links", mode="before")
+    # def links_validator(cls, v: List[str]) -> List[str]:
+    #     if v:
+    #         links = "".join(v).strip("{}").split(",")
+    #         return links
 
 
 class ArtworkForModeratorReadSchema(ArtworkReadSchema):

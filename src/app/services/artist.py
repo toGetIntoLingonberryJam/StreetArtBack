@@ -67,7 +67,7 @@ class ArtistsService:
 
     async def get_artist_by_user_id(self, uow: UnitOfWork, user_id: int):
         async with uow:
-            artist = uow.artist.filter(user_id=user_id)
+            artist = await uow.artist.filter(user_id=user_id)
             return artist
 
     async def update_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id):

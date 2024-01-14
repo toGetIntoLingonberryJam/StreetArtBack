@@ -7,6 +7,7 @@ from sqlalchemy.exc import NoResultFound
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 
+from app.modules import Moderator
 from app.modules.artworks.models.artwork import Artwork
 from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 from app.modules.artworks.schemas.artwork import (
@@ -33,7 +34,7 @@ class ArtworksService:
     @staticmethod
     async def create_artwork(
         uow: UnitOfWork,
-        user: User,
+        moderator: Moderator,
         artwork_schema: ArtworkCreateSchema,
         images: Optional[List[UploadFile]] = None,
         thumbnail_image_index: Optional[int] = None,
@@ -42,7 +43,7 @@ class ArtworksService:
 
         artwork_dict = artwork_schema.model_dump(exclude={"location"})
 
-        artwork_dict["added_by_user_id"] = user.id
+        artwork_dict["added_by_user_id"] = moderator.id
         artwork_dict["artist_id"] = (
             artwork_schema.artist_id if artwork_schema.artist_id else None
         )

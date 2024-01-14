@@ -25,7 +25,7 @@ class ArtistRead(ArtistBase):
     id: int
     artworks: List[ArtworkCardSchema]
 
-    @field_validator("links", mode="before")
-    def links_validator(cls, v: List[str]) -> List[str]:
-        links = "".join(v).strip("{}").split(",")
-        return links
+    # @field_validator("links", mode="before")
+    # def links_validator(cls, v: List[str]) -> List[str]:
+    #     links = "".join(v).strip("{}").split(",")
+    #     return links

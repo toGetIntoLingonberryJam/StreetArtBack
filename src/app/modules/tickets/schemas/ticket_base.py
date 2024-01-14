@@ -11,7 +11,6 @@ from app.modules.tickets.utils.classes import TicketType, TicketStatus
 
 class TicketBaseSchema(BaseModel):
     ticket_type: Optional[TicketType] = None
-    status: TicketStatus = TicketStatus.PENDING
 
 
 class TicketCreateSchema(TicketBaseSchema):
@@ -21,10 +20,12 @@ class TicketCreateSchema(TicketBaseSchema):
 class TicketReadSchema(TicketBaseSchema):
     model_config = ConfigDict(from_attributes=True)
 
+    status: TicketStatus = TicketStatus.PENDING
     reason: Optional[str] = None
     moderator_comment: Optional[str] = None
 
     user_id: int
+    moderator_id: Optional[int] = None
 
     discriminator: str
     id: int

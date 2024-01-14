@@ -71,7 +71,7 @@ async def create_artwork(
     uow: UOWDep,
     moderator: Moderator = Depends(get_current_moderator),
     artwork_data: ArtworkCreateSchema = Body(...),
-    thumbnail_image_index: Annotated[Optional[int], Optional[Body(None)]] = None,
+    thumbnail_image_index: Annotated[Optional[int], Body()] = None,
     images: Annotated[
         List[UploadFile],
         File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),

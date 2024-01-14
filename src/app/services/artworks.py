@@ -67,7 +67,7 @@ class ArtworksService:
                 )
             )
 
-            if images:
+            if images or images_urls:
                 images_data_list = list()
                 artwork_images = list()
                 unique_image_urls = set()

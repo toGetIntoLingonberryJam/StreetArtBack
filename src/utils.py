@@ -7,7 +7,6 @@ import requests
 from pydantic import BaseModel, HttpUrl
 
 
-
 class ArtworkData(BaseModel):
     title: str
     year_created: int
@@ -59,7 +58,7 @@ auth_data = {
 }
 
 
-async def create_artwork(artwork: ArtworkData, url: str, header: dict):
+async def create_artwork(artwork: ArtworkData, url: str, header: dict, urls: List[HttpUrl]):
     artwork_schema = {
         "title": artwork.title,
         "year_created": artwork.year_created,
@@ -79,8 +78,9 @@ async def create_artwork(artwork: ArtworkData, url: str, header: dict):
     artwork_data_str = json.dumps(artwork_schema, ensure_ascii=False)
 
     files = {'artwork_data': (None, artwork_data_str)}
+    params = {'images_urls': [i.__str__() for i in artwork.image_urls]}
 
-    response = requests.post(url + '/v1/artworks', headers=header, files=files)
+    response = requests.post(url + '/v1/artworks', headers=header, files=files, params=params)
 
     print(response.text)
 
@@ -169,12 +169,22 @@ def assignee_festival(artwork_id, festival_id, url, header):
     return response
 
 
+def download_image(image_urls: List[HttpUrl]):
+    paths = []
+    for ind, url in enumerate(image_urls):
+        img_data = requests.get(url).content
+        with open(f'{ind}.jpg', 'wb') as handler:
+            handler.write(img_data)
+        paths.append(f'{ind}.jpg')
+    return paths
+
+
 async def send_data_to_host(url: str, artworks: List[ArtworkData]):
     token = await create_auth_token(url, auth_data)
     data_schema = {"Authorization": f"Bearer {token}"}
 
     for artwork in artworks:
-        new_artwork = await create_artwork(artwork, url, data_schema)
+        new_artwork = await create_artwork(artwork, url, data_schema, artwork.image_urls)
         artwork_id = new_artwork["id"]
         artist_current = get_current_artist(artwork.artist_name, url, data_schema)
         if not artist_current:
@@ -187,6 +197,7 @@ async def send_data_to_host(url: str, artworks: List[ArtworkData]):
         if not festival_current:
             festival_current = create_festival(artwork.festival, url, data_schema)
         assignee_festival(artwork_id, festival_current["id"], url, data_schema)
+
 
 data = read_data_from_table('Работы - STENOGRAFFIA.csv')
 

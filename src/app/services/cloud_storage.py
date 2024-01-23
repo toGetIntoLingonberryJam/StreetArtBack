@@ -83,7 +83,7 @@ class CloudStorageService:
             file_extension = file_extension.lower()  # Приводим к нижнему регистру
 
             # Извлекаем только имя файла без дополнительных параметров
-            file_name = os.path.basename(file_extension).split('?')[0]
+            file_name = os.path.basename(file_extension).split("?")[0]
 
             # Получаем уникальное имя файла на основе хеша и оригинального расширения
             unique_filename = f"{img_hash}{file_name}"
@@ -104,12 +104,16 @@ class CloudStorageService:
         return meta_info
 
     @classmethod
-    async def _get_file_public_url(cls, public_meta: AsyncPublicResourceObject | AsyncResourceObject) -> str:
+    async def _get_file_public_url(
+        cls, public_meta: AsyncPublicResourceObject | AsyncResourceObject
+    ) -> str:
         public_file_url = public_meta.FIELDS.get("public_url")
         return public_file_url
 
     @classmethod
-    async def _get_file_public_key(cls, public_meta: AsyncPublicResourceObject | AsyncResourceObject) -> str:
+    async def _get_file_public_key(
+        cls, public_meta: AsyncPublicResourceObject | AsyncResourceObject
+    ) -> str:
         public_file_url = public_meta.FIELDS.get("public_key")
         return public_file_url
 
@@ -166,7 +170,7 @@ class CloudStorageService:
 
     @classmethod
     async def upload_to_yandex_disk_by_url(
-            cls, image_url: str, custom_folder: str | None = None
+        cls, image_url: str, custom_folder: str | None = None
     ) -> CloudFile:
         """Загружает файл на диск по ссылке. Возвращает публичную ссылку загруженного файла."""
         client = cls.get_client()
@@ -174,7 +178,9 @@ class CloudStorageService:
 
         image = cls.get_pil_image_by_url(image_url=image_url)
 
-        unique_filename = cls.generate_unique_filename_by_pil_image_and_url(image, image_url)
+        unique_filename = cls.generate_unique_filename_by_pil_image_and_url(
+            image, image_url
+        )
 
         # TODO: Проработать все случаи:
         #  нахождение одинаковых файлов для записи в артворк их ссылок;
@@ -188,7 +194,7 @@ class CloudStorageService:
 
         # ### Загружаем изображение в Яндекс.Диск ###
         file_cloud_path = (
-                get_settings().yandex_disk_images_folder + custom_folder + unique_filename
+            get_settings().yandex_disk_images_folder + custom_folder + unique_filename
         )
 
         if await cls.file_exists(file_cloud_path):

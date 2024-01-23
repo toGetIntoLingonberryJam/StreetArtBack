@@ -243,8 +243,10 @@ class TicketsService:
                     # for image in ticket_images
                     {
                         **ImageReadSchema(**image.__dict__).__dict__,
-                        "created_at": image.created_at.isoformat() if hasattr(image, 'created_at') and isinstance(
-                            image.created_at, datetime) else None
+                        "created_at": image.created_at.isoformat()
+                        if hasattr(image, "created_at")
+                        and isinstance(image.created_at, datetime)
+                        else None,
                     }
                     for image in ticket_images
                 ]

@@ -1,7 +1,17 @@
 from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends, status, Query
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    HTTPException,
+    File,
+    Body,
+    Depends,
+    status,
+    Query,
+)
 from fastapi.responses import JSONResponse
+from fastapi_cache.decorator import cache
 from sqlalchemy.exc import NoResultFound
 
 from app.api.routes.common import (
@@ -11,6 +21,7 @@ from app.api.routes.common import (
     generate_detail,
 )
 from app.api.utils import is_image
+from app.api.utils.fastapi_cache import request_key_builder
 from app.api.utils.filters.artworks.artwork_location import ArtworkLocationFilter
 from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
@@ -41,7 +52,7 @@ router_artworks = APIRouter(tags=["Artworks"])
     response_model=list[ArtworkLocationReadSchema],
     description="Выводит список локаций подтверждённых арт-объектов.",
 )
-# @cache(expire=15)
+@cache(expire=60, namespace="show_artwork_locations", key_builder=request_key_builder)
 async def show_artwork_locations(
     uow: UOWDep, filters: Filter = FilterDepends(ArtworkLocationFilter)
 ):
@@ -76,7 +87,7 @@ async def create_artwork(
         List[UploadFile],
         File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
     ] = None,
-    images_urls: Annotated[list[str], Query()] = None
+    images_urls: Annotated[list[str], Query()] = None,
 ):
     if images:
         for image in images:
@@ -104,7 +115,6 @@ async def create_artwork(
     return artwork
 
 
-# @cache(expire=60, namespace="show_artworks")
 # await FastAPICache.clear(namespace="show_artworks")
 @router_artworks.get(
     "/",
@@ -113,6 +123,7 @@ async def create_artwork(
     Поля для сортировки: {", ".join(ArtworkFilter.Constants.ordering_model_fields)}\n
     Поля используемые в поиске: {", ".join(ArtworkFilter.Constants.search_model_fields)}""",
 )
+@cache(expire=60, namespace="show_artworks", key_builder=request_key_builder)
 async def show_artworks(
     uow: UOWDep,
     pagination: MyParams = Depends(),
@@ -123,7 +134,9 @@ async def show_artworks(
         uow=uow, pagination=pagination, filters=filters
     )
 
-    return paginate(artworks, pagination)
+    result = paginate(artworks, pagination)
+
+    return result
 
 
 @router_artworks.get(
@@ -139,6 +152,7 @@ async def show_artworks(
         )
     },
 )
+@cache(expire=60, namespace="show_artwork", key_builder=request_key_builder)
 async def show_artwork(artwork_id: int, uow: UOWDep):
     try:
         artwork = await ArtworksService().get_artwork(uow, artwork_id)

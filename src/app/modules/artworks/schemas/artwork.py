@@ -74,7 +74,7 @@ class ArtworkReadSchema(ArtworkBaseSchema):
     artist: Optional[ArtistCardSchema]
     festival: Optional[FestivalCardSchema]
 
-    created_at: datetime = Field(exclude=True)
+    created_at: Optional[datetime] = Field(None, exclude=True)
     updated_at: datetime
 
     # @field_validator("links", mode="before")

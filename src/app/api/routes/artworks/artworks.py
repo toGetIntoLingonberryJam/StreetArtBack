@@ -1,7 +1,17 @@
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, UploadFile, HTTPException, File, Body, Depends, status
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    HTTPException,
+    File,
+    Body,
+    Depends,
+    status,
+    Query,
+)
 from fastapi.responses import JSONResponse
+from fastapi_cache.decorator import cache
 from sqlalchemy.exc import NoResultFound
 
 from app.api.routes.common import (
@@ -11,6 +21,7 @@ from app.api.routes.common import (
     generate_detail,
 )
 from app.api.utils import is_image
+from app.api.utils.fastapi_cache import request_key_builder
 from app.api.utils.filters.artworks.artwork_location import ArtworkLocationFilter
 from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
@@ -18,6 +29,7 @@ from app.api.utils.filters.artworks import ArtworkFilter
 from app.api.utils.paginator import Page, MyParams
 from fastapi_pagination import paginate
 
+from app.modules import Moderator
 from app.modules.artworks.schemas.artwork import (
     ArtworkCreateSchema,
     ArtworkReadSchema,
@@ -28,8 +40,9 @@ from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSch
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
 from app.services.artworks import ArtworksService
-from app.services.user import UserService
-from app.utils.dependencies import UOWDep
+from app.services.collection import CollectionService
+from app.utils.dependencies import UOWDep, get_current_moderator
+from app.utils.exceptions import ObjectNotFoundException
 
 router_artworks = APIRouter(tags=["Artworks"])
 
@@ -39,13 +52,13 @@ router_artworks = APIRouter(tags=["Artworks"])
     response_model=list[ArtworkLocationReadSchema],
     description="Выводит список локаций подтверждённых арт-объектов.",
 )
-# @cache(expire=15)
+@cache(expire=60, namespace="show_artwork_locations", key_builder=request_key_builder)
 async def show_artwork_locations(
     uow: UOWDep, filters: Filter = FilterDepends(ArtworkLocationFilter)
 ):
     # Возвращает локации подтверждённых арт-объектов.
-    # locations = await ArtworksService().get_artworks_locations(uow, filters)
-    locations = await ArtworksService().get_locations_approved_artworks(uow, filters)
+    locations = await ArtworksService().get_artworks_locations(uow, filters)
+    # locations = await ArtworksService().get_locations_approved_artworks(uow, filters)
     return locations
 
 
@@ -53,7 +66,8 @@ async def show_artwork_locations(
     path="/",
     response_model=ArtworkReadSchema,
     status_code=status.HTTP_201_CREATED,
-    description="После создания арт-объекта, его статус модерации будет 'Ожидает проверки'.",
+    description="ТОЛЬКО ДЛЯ МОДЕРАТОРА. Убрать (После создания арт-объекта, его статус модерации будет 'Ожидает "
+    "проверки').",
     responses={
         status.HTTP_400_BAD_REQUEST: generate_response(
             error_model=ErrorModel,
@@ -66,13 +80,14 @@ async def show_artwork_locations(
 )
 async def create_artwork(
     uow: UOWDep,
-    user: User = Depends(current_user),
+    moderator: Moderator = Depends(get_current_moderator),
     artwork_data: ArtworkCreateSchema = Body(...),
-    thumbnail_image_index: Annotated[int, Body()] = None,
+    thumbnail_image_index: Annotated[Optional[int], Body()] = None,
     images: Annotated[
         List[UploadFile],
-        File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
+        File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
     ] = None,
+    images_urls: Annotated[list[str], Query()] = None,
 ):
     if images:
         for image in images:
@@ -88,9 +103,10 @@ async def create_artwork(
 
     artwork = await ArtworksService().create_artwork(
         uow=uow,
-        user=user,
+        moderator=moderator,
         artwork_schema=artwork_data,
         images=images,
+        images_urls=images_urls,
         thumbnail_image_index=thumbnail_image_index,
     )
 
@@ -99,7 +115,6 @@ async def create_artwork(
     return artwork
 
 
-# @cache(expire=60, namespace="show_artworks")
 # await FastAPICache.clear(namespace="show_artworks")
 @router_artworks.get(
     "/",
@@ -108,13 +123,20 @@ async def create_artwork(
     Поля для сортировки: {", ".join(ArtworkFilter.Constants.ordering_model_fields)}\n
     Поля используемые в поиске: {", ".join(ArtworkFilter.Constants.search_model_fields)}""",
 )
+@cache(expire=60, namespace="show_artworks", key_builder=request_key_builder)
 async def show_artworks(
     uow: UOWDep,
     pagination: MyParams = Depends(),
     filters: Filter = FilterDepends(ArtworkFilter),
 ):
-    artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
-    return paginate(artworks, pagination)
+    # artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
+    artworks = await ArtworksService().get_artworks(
+        uow=uow, pagination=pagination, filters=filters
+    )
+
+    result = paginate(artworks, pagination)
+
+    return result
 
 
 @router_artworks.get(
@@ -130,6 +152,7 @@ async def show_artworks(
         )
     },
 )
+@cache(expire=60, namespace="show_artwork", key_builder=request_key_builder)
 async def show_artwork(artwork_id: int, uow: UOWDep):
     try:
         artwork = await ArtworksService().get_artwork(uow, artwork_id)
@@ -148,7 +171,7 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
 @router_artworks.patch(
     "/{artwork_id}",
     response_model=ArtworkForModeratorReadSchema,
-    description="Метод для редактирования отдельных полей арт-объекта.",
+    description="ТОЛЬКО ДЛЯ МОДЕРАТОРОВ! Метод для редактирования отдельных полей арт-объекта.",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
             error_model=ErrorModel,
@@ -159,7 +182,10 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
     },
 )
 async def update_artwork(
-    artwork_id: int, artwork_data: ArtworkUpdateSchema, uow: UOWDep
+    artwork_id: int,
+    artwork_data: ArtworkUpdateSchema,
+    uow: UOWDep,
+    moderator: Moderator = Depends(get_current_moderator),
 ):
     try:
         artwork = await ArtworksService().update_artwork(uow, artwork_id, artwork_data)
@@ -178,7 +204,7 @@ async def update_artwork(
 # ToDO: доработать метод удаления. Возвращает мало информации + нет response_model.
 @router_artworks.delete(
     "/{artwork_id}",
-    description="Удаляет арт-объект и его связные сущности, включая изображения.",
+    description="ТОЛЬКО ДЛЯ МОДЕРАТОРА! Удаляет арт-объект и его связные сущности, включая изображения.",
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -189,7 +215,9 @@ async def update_artwork(
         )
     },
 )
-async def delete_artwork(artwork_id: int, uow: UOWDep):
+async def delete_artwork(
+    artwork_id: int, uow: UOWDep, moderator: Moderator = Depends(get_current_moderator)
+):
     try:
         await ArtworksService().delete_artwork(uow, artwork_id)
         return JSONResponse(
@@ -224,12 +252,14 @@ async def delete_artwork(artwork_id: int, uow: UOWDep):
 async def toggle_like(artwork_id: int, uow: UOWDep, user: User = Depends(current_user)):
     try:
         artwork = await ArtworksService().get_artwork(uow, artwork_id)
-        reaction = await UserService().make_reaction(uow, user.id, artwork.id)
-        return True if reaction else False
-    except NoResultFound:
+        reaction_add = await CollectionService().toggle_artwork_like(
+            uow, user.id, artwork.id
+        )
+        return reaction_add
+    except ObjectNotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=generate_detail(
-                error_code=ErrorCode.OBJECT_NOT_FOUND, message="Artwork not found"
+                error_code=ErrorCode.OBJECT_NOT_FOUND, message=e.__str__()
             ),
         )

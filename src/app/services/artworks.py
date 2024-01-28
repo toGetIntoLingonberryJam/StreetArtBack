@@ -68,10 +68,19 @@ class ArtworksService:
                 unique_image_urls = set()
 
                 # Создаем список корутин, каждая из которых отвечает за загрузку и обработку одного изображения
-                async def process_image(image):
-                    cloud_file = await CloudStorageService.upload_to_yandex_disk(
-                        image=image
-                    )
+                async def process_image(
+                    image: Optional[UploadFile] = None, image_url: Optional[str] = None
+                ):
+                    if image:
+                        cloud_file = await CloudStorageService.upload_to_yandex_disk(
+                            image=image
+                        )
+                    elif image_url:
+                        cloud_file = (
+                            await CloudStorageService.upload_to_yandex_disk_by_url(
+                                image_url=image_url
+                            )
+                        )
 
                     # ToDo: Добавлять созданную схему во все схемы, для дальнейшего создания объектов одним запросом к
                     #  БД. создать create_many
@@ -91,6 +100,10 @@ class ArtworksService:
 
                 # Запускаем корутины асинхронно
                 await asyncio.gather(*[process_image(image) for image in images])
+
+                await asyncio.gather(
+                    *[process_image(image_url=image_url) for image_url in images_urls]
+                )
 
                 # Добавление в базу данных
                 for image_data in images_data_list:

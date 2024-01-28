@@ -40,7 +40,9 @@ router = APIRouter(tags=["Tickets"])
 )
 # @cache(expire=15)
 async def show_tickets(
-    uow: UOWDep, ticket_model: TicketModel = None, pagination: MyParams = Depends()
+    uow: UOWDep,
+    ticket_model: TicketModel = None,
+    pagination: MyParams = Depends(),
 ):
     # ticket_model_class = TicketRegistry.ticket_classes.get(ticket_model)
     # if ticket_model_class is None:

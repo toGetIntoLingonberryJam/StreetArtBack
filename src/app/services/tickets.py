@@ -224,7 +224,16 @@ class TicketsService:
                         ticket_images.append(await uow.images.create(image_data))
 
                 ticket_data["artwork_data"]["images"] = [
-                    ImageReadSchema(**image.__dict__).model_dump_json()
+                    # ImageReadSchema(**image.__dict__).model_dump()
+                    # ImageReadSchema(**image.__dict__).__dict__
+                    # for image in ticket_images
+                    {
+                        **ImageReadSchema(**image.__dict__).__dict__,
+                        "created_at": image.created_at.isoformat()
+                        if hasattr(image, "created_at")
+                        and isinstance(image.created_at, datetime)
+                        else None,
+                    }
                     for image in ticket_images
                 ]
 

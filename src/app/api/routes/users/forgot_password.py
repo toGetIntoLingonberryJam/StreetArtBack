@@ -9,7 +9,10 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
-from app.modules.users.utils.forgot_password import get_reset_password_template
+from app.modules.users.utils.forgot_password import (
+    get_reset_password_template,
+    get_result_password_template,
+)
 from app.modules.users.manager import get_user_manager
 
 password_router = APIRouter()
@@ -48,19 +51,11 @@ async def reset_password(
         exceptions.InvalidResetPasswordToken,
         exceptions.UserNotExists,
         exceptions.UserInactive,
+        exceptions.InvalidPasswordException,
     ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ErrorCode.RESET_PASSWORD_BAD_TOKEN,
+        return HTMLResponse(
         )
-    except exceptions.InvalidPasswordException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "code": ErrorCode.RESET_PASSWORD_INVALID_PASSWORD,
-                "reason": e.reason,
-            },
-        )
+            content=get_result_password_template(False), status_code=400
 
 
 @password_router.post("/verify_reset_password")

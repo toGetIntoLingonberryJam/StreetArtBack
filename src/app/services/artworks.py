@@ -113,6 +113,10 @@ class ArtworksService:
                     *[process_image(image_url=image_url) for image_url in images_urls]
                 )
 
+                await asyncio.gather(
+                    *[process_image(image_url=image_url) for image_url in images_urls]
+                )
+
                 # Добавление в базу данных
                 for image_data in images_data_list:
                     exist_image = await uow.artwork_images.filter(

@@ -1,9 +1,8 @@
 import asyncio
+import hashlib
 import os
-from io import BytesIO
 from urllib.parse import urlparse
 
-import requests
 from PIL import Image
 import imagehash
 import threading
@@ -11,7 +10,11 @@ from typing import Optional
 
 import yadisk
 from fastapi import UploadFile
-from yadisk.objects import AsyncPublicResourceObject, AsyncResourceObject
+from yadisk.objects import (
+    AsyncPublicResourceObject,
+    AsyncResourceObject,
+    AsyncOperationLinkObject,
+)
 
 from app.modules import TicketBase, Artwork
 from config import get_settings
@@ -34,6 +37,9 @@ class CloudFile:
         self.public_url = public_url
         self.public_key = public_key
         self.file_path = file_path
+
+    def __str__(self):
+        return f"public_url: {self.public_url}, file_path: {self.file_path}"
 
 
 class CloudStorageService:
@@ -64,33 +70,41 @@ class CloudStorageService:
         return unique_filename
 
     @staticmethod
-    def get_pil_image_by_url(image_url):
-        try:
-            response = requests.get(image_url)
-            img = Image.open(BytesIO(response.content))
-            return img
-        except Exception as e:
-            print(f"Error: {e}")
-            return None
+    def generate_unique_filename_by_url(image_url: str):
+        # Вычисляем хеш изображения
+        image_url_hash = hashlib.sha256(str.encode(image_url)).hexdigest()
+        # Извлекаем оригинальное расширение файла из URL
+        _, file_extension = os.path.splitext(urlparse(image_url).path)
+        file_extension = file_extension.lower()  # Приводим к нижнему регистру
+        # Извлекаем только имя файла без дополнительных параметров
+        file_name = os.path.basename(file_extension).split("?")[0]
+        # Получаем уникальное имя файла на основе хеша и оригинального расширения
+        unique_filename = f"{image_url_hash}{file_name}"
+        return unique_filename
 
-    @staticmethod
-    def generate_unique_filename_by_pil_image_and_url(image: Image, image_url: str):
-        try:
-            img_hash = imagehash.average_hash(image)
+    @classmethod
+    async def wait_for_operation(cls, operation: AsyncOperationLinkObject):
+        client = cls.get_client()
 
-            # Извлекаем оригинальное расширение файла из URL
-            _, file_extension = os.path.splitext(urlparse(image_url).path)
-            file_extension = file_extension.lower()  # Приводим к нижнему регистру
+        while True:
+            status = await client.get_operation_status(operation.href)
 
-            # Извлекаем только имя файла без дополнительных параметров
-            file_name = os.path.basename(file_extension).split("?")[0]
-
-            # Получаем уникальное имя файла на основе хеша и оригинального расширения
-            unique_filename = f"{img_hash}{file_name}"
-            return unique_filename
-        except Exception as e:
-            print(f"Error: {e}")
-            return None
+            if status == "success":
+                # Действия при успешном завершении операции
+                return True
+            elif status == "failed":
+                # Действия при неудачном завершении операции
+                # print("Operation failed.")
+                # break
+                return False
+            elif status == "in-progress":
+                # Ожидание с задержкой перед следующей проверкой
+                # Асинхронное ожидание 0.5 секунды перед следующей проверкой
+                await asyncio.sleep(0.5)
+            else:
+                # Обработка других возможных статусов
+                print(f"Unknown status: {status}")
+                return False
 
     @classmethod
     async def file_exists(cls, file_path: str):
@@ -171,20 +185,14 @@ class CloudStorageService:
     @classmethod
     async def upload_to_yandex_disk_by_url(
         cls, image_url: str, custom_folder: str | None = None
-    ) -> CloudFile:
+    ) -> CloudFile | None:
         """Загружает файл на диск по ссылке. Возвращает публичную ссылку загруженного файла."""
         client = cls.get_client()
-        # Открываем изображение и вычисляем хеш
 
-        image = cls.get_pil_image_by_url(image_url=image_url)
+        # Вычисляем хеш из ссылки
+        # ToDo: Переделать в вычисление хэша файлом (для того, чтобы избежать одинаковых изображений)
+        unique_filename = cls.generate_unique_filename_by_url(image_url=image_url)
 
-        unique_filename = cls.generate_unique_filename_by_pil_image_and_url(
-            image, image_url
-        )
-
-        # TODO: Проработать все случаи:
-        #  нахождение одинаковых файлов для записи в артворк их ссылок;
-        #  удаление изображений в методе удаления артворка
         # Создание правильного пути до выбранной папки загрузки изображения в Яндекс.Диск
         custom_folder = (
             "/"
@@ -197,19 +205,17 @@ class CloudStorageService:
             get_settings().yandex_disk_images_folder + custom_folder + unique_filename
         )
 
-        if await cls.file_exists(file_cloud_path):
-            # Получаем информацию о файле
-            file_info = await cls.get_file_info(file_cloud_path)
-            # Проверяем размер текущего файла на диске и нового изображения
-            # if file_info["size"] < image.size: # ToDo: Не работает
-            #     # Размер нового изображения больше, заменяем файл на диске
-            #     await client.upload_url(image_url, file_cloud_path, overwrite=True)
-        else:
-            # Файл не найден, загружаем новый
-            await client.upload_url(image_url, file_cloud_path)
+        if not await cls.file_exists(file_cloud_path):
+            operation = await client.upload_url(
+                image_url, file_cloud_path, disable_redirects=False
+            )
 
-        # Предоставление общего доступа к файлу
-        await client.publish(file_cloud_path)
+            if not await cls.wait_for_operation(operation):
+                return None  # Если не получилось у Яндекса загрузить файл, то вернётся None.
+                # Позже можно переделать чтоб мы сами скачивали (вдруг ресурс заблокирован в Яндексе)
+
+            # Предоставление общего доступа к файлу
+            await client.publish(file_cloud_path)
 
         # Получение ранее созданной публичной ссылки
         public_file_info = await cls.get_file_info(file_cloud_path)

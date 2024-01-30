@@ -1,13 +1,12 @@
-from fastapi import Body, Depends, APIRouter
+from fastapi import Body, Depends, APIRouter, HTTPException, Form
 from fastapi_users import exceptions
+from fastapi_users.router import ErrorCode
 from pydantic import EmailStr
 from starlette import status
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
 
 from app.modules.users.manager import get_user_manager
 from app.modules.users.schemas import UserRead
-from app.modules.users.utils.confirm_email import get_result_template
 
 verify_router = APIRouter()
 
@@ -29,16 +28,22 @@ async def request_verify_token(
     return None
 
 
-@verify_router.get("/verify", tags=["verify-back"])
+@verify_router.get("/verify", response_model=UserRead, tags=["verify-back"])
 async def verify(
     token: str,
     request: Request,
     user_manager=Depends(get_user_manager),
 ):
     try:
-        await user_manager.verify(token, request)
-        return HTMLResponse(content=get_result_template(True), status_code=200)
+        user = await user_manager.verify(token, request)
+        return user
     except (exceptions.InvalidVerifyToken, exceptions.UserNotExists):
-        return HTMLResponse(content=get_result_template(False), status_code=400)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorCode.VERIFY_USER_BAD_TOKEN,
+        )
     except exceptions.UserAlreadyVerified:
-        return HTMLResponse(content=get_result_template(True), status_code=200)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorCode.VERIFY_USER_ALREADY_VERIFIED,
+        )

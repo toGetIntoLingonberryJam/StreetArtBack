@@ -1,4 +1,4 @@
-from typing import Sequence, Union, Any
+from typing import Sequence, Union, Any, Self
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel as BaseSchema
@@ -110,7 +110,7 @@ class SQLAlchemyRepository:
         result = await self.session.execute(stmt)
         # filter_by["id"] = obj_id
         # a = await self._filter(filters=filters, **filter_by)
-        return result.unique().scalar_one()
+        return result.scalar_one()
 
     async def filter(
         self,
@@ -126,13 +126,13 @@ class SQLAlchemyRepository:
         if limit:
             stmt = stmt.limit(limit=limit)
 
-        stmt = await self._filter(stmt=stmt, filters=filters, **filter_by)
+        stmt = await self._filter(query=stmt, filters=filters, **filter_by)
 
         result = await self.session.execute(stmt)
 
-        return result.unique().scalars().all()
+        return result.scalars().all()
 
-    async def edit(self, obj_id: int, obj_data: BaseSchema | dict | None):
+    async def edit(self, obj_id: int, obj_data: BaseSchema | dict) -> int:
         obj_data = (
             obj_data
             if isinstance(obj_data, dict)
@@ -152,4 +152,5 @@ class SQLAlchemyRepository:
         stmt = delete(self.model).filter_by(id=obj_id)
         res = await self.session.execute(stmt)
 
-        # return res.scalar_one()
+        # if res.rowcount == 0:
+        #     raise NoResultFound(f"Object with ID {obj_id} not found") # TODO: ?

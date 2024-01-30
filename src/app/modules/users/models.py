@@ -11,6 +11,7 @@ from app.db import Base, get_async_session
 from app.modules.artists.models import Artist
 from app.modules.artworks.models.artwork import Artwork
 from app.modules.festivals.models import Festival  # TODO: перенести в __init__
+from app.modules.users.utils.reactions import Reaction
 
 
 class User(Base, SQLAlchemyBaseUserTable[int]):
@@ -26,13 +27,7 @@ class User(Base, SQLAlchemyBaseUserTable[int]):
 
     # отношение MANY-TO-MANY к любимым работам
     favorite_artworks: Mapped[List["Artwork"]] = relationship(
-        secondary="artwork_like", back_populates="likes"
-    )
-    favorite_artist: Mapped[List["Artist"]] = relationship(
-        secondary="artist_like", back_populates="likes"
-    )
-    favorite_festivals: Mapped[List["Festival"]] = relationship(
-        secondary="festival_like", back_populates="likes"
+        "Artwork", secondary="reaction"
     )
 
     tickets: Mapped[List["TicketBase"]] = relationship(back_populates="user")

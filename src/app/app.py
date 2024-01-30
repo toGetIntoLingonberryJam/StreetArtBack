@@ -10,7 +10,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
 
-app = FastAPI(title="StreetArtWitnessesAPI", version="2.0.0")
+app = FastAPI(title="StreetArtWitnessesAPI")
 
 
 @app.on_event("startup")

@@ -37,7 +37,6 @@ class ArtworkTicketCreateSchema(TicketCreateSchema, ArtworkTicketBaseSchema):
 
 class ArtworkTicketReadSchema(TicketReadSchema, ArtworkTicketBaseSchema):
     # model_config = ConfigDict(from_attributes=True)
-    artwork_id: Optional[int] = None
     artwork_data: dict
 
 

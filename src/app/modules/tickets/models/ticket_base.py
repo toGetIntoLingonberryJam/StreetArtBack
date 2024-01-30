@@ -26,18 +26,13 @@ class TicketBase(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     user_id = mapped_column(Integer, ForeignKey("user.id"), index=True)
-    moderator_id = mapped_column(Integer, ForeignKey("moderator.id"), nullable=True)
-
     ticket_type = mapped_column(Enum(TicketType), nullable=False)
     reason = mapped_column(Text, nullable=True)
 
     status = mapped_column(Enum(TicketStatus), default=TicketStatus.PENDING)
     moderator_comment = mapped_column(Text, nullable=True)
 
-    user: Mapped["User"] = relationship(back_populates="tickets", lazy="selectin")
-    moderator: Mapped["Moderator"] = relationship(
-        back_populates="answered_tickets", lazy="selectin"
-    )
+    user: Mapped["User"] = relationship(back_populates="tickets")
 
     discriminator = mapped_column(String(50), nullable=False)
 

@@ -4,7 +4,7 @@ from enum import Enum as PyEnum
 from typing import List
 
 import pytz
-from sqlalchemy import Integer, String, ForeignKey, DateTime, func, ARRAY
+from sqlalchemy import Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.types import Enum
 
@@ -23,10 +23,10 @@ class Artwork(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String, index=True)
 
-    year_created: Mapped[int] = mapped_column(Integer, nullable=True)
-    description: Mapped[str] = mapped_column(String, nullable=True)
-    # source_description: Mapped[str] = mapped_column(String, nullable=True)
-    links: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
+    year_created: Mapped[int] = mapped_column(Integer)
+    festival: Mapped[str] = mapped_column(String)
+    description: Mapped[str] = mapped_column(String)
+    source_description: Mapped[str] = mapped_column(String)
 
     # отношение к пользователю, который добавил арт-объект
     added_by_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
@@ -41,8 +41,8 @@ class Artwork(Base):
     )
 
     festival_id = mapped_column(ForeignKey("festival.id"), nullable=True)
-    festival: Mapped["Festival"] = relationship(
-        "Festival", foreign_keys=festival_id, back_populates="artworks", lazy="joined"
+    festival = relationship(
+        "Festival", foreign_keys=festival_id, back_populates="artworks", lazy="subquery"
     )
     # Отношение "один-ко-одному" к ArtworkLocation
     location: Mapped["ArtworkLocation"] = relationship(
@@ -83,8 +83,6 @@ class Artwork(Base):
     updated_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), default=datetime.now(tz=pytz.UTC), onupdate=func.now()
     )
-
-    likes: Mapped[List["User"]] = relationship(secondary="artwork_like")
 
     def __repr__(self):
         return f"{self.title} (ID: {self.id})"

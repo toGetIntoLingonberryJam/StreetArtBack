@@ -15,11 +15,9 @@ class Image(Base):
     }
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    image_url: Mapped[str] = mapped_column(String)
+    image_url: Mapped[str] = mapped_column(String, unique=True)
     public_key: Mapped[str] = mapped_column(String)
     file_path: Mapped[str] = mapped_column(String)
-
-    description: Mapped[str] = mapped_column(String(length=50), nullable=True)
 
     discriminator = mapped_column(String(50), nullable=False)
 

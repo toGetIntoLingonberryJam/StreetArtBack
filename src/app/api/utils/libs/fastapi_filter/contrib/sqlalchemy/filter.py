@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import itertools
 from enum import Enum
 from typing import Union
 
@@ -94,12 +95,22 @@ class Filter(BaseFilterModel):
             field.field_name == cls.Constants.ordering_field_name
             or field.field_name.endswith("__in")
             or field.field_name.endswith("__not_in")
-        ) and isinstance(value, str):
-            if not value:
-                # Empty string should return [] not ['']
-                return []
-            return list(value.split(","))
-        return value
+        ):
+            # and isinstance(value, str):
+            # if not value:
+            #     # Empty string should return [] not ['']
+            #     return []
+            # return list(value.split(","))
+
+            if isinstance(value, str):
+                value = map(str.strip, value.split(","))
+            elif isinstance(value, list) and all(isinstance(x, str) for x in value):
+                value = map(
+                    str.strip,
+                    itertools.chain.from_iterable(x.split(",") for x in value),
+                )
+
+            return value
 
     def filter(self, query: Union[Query, Select]):
         for field_name, value in self.filtering_fields:

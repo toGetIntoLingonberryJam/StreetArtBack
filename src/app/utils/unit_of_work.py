@@ -9,10 +9,15 @@ from app.repos.artworks import (
 from app.repos.tickets import TicketBaseRepository, ArtworkTicketRepository
 from app.repos.cloud_storage import ImageRepository
 from app.repos.users import (
-    ReactionRepository,
     ModeratorRepository,
     ArtistRepository,
     UsersRepository,
+)
+
+from app.repos.collection import (
+    ArtworkLikeRepository,
+    ArtistLikeRepository,
+    FestivalLikeRepository,
 )
 
 
@@ -34,8 +39,11 @@ class UnitOfWork:
         self.artwork_moderation = ArtworkModerationRepository(self.session)
         self.tickets = TicketBaseRepository(self.session)
         self.artwork_tickets = ArtworkTicketRepository(self.session)
-        self.reaction = ReactionRepository(self.session)
         self.festival = FestivalRepository(self.session)
+
+        self.artwork_like = ArtworkLikeRepository(self.session)
+        self.artist_like = ArtistLikeRepository(self.session)
+        self.festival_like = FestivalLikeRepository(self.session)
         # self.tasks = TasksRepository(self.session)
         # self.task_history = TaskHistoryRepository(self.session)
 

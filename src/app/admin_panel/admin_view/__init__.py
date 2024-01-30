@@ -1,4 +1,8 @@
-from app.admin_panel.admin_view.users_admin import UserAdmin
+from app.admin_panel.admin_view.users_admin import (
+    UserAdmin,
+    ArtistAdmin,
+    ModeratorAdmin,
+)
 from app.admin_panel.admin_view.artworks_admin import (
     ArtworkAdmin,
     ArtworkLocationAdmin,

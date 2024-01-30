@@ -19,7 +19,12 @@ class Artist(Base):
         ForeignKey("user.id"), index=True, nullable=True
     )
     artworks: Mapped[List["Artwork"]] = relationship(
-        "Artwork", back_populates="artist", lazy="subquery"
+        "Artwork", back_populates="artist", lazy="joined"
     )
 
-    links: Mapped[List[str]] = mapped_column(ARRAY(String))
+    image_id: Mapped[int] = mapped_column(ForeignKey("image.id"), nullable=True)
+    image: Mapped["Image"] = relationship(lazy="joined", foreign_keys="Artist.image_id")
+
+    links: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
+
+    likes: Mapped[List["User"]] = relationship("User", secondary="artist_like")

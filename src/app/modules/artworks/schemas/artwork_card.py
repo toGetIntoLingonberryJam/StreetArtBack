@@ -6,6 +6,7 @@ from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.models.artwork import ArtworkStatus
 from app.modules.artworks.schemas.artwork_image import ArtworkImageReadSchema
 from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSchema
+from app.modules.festivals.card_schema import FestivalCardSchema
 
 
 class ArtworkCardSchema(BaseModel):
@@ -13,7 +14,7 @@ class ArtworkCardSchema(BaseModel):
 
     title: str
 
-    festival_id: Optional[int]
+    festival: Optional[FestivalCardSchema]
     status: ArtworkStatus
     images: Optional[List[ArtworkImageReadSchema]] = Field(..., exclude=True)
     location: ArtworkLocationReadSchema = Field(..., exclude=True)
@@ -31,6 +32,8 @@ class ArtworkCardSchema(BaseModel):
         return img
 
     @field_validator("location")
-    def loc_valid(cls, location: ArtworkLocationReadSchema) -> ArtworkLocationReadSchema:
+    def loc_valid(
+        cls, location: ArtworkLocationReadSchema
+    ) -> ArtworkLocationReadSchema:
         cls.address = location.address
         return location

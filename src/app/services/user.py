@@ -1,24 +1,47 @@
-from app.modules.users.utils.reactions import Reaction
+from app.modules.collections.models import LikeType
+from app.services.artist import ArtistsService
+from app.services.artworks import ArtworksService
+from app.services.festival import FestivalService
 from app.utils.unit_of_work import UnitOfWork
 
 
 class UserService:
-    async def get_user_reactions(self, uow: UnitOfWork, user_id: int):
-        async with uow:
-            reactions = await uow.reaction.filter(user_id=user_id)
-            return reactions
+    async def get_artwork_likes(self, uow: UnitOfWork, user_id: int):
+        likes = await self.get_user_likes(uow, user_id, LikeType.ARTWORK)
+        artworks = [
+            (await ArtworksService().get_artwork(uow, like.artwork_id))
+            for like in likes
+        ]
+        return artworks
 
-    async def make_reaction(self, uow: UnitOfWork, user_id: int, artwork_id: int):
-        """Создает реакцию на Artwork. При наличии реацкии на данный Artwork - удаляет реакцию."""
+    async def get_artist_likes(self, uow: UnitOfWork, user_id: int):
+        likes = await self.get_user_likes(uow, user_id, LikeType.ARTIST)
+        artists = [
+            (await ArtistsService().get_artist_by_id(uow, like.artist_id))
+            for like in likes
+        ]
+        return artists
+
+    async def get_festival_likes(self, uow: UnitOfWork, user_id: int):
+        likes = await self.get_user_likes(uow, user_id, LikeType.FESTIVAL)
+        festivals = [
+            (await FestivalService().get_festival_by_id(uow, like.festival_id))
+            for like in likes
+        ]
+        return festivals
+
+    @staticmethod
+    async def get_user_likes(uow: UnitOfWork, user_id: int, like_type: LikeType):
         async with uow:
-            reactions = await uow.reaction.filter(
-                user_id=user_id, artworks_id=artwork_id
-            )
-            if reactions:
-                reaction = reactions[0]
-                await uow.reaction.delete(reaction.id)
-            else:
-                reaction = {"user_id": user_id, "artworks_id": artwork_id}
-                reaction = await uow.reaction.create(reaction)
-            await uow.commit()
-            return None if reactions else reaction
+            if like_type == LikeType.ARTIST:
+                likes = await uow.artist_like.filter(user_id=user_id)
+            elif like_type == LikeType.ARTWORK:
+                likes = await uow.artwork_like.filter(user_id=user_id)
+            elif like_type == LikeType.FESTIVAL:
+                likes = await uow.festival_like.filter(user_id=user_id)
+            return likes
+
+    async def edit_user_settings(self, uow: UnitOfWork, user_id: int, **kwargs):
+        async with uow:
+            user = await uow.users.edit(user_id, kwargs)
+            return user

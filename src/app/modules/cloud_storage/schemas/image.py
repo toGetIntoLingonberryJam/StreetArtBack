@@ -1,10 +1,13 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, constr
 from pydantic_partial import create_partial_model
 
 
 class ImageBaseSchema(BaseModel):
     image_url: str
+    description: Optional[constr(max_length=50)] = None
 
 
 class ImageCreateSchema(ImageBaseSchema):
@@ -15,8 +18,8 @@ class ImageCreateSchema(ImageBaseSchema):
 class ImageReadSchema(ImageBaseSchema):
     model_config = ConfigDict(from_attributes=True)
 
-    discriminator: str
-    id: int
+    # discriminator: str
+    # id: int
 
     created_at: datetime
 

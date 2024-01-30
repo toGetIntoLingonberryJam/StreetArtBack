@@ -10,11 +10,14 @@ from app.api.routes.common import (
     ErrorModel,
 )
 from app.api.utils import is_image
+from app.api.utils.libs.fastapi_filter import FilterDepends
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from app.api.utils.paginator import MyParams
-from app.modules import User
+from app.modules import User, Moderator
 from app.modules.tickets.schemas.ticket_artwork import (
     ArtworkTicketCreateSchema,
     ArtworkTicketReadSchema,
+    ArtworkTicketUpdateSchema,
 )
 from app.modules.tickets.schemas.ticket_base import TicketReadSchema, TicketCreateSchema
 from app.modules.tickets.utils.classes import (
@@ -28,7 +31,7 @@ from app.modules.tickets.utils.types import (
 from app.modules.users.fastapi_users_config import current_user
 from app.services.artworks import ArtworksService
 from app.services.tickets import TicketsService
-from app.utils.dependencies import UOWDep
+from app.utils.dependencies import UOWDep, get_current_moderator
 
 router = APIRouter(tags=["Tickets"])
 
@@ -97,7 +100,7 @@ async def create_ticket(
 @router.post(
     "/artwork/",
     response_model=TicketReadSchemaType,
-    description="Создаёт тикет .",
+    description="Создаёт тикет.",
     responses={
         status.HTTP_400_BAD_REQUEST: generate_response(
             error_model=ErrorModel,
@@ -111,11 +114,11 @@ async def create_ticket(
 async def create_artwork_ticket(
     uow: UOWDep,
     user: User = Depends(current_user),
-    ticket_schema: ArtworkTicketCreateSchema = Body(...),
+    artwork_ticket_schema: ArtworkTicketCreateSchema = Body(...),
     thumbnail_image_index: Annotated[int, Body()] = None,
     images: Annotated[
         List[UploadFile],
-        File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
+        File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
     ] = None,
 ):
     if images:
@@ -133,9 +136,83 @@ async def create_artwork_ticket(
     artwork_ticket = await TicketsService.create_artwork_ticket(
         uow=uow,
         user=user,
-        artwork_ticket_schema=ticket_schema,
+        artwork_ticket_schema=artwork_ticket_schema,
         thumbnail_image_index=thumbnail_image_index,
         images=images,
+    )
+
+    return artwork_ticket
+
+
+# @router.patch(
+#     "/{artwork_ticket_id}",
+#     response_model=ArtworkTicketReadSchema,
+#     description="ДЛЯ ПОЛЬЗОВАТЕЛЯ!!! Даёт возможность изменить поля",
+# )
+# async def update_artwork_ticket(
+#     uow: UOWDep,
+#     artwork_ticket_id: int,
+#     user: User = Depends(current_user),
+#     artwork_ticket_schema: ArtworkTicketUpdateSchema = Body(None),
+#     thumbnail_image_index: Annotated[int, Body()] = None,
+#     images: Annotated[
+#         List[UploadFile],
+#         File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
+#     ] = None,
+# ):
+#     if images:
+#         for image in images:
+#             if not is_image(image):
+#                 raise HTTPException(
+#                     status_code=status.HTTP_400_BAD_REQUEST,
+#                     detail=generate_detail(
+#                         error_code=ErrorCode.INVALID_IMAGE_FILE_EXTENSION,
+#                         message="Invalid image file extension",
+#                         data={"filename": image.filename},
+#                     ),
+#                 )
+#
+#     artwork_ticket = await TicketsService.update_artwork_ticket(
+#         uow=uow,
+#         artwork_ticket_id=artwork_ticket_id,
+#         user=user,
+#         artwork_ticket_schema=artwork_ticket_schema,
+#         thumbnail_image_index=thumbnail_image_index,
+#         images=images,
+#     )
+#
+#     return artwork_ticket
+
+
+@router.patch(
+    "/approve/{artwork_ticket_id}",
+    response_model=ArtworkTicketReadSchema,
+    description="ДЛЯ МОДЕРАТОРА!!! Подтвердить тикет связанный с арт-объектом.",
+)
+async def approve_artwork_ticket(
+    uow: UOWDep,
+    artwork_ticket_id: int,
+    moderator: Moderator = Depends(get_current_moderator),
+):
+    artwork_ticket = await TicketsService.approve_artwork_ticket(
+        uow=uow, moderator=moderator, artwork_ticket_id=artwork_ticket_id
+    )
+
+    return artwork_ticket
+
+
+@router.patch(
+    "/reject/{artwork_ticket_id}",
+    response_model=ArtworkTicketReadSchema,
+    description="ДЛЯ МОДЕРАТОРА!!! Отклонить тикет связанный с арт-объектом.",
+)
+async def approve_artwork_ticket(
+    uow: UOWDep,
+    artwork_ticket_id: int,
+    moderator: Moderator = Depends(get_current_moderator),
+):
+    artwork_ticket = await TicketsService.reject_artwork_ticket(
+        uow=uow, moderator=moderator, artwork_ticket_id=artwork_ticket_id
     )
 
     return artwork_ticket
@@ -154,7 +231,7 @@ async def create_artwork_ticket(
 #         thumbnail_image_index: Annotated[int, Body()] = None,
 #         images: Annotated[
 #             List[UploadFile],
-#             File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
+#             File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
 #         ] = None,
 # ):
 #
@@ -180,7 +257,7 @@ async def create_artwork_ticket(
 #     thumbnail_image_index: Annotated[int, Body()] = None,
 #     images: Annotated[
 #         List[UploadFile],
-#         File(..., description="Разрешены '.jpg', '.jpeg', '.png', '.heic'"),
+#         File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
 #     ] = None,
 # ):
 #     if images:
@@ -198,7 +275,7 @@ async def create_artwork_ticket(
 #     artwork = await ArtworksService().create_artwork(
 #         uow=uow,
 #         user=user,
-#         artwork_schem=artwork_data,
+#         artwork_schema=artwork_data,
 #         images=images,
 #         thumbnail_image_index=thumbnail_image_index,
 #     )

@@ -2,9 +2,12 @@ import asyncio
 from typing import Optional, List
 
 from fastapi import UploadFile
+from sqlalchemy.exc import NoResultFound
+
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 
+from app.modules import Moderator
 from app.modules.artworks.models.artwork import Artwork
 from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 from app.modules.artworks.schemas.artwork import (
@@ -18,6 +21,7 @@ from app.modules.artworks.schemas.artwork_moderation import (
 )
 from app.modules.users.models import User
 from app.services.cloud_storage import CloudStorageService
+from app.utils.exceptions import ObjectNotFoundException
 
 # from app.utils.cloud_storage_config import (
 #     upload_to_yandex_disk,
@@ -27,24 +31,28 @@ from app.utils.unit_of_work import UnitOfWork
 
 
 class ArtworksService:
+    @staticmethod
     async def create_artwork(
-        self,
         uow: UnitOfWork,
-        user: User,
+        moderator: Moderator,
         artwork_schema: ArtworkCreateSchema,
         images: Optional[List[UploadFile]] = None,
+        images_urls: Optional[List[str]] = None,
         thumbnail_image_index: Optional[int] = None,
     ):
+        if not thumbnail_image_index:
+            thumbnail_image_index = 0
+
         location_data = artwork_schema.location
 
         artwork_dict = artwork_schema.model_dump(exclude={"location"})
 
-        artwork_dict["added_by_user_id"] = user.id
+        artwork_dict["added_by_user_id"] = moderator.id
         artwork_dict["artist_id"] = (
-            artwork_schem.artist_id if artwork_schem.artist_id else None
+            artwork_schema.artist_id if artwork_schema.artist_id else None
         )
         artwork_dict["festival_id"] = (
-            artwork_schem.festival_id if artwork_schem.festival_id else None
+            artwork_schema.festival_id if artwork_schema.festival_id else None
         )
 
         async with uow:
@@ -62,7 +70,7 @@ class ArtworksService:
                 )
             )
 
-            if images:
+            if images or images_urls:
                 images_data_list = list()
                 artwork_images = list()
                 unique_image_urls = set()
@@ -99,7 +107,11 @@ class ArtworksService:
                         images_data_list.append(image_create)
 
                 # Запускаем корутины асинхронно
-                await asyncio.gather(*[process_image(image) for image in images])
+                await asyncio.gather(*[process_image(image=image) for image in images])
+
+                await asyncio.gather(
+                    *[process_image(image_url=image_url) for image_url in images_urls]
+                )
 
                 await asyncio.gather(
                     *[process_image(image_url=image_url) for image_url in images_urls]
@@ -121,11 +133,10 @@ class ArtworksService:
                 artwork.images = artwork_images
 
                 if location_data:
-                    if thumbnail_image_index:
-                        if 0 <= thumbnail_image_index < len(artwork_images):
-                            img = artwork_images[thumbnail_image_index]
-                            # img.generate_thumbnail_url()
-                            artwork.location.thumbnail_image = img
+                    if 0 <= thumbnail_image_index < len(artwork_images):
+                        img = artwork_images[thumbnail_image_index]
+                        # img.generate_thumbnail_url()
+                        artwork.location.thumbnail_image = img
 
             if artwork.artist_id:
                 artwork.artist = await uow.artist.get(artwork.artist_id)
@@ -134,11 +145,12 @@ class ArtworksService:
             await uow.commit()
             return artwork
 
+    @staticmethod
     async def get_artworks_by_moderation_status(
-        self,
         uow: UnitOfWork,
         pagination: Optional[Params] = None,
         filters: Optional[Filter] = None,
+        **filter_by
     ) -> list[Artwork]:
         async with uow:
             offset: int = 0
@@ -150,7 +162,7 @@ class ArtworksService:
                 limit = pagination_raw_params.limit
 
             artworks = await uow.artworks.filter(
-                offset=offset, limit=limit, filters=filters
+                offset=offset, limit=limit, filters=filters, **filter_by
             )
             return artworks
 
@@ -170,17 +182,18 @@ class ArtworksService:
         uow: UnitOfWork,
         pagination: Optional[Params] = None,
         filters: Optional[Filter] = None,
+        **filter_by
     ) -> list[Artwork]:
         # filters.add_filtering_field(artwork_moderation__status='approved')
         # filters.add_searching_field("artwork_moderation__status")
         # filters.add_ordering_field("artwork_moderation__status")
-
-        filters.add_filtering_fields(
-            moderation__status=ArtworkModerationStatus.APPROVED
-        )
+        if filters:
+            filters.add_filtering_fields(
+                moderation__status=ArtworkModerationStatus.APPROVED,
+            )
 
         return await self.get_artworks_by_moderation_status(
-            uow=uow, pagination=pagination, filters=filters
+            uow=uow, pagination=pagination, filters=filters, **filter_by
         )
 
     async def get_rejected_artworks(
@@ -197,18 +210,31 @@ class ArtworksService:
             uow=uow, pagination=pagination, filters=filters
         )
 
-    async def get_artwork(self, uow: UnitOfWork, artwork_id: int):
+    @staticmethod
+    async def get_artwork(
+        uow: UnitOfWork, artwork_id: int, filters: Filter | None = None, **filter_by
+    ):
         async with uow:
-            artwork = await uow.artworks.get(artwork_id)
+            artwork = await uow.artworks.get(
+                obj_id=artwork_id, filters=filters, **filter_by
+            )
             return artwork
 
-    async def get_all_artworks(self, uow: UnitOfWork):
+    @staticmethod
+    async def get_artworks(uow: UnitOfWork, filters: Filter | None = None, **filter_by):
+        async with uow:
+            artworks = await uow.artworks.filter(filters=filters, **filter_by)
+            return artworks
+
+    @staticmethod
+    async def get_all_artworks(uow: UnitOfWork):
         async with uow:
             artworks = await uow.artworks.get_all()
             return artworks
 
+    @staticmethod
     async def get_locations_approved_artworks(
-        self, uow: UnitOfWork, filters: Optional[Filter] = None
+        uow: UnitOfWork, filters: Optional[Filter] = None
     ):
         async with uow:
             filters.add_filtering_fields(
@@ -219,35 +245,32 @@ class ArtworksService:
 
             return locations
 
-    # async def get_artworks_locations(
-    #     self,
-    #     uow: UnitOfWork,
-    #     filters: Optional[Filter] = None,
-    # ):
-    #     async with uow:
-    #         artworks = await self.get_approved_artworks(uow=uow, filters=filters)
-    #
-    #         locations = [
-    #             artwork.location for artwork in artworks if artwork.location is not None
-    #         ]
-    #
-    #         return locations
+    @staticmethod
+    async def get_artworks_locations(
+        uow: UnitOfWork,
+        filters: Optional[Filter] = None,
+    ):
+        async with uow:
+            locations = await uow.artwork_locations.filter(filters=filters)
 
+            return locations
+
+    @staticmethod
     async def update_artwork(
-        self, uow: UnitOfWork, artwork_id: int, artwork_schem: ArtworkUpdateSchema
+        uow: UnitOfWork, artwork_id: int, artwork_schema: ArtworkUpdateSchema
     ):
         location_dict = (
-            artwork_schem.location.model_dump(exclude_unset=True)
-            if artwork_schem.location
+            artwork_schema.location.model_dump(exclude_unset=True)
+            if artwork_schema.location
             else None
         )
         moderation_dict = (
-            artwork_schem.moderation.model_dump(exclude_unset=True)
-            if artwork_schem.moderation
+            artwork_schema.moderation.model_dump(exclude_unset=True)
+            if artwork_schema.moderation
             else None
         )
 
-        artwork_dict = artwork_schem.model_dump(
+        artwork_dict = artwork_schema.model_dump(
             exclude_unset=True, exclude={"location", "moderation"}
         )
 
@@ -272,6 +295,12 @@ class ArtworksService:
     async def delete_artwork(self, uow: UnitOfWork, artwork_id: int):
         async with uow:
             artwork = await self.get_artwork(uow=uow, artwork_id=artwork_id)
+
+            artwork_ticket = await uow.artwork_tickets.filter(artwork_id=artwork.id)
+            artwork_ticket = artwork_ticket[0]
+
+            artwork_ticket.artwork_id = None
+
             artwork_images = artwork.images
             for img in artwork_images:
                 # ToDo: Переделать фильтр

@@ -20,6 +20,7 @@ def remove_trailing_slashes_from_routes(parent: ParentT) -> ParentT:
 
 def is_image(file: UploadFile) -> bool:
     allowed_extensions = {
+        "webp",
         "jpg",
         "jpeg",
         "png",

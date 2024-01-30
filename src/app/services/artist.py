@@ -1,9 +1,14 @@
-from fastapi_filter.contrib.sqlalchemy import Filter
+from typing import Optional
+
+from fastapi import UploadFile
+
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
-from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
-from app.modules.artists.schemas.artist import ArtistCreate
+from app.modules.artists.schemas.artist import ArtistCreateSchema
+from app.modules.cloud_storage.schemas.image import ImageCreateSchema
+from app.services.cloud_storage import CloudStorageService
 from app.utils.exceptions import (
     UserNotFoundException,
     IncorrectInput,
@@ -18,10 +23,15 @@ class ArtistsService:
             async with uow:
                 artist = await uow.artist.get(artist_id)
                 return artist
-        except exc.NoResultFound:
-            return None
+        except NoResultFound:
+            raise ObjectNotFoundException("Artist not found")
 
-    async def create_artist(self, uow: UnitOfWork, artist_schema: ArtistCreate):
+    async def create_artist(
+        self,
+        uow: UnitOfWork,
+        artist_schema: ArtistCreateSchema,
+        image: Optional[UploadFile] = None,
+    ):
         async with uow:
             if artist_schema.user_id:
                 try:
@@ -37,7 +47,22 @@ class ArtistsService:
                 user = await uow.users.edit(user.id, {"is_artist": True})
             else:
                 artist_schema.user_id = None
-            artist = await uow.artist.create(artist_schema)
+
+            artist_dict = artist_schema.model_dump()
+            if image:
+                cloud_file = await CloudStorageService.upload_to_yandex_disk(
+                    image=image
+                )
+                image_schema = ImageCreateSchema(
+                    image_url=cloud_file.public_url,
+                    public_key=cloud_file.public_key,
+                    file_path=cloud_file.file_path,
+                )
+                image_model = await uow.images.create(image_schema)
+                artist_dict["image"] = image_model
+                artist_dict["image_id"] = image_model.id
+            artist = await uow.artist.create(artist_dict)
+            artist.artworks = []
             await uow.commit()
             return artist
 
@@ -56,7 +81,7 @@ class ArtistsService:
                 pagination_raw_params = pagination.to_raw_params()
                 offset = pagination_raw_params.offset
                 limit = pagination_raw_params.limit
-            artists = await uow.artist.get_all(
+            artists = await uow.artist.filter(
                 offset=offset, limit=limit, filters=filters, filter_by=filter_by
             )
             return artists
@@ -67,7 +92,7 @@ class ArtistsService:
 
     async def get_artist_by_user_id(self, uow: UnitOfWork, user_id: int):
         async with uow:
-            artist = uow.artist.filter(user_id=user_id)
+            artist = await uow.artist.filter(user_id=user_id)
             return artist
 
     async def update_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id):

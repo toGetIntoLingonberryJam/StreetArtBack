@@ -47,7 +47,7 @@ class ArtworksService:
 
         artwork_dict = artwork_schema.model_dump(exclude={"location"})
 
-        artwork_dict["added_by_user_id"] = moderator.id
+        artwork_dict["added_by_user_id"] = moderator.user_id
         artwork_dict["artist_id"] = (
             artwork_schema.artist_id if artwork_schema.artist_id else None
         )

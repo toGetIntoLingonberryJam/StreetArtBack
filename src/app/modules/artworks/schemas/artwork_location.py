@@ -31,4 +31,6 @@ class ArtworkLocationReadSchema(ArtworkLocationBaseSchema):
             # Если значение - строка, вернуть его как URL-адрес
             if isinstance(v, ArtworkImage):
                 return v.image_url
+            if isinstance(v, dict):  # Костыль для кэширования
+                return v.get("image_url")
             return v

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-from config import get_settings
+from config import settings
 
 from app.db import Base
 
@@ -21,7 +21,7 @@ from app.modules.collections.models import ArtworkLike, ArtistLike, FestivalLike
 
 # Конфигурация для SQLAlchemy
 config = context.config
-config.set_main_option("sqlalchemy.url", str(get_settings().database_url))
+config.set_main_option("sqlalchemy.url", str(settings.database_url))
 
 # add your model's MetaData object here
 # for 'autogenerate' support

@@ -110,7 +110,7 @@ class Filter(BaseFilterModel):
                     itertools.chain.from_iterable(x.split(",") for x in value),
                 )
 
-            return value
+        return value
 
     def filter(self, query: Union[Query, Select]):
         for field_name, value in self.filtering_fields:
@@ -156,7 +156,7 @@ class Filter(BaseFilterModel):
                             related_field_name = related_fields.pop()
                             base_model = self.Constants.model
                             for related_field in related_fields:
-                                query = query.join(getattr(base_model, related_field))
+                                query = query.outerjoin(getattr(base_model, related_field))
 
                                 base_model = getattr(
                                     base_model, related_field

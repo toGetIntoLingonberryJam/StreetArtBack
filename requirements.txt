@@ -1,32 +1,32 @@
-Pillow==10.1.0
+Pillow==10.2.0
 aiofiles==23.2.1
-pydantic_settings==2.1.0
+pydantic_settings==2.2.1
 
-black==23.12.1
+black==24.2.0
 mypy==1.8.0
 fastapi-cache2==0.2.1
-pydantic-partial==0.5.2
+pydantic-partial==0.5.4
 
 yadisk[async_defaults]==2.1.0
 ImageHash~=4.3.1
 
-fastapi-pagination==0.12.14
+fastapi-pagination==0.12.17
 itsdangerous==2.1.2
 
 alembic==1.13.1
 annotated-types==0.6.0
-anyio==4.2.0
+anyio==4.3.0
 async-timeout==4.0.3
 asyncpg==0.29.0
 bcrypt==4.0.1
 cffi==1.16.0
 click==8.1.7
 colorama==0.4.6
-cryptography==41.0.7
+cryptography==42.0.5
 dnspython==2.4.2
 email-validator==2.0.0.post2
-fastapi==0.108.0
-fastapi-users==12.1.2
+fastapi==0.110.0
+fastapi-users==12.1.3
 fastapi-users-db-sqlalchemy==6.0.1
 greenlet==3.0.3
 gunicorn==21.2.0
@@ -39,22 +39,26 @@ MarkupSafe==2.1.3
 packaging==23.2
 passlib==1.7.4
 pycparser==2.21
-pydantic==2.5.3
-pydantic_core==2.14.6
+pydantic==2.6.3
+pydantic_core==2.16.3
 PyJWT==2.8.0
-python-dotenv==1.0.0
-python-multipart==0.0.6
+python-dotenv==1.0.1
+python-multipart==0.0.9
 PyYAML==6.0.1
 redis==5.0.1
 sniffio==1.3.0
-SQLAlchemy==2.0.24
+SQLAlchemy==2.0.28
 typing_extensions==4.9.0
-uvicorn==0.25.0
-waitress==2.1.2
+uvicorn==0.27.1
+waitress==3.0.0
 watchfiles==0.21.0
 websockets==12.0
 
-pytz==2023.3.post1
-sqladmin==0.16.0
+pytz==2024.1
+sqladmin==0.16.1
 
-polyline==2.0.1
+polyline==2.0.2
+
+pytest==8.1.0
+pytest-dotenv==0.5.2
+pytest-asyncio==0.23.5

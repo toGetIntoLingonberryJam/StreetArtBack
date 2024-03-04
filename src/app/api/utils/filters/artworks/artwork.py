@@ -15,10 +15,9 @@ class ArtworkFilter(Filter):
     year_created__gte: Optional[int] = Field(None, alias="yearCreatedFrom")
     year_created__lte: Optional[int] = Field(None, alias="yearCreatedTo")
 
-    search: Optional[str] = None
+    search: Optional[str] = Field(None)
 
     class Constants(Filter.Constants):
         model = Artwork
-        # search_field_name = "custom_name_for_search"
         ordering_model_fields = ["id", "status", "year_created"]
-        search_model_fields = ["title", "festival", "artist__username"]
+        search_model_fields = ["title", "festival__name", "artist__name"]

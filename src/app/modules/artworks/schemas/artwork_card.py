@@ -6,6 +6,7 @@ from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.models.artwork import ArtworkStatus
 from app.modules.artworks.schemas.artwork_image import ArtworkImageReadSchema
 from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSchema
+# from app.modules.collections.schemas import LikeSchema
 from app.modules.festivals.card_schema import FestivalCardSchema
 
 
@@ -21,6 +22,7 @@ class ArtworkCardSchema(BaseModel):
     artist: Optional[ArtistCardSchema]
 
     address: Optional[str] = None
+    # is_liked: bool = Field(default=False)
     card_image: Optional[ArtworkImageReadSchema] = None
 
     @field_validator("images")

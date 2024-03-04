@@ -31,7 +31,7 @@ festival_router = APIRouter()
 
 
 @festival_router.get(
-    "/festival/{festival_id}",
+    "/{festival_id}",
     response_model=FestivalReadSchema,
     description="Получение фестиваля по id.",
 )

@@ -2,7 +2,7 @@ import smtplib
 from email.message import EmailMessage
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from config import get_settings
+from config import settings
 
 # from config import BACKEND_URL, EMAIL_SENDER, EMAIL_PASSWORD
 
@@ -14,15 +14,15 @@ _env = Environment(
 async def send_reset_password_email(token, receiver) -> bool:
     template = __get_reset_password_email(token)
     template["To"] = receiver
-    template["From"] = get_settings().email_sender
+    template["From"] = settings.email_sender
 
     server = smtplib.SMTP("smtp.yandex.ru", 587, timeout=10)
     server.starttls()
 
     try:
-        server.login(get_settings().email_sender, get_settings().email_password)
+        server.login(settings.email_sender, settings.email_password)
         server.ehlo()
-        server.sendmail(get_settings().email_sender, receiver, template.as_string())
+        server.sendmail(settings.email_sender, receiver, template.as_string())
 
         print("The message was sent successfully!")
         return True
@@ -35,7 +35,7 @@ def __get_reset_password_email(token) -> EmailMessage:
     msg = EmailMessage()
     msg["Subject"] = "noreply"
     template = _env.get_template("forgot_password_email.html").render(
-        {"token": token, "BACKEND_URL": get_settings().backend_url}
+        {"token": token, "BACKEND_URL": settings.backend_url}
     )
     msg.set_content(template, subtype="html")
     return msg
@@ -43,7 +43,7 @@ def __get_reset_password_email(token) -> EmailMessage:
 
 def get_reset_password_template(token: str) -> str:
     return _env.get_template("forgot_password_template.html").render(
-        {"token": token, "BACKEND_URL": get_settings().backend_url}
+        {"token": token, "BACKEND_URL": settings.backend_url}
     )
 
 

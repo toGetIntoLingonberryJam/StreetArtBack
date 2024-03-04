@@ -1,21 +1,21 @@
 import smtplib
 from email.message import EmailMessage
-from config import get_settings
+from config import settings
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 async def send_verify_email(token, receiver, username: str) -> bool:
     template = __get_verify_message(token, username)
     template["To"] = receiver
-    template["From"] = get_settings().email_sender
+    template["From"] = settings.email_sender
 
     server = smtplib.SMTP("smtp.yandex.ru", 587, timeout=10)
     server.starttls()
 
     try:
-        server.login(get_settings().email_sender, get_settings().email_password)
+        server.login(settings.email_sender, settings.email_password)
         server.ehlo()
-        server.sendmail(get_settings().email_sender, receiver, template.as_string())
+        server.sendmail(settings.email_sender, receiver, template.as_string())
 
         print("The message was sent successfully!")
         return True
@@ -36,7 +36,7 @@ def __get_verify_message(token, username: str) -> EmailMessage:
         {
             "token": token,
             "username": username,
-            "BACKEND_URL": get_settings().backend_url,
+            "BACKEND_URL": settings.backend_url,
         }
     )
     msg.set_content(template, subtype="html")

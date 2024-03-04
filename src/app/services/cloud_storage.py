@@ -17,7 +17,7 @@ from yadisk.objects import (
 )
 
 from app.modules import TicketBase, Artwork
-from config import get_settings
+from config import settings
 
 
 class CloudFile:
@@ -27,7 +27,7 @@ class CloudFile:
 
     @staticmethod
     def generate_file_path_by_class(obj):
-        path = get_settings().yandex_disk_images_folder + "/"
+        path = settings.yandex_disk_images_folder + "/"
         if issubclass(obj, TicketBase):
             path += "tickets"
         elif issubclass(obj, Artwork):
@@ -45,7 +45,7 @@ class CloudFile:
 class CloudStorageService:
     _client: Optional[yadisk.AsyncClient] = None
     _lock = threading.Lock()
-    _settings = get_settings()
+    _settings = settings
 
     @classmethod
     def get_client(cls):
@@ -152,7 +152,7 @@ class CloudStorageService:
 
         # ### Загружаем изображение в Яндекс.Диск ###
         file_cloud_path = (
-            get_settings().yandex_disk_images_folder + custom_folder + unique_filename
+            settings.yandex_disk_images_folder + custom_folder + unique_filename
         )
 
         if await cls.file_exists(file_cloud_path):
@@ -202,7 +202,7 @@ class CloudStorageService:
 
         # ### Загружаем изображение в Яндекс.Диск ###
         file_cloud_path = (
-            get_settings().yandex_disk_images_folder + custom_folder + unique_filename
+            settings.yandex_disk_images_folder + custom_folder + unique_filename
         )
 
         if not await cls.file_exists(file_cloud_path):
@@ -236,7 +236,7 @@ class CloudStorageService:
             meta_info = await client.get_public_meta(public_url)
             # Получаем путь к файлу на Яндекс.Диске
             filename = meta_info.FIELDS.get("name")
-            file_path = get_settings().yandex_disk_images_folder + "/" + filename
+            file_path = settings.yandex_disk_images_folder + "/" + filename
             # Удаляем файл
             await client.remove(file_path)
             print(f"File {file_path} successfully deleted.")

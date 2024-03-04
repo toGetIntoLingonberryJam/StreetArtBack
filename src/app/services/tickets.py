@@ -469,3 +469,40 @@ class TicketsService:
             return artwork_ticket
 
     # endregion ArtworkTicket
+
+    @staticmethod
+    async def delete_all_tickets(
+            uow: UnitOfWork
+    ):
+        async with uow:
+            await uow.tickets.delete_all()
+
+    @staticmethod
+    async def get_all_tickets(
+            uow: UnitOfWork,
+            ticket_model: Optional[TicketModel] = None,
+    ):
+        async with uow:
+            if ticket_model:
+                tickets = await uow.tickets.get_all_tickets_by_ticket_model(
+                    ticket_model_enum_value=ticket_model
+                )
+            else:
+                tickets = await uow.tickets.get_all()
+
+            return tickets
+
+    @staticmethod
+    async def count(
+            uow: UnitOfWork,
+            # ticket_model: Optional[TicketModel] = None,
+    ) -> int:
+        async with uow:
+            # if ticket_model:
+            #     tickets = await uow.tickets.get_all_tickets_by_ticket_model(
+            #         ticket_model_enum_value=ticket_model
+            #     )
+            # else:
+            #     tickets = await uow.tickets.get_all()
+
+            return await uow.tickets.count()

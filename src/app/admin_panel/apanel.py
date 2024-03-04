@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqladmin import Admin
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from config import get_settings
+from config import settings
 from app.admin_panel.admin_view import *
 from app.admin_panel.apanel_auth import AdminAuth
 
@@ -33,7 +33,7 @@ class AdminPanel:
             engine,
             title="StreetArt",
             authentication_backend=AdminAuth(
-                secret_key=get_settings().secret_verification_token
+                secret_key=settings.secret_verification_token
             ),
         )
         self._add_views()

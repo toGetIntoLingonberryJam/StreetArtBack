@@ -36,6 +36,7 @@ from app.modules.artworks.schemas.artwork import (
     ArtworkUpdateSchema,
     ArtworkForModeratorReadSchema,
 )
+from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
 from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSchema
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
@@ -118,7 +119,7 @@ async def create_artwork(
 # await FastAPICache.clear(namespace="show_artworks")
 @router_artworks.get(
     "/",
-    response_model=Page[ArtworkReadSchema],
+    response_model=Page[ArtworkCardSchema],
     description=f"""Выводит список подтверждённых арт-объектов, используя пагинацию. Лимит: 50 объектов.\n
     Поля для сортировки: {", ".join(ArtworkFilter.Constants.ordering_model_fields)}\n
     Поля используемые в поиске: {", ".join(ArtworkFilter.Constants.search_model_fields)}""",

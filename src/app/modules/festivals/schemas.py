@@ -32,7 +32,6 @@ class FestivalCreateSchema(FestivalBaseSchema):
 
 class FestivalReadSchema(FestivalBaseSchema):
     id: int
-    artworks: List[ArtworkCardSchema]
     image: Optional[ImageReadSchema] = None
 
     # @field_validator("links", mode="before")

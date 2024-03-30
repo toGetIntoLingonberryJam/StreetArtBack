@@ -18,9 +18,7 @@ class Artist(Base):
     user_id: Mapped[int] = mapped_column(
         ForeignKey("user.id"), index=True, nullable=True
     )
-    artworks: Mapped[List["Artwork"]] = relationship(
-        "Artwork", back_populates="artist", lazy="selectin", cascade="all, delete-orphan"
-    )
+    artworks: Mapped[List["Artwork"]] = relationship(secondary="authorship")
 
     image_id: Mapped[int] = mapped_column(ForeignKey("image.id"), nullable=True)
     image: Mapped["Image"] = relationship(lazy="joined", foreign_keys="Artist.image_id")

@@ -1,5 +1,7 @@
 from typing import Sequence, Union, Any
 
+from sqlalchemy.exc import NoResultFound
+
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel as BaseSchema
 
@@ -8,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import RelationshipProperty, InstrumentedAttribute, with_polymorphic
 
 from app.db import Base as ModelBase
+from app.utils.exceptions import ObjectNotFoundException
 
 
 class SQLAlchemyRepository:
@@ -105,12 +108,15 @@ class SQLAlchemyRepository:
     async def get(
             self, obj_id: int, filters: Filter | None = None, **filter_by
     ) -> ModelBase:
-        stmt = await self._select(self.model)
-        stmt = stmt.filter_by(id=obj_id)
-        result = await self.session.execute(stmt)
-        # filter_by["id"] = obj_id
-        # a = await self._filter(filters=filters, **filter_by)
-        return result.unique().scalar_one()
+        try:
+            stmt = await self._select(self.model)
+            stmt = stmt.filter_by(id=obj_id)
+            result = await self.session.execute(stmt)
+            # filter_by["id"] = obj_id
+            # a = await self._filter(filters=filters, **filter_by)
+            return result.unique().scalar_one()
+        except NoResultFound:
+            raise ObjectNotFoundException("Object not found")
 
     async def filter(
             self,

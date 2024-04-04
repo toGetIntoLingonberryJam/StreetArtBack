@@ -1,4 +1,4 @@
-from typing import Sequence, Union, Any
+from typing import Sequence, Any
 
 from sqlalchemy.exc import NoResultFound
 
@@ -32,7 +32,7 @@ class SQLAlchemyRepository:
         return stmt
 
     async def _filter(
-            self, stmt: Select, filters: Filter | None = None, **filter_by
+        self, stmt: Select, filters: Filter | None = None, **filter_by
     ) -> Select[Any]:
         if filters:
             if hasattr(filters, "ordering_values"):
@@ -57,7 +57,7 @@ class SQLAlchemyRepository:
             # Фильтрация через связь, если атрибут - связанное поле
             for attr, value in filters_by.items():
                 if isinstance(
-                        valid_attributes[attr], InstrumentedAttribute
+                    valid_attributes[attr], InstrumentedAttribute
                 ) and isinstance(valid_attributes[attr].property, RelationshipProperty):
                     related_model = valid_attributes[attr].mapper.class_
                     stmt = stmt.join(related_model)
@@ -92,7 +92,7 @@ class SQLAlchemyRepository:
         return new_obj
 
     async def get_all(
-            self, offset: int = 0, limit: int | None = None
+        self, offset: int = 0, limit: int | None = None
     ) -> Sequence[ModelBase]:
         stmt = await self._select(self.model)
 
@@ -106,7 +106,7 @@ class SQLAlchemyRepository:
         return items
 
     async def get(
-            self, obj_id: int, filters: Filter | None = None, **filter_by
+        self, obj_id: int, filters: Filter | None = None, **filter_by
     ) -> ModelBase:
         try:
             stmt = await self._select(self.model)
@@ -119,11 +119,11 @@ class SQLAlchemyRepository:
             raise ObjectNotFoundException("Object not found")
 
     async def filter(
-            self,
-            offset: int = 0,
-            limit: int | None = None,
-            filters: Filter | None = None,
-            **filter_by
+        self,
+        offset: int = 0,
+        limit: int | None = None,
+        filters: Filter | None = None,
+        **filter_by
     ):
         stmt = await self._select(self.model)
 

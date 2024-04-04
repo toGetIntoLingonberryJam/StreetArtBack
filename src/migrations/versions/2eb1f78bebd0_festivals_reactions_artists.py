@@ -5,15 +5,12 @@ Revises: 99f8ad99a1cb
 Create Date: 2024-01-09 17:37:26.368595
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.db import async_session_maker
-from app.repos.SQLAlchemy_repository import SQLAlchemyRepository
 
 # revision identifiers, used by Alembic.
 revision: str = "2eb1f78bebd0"

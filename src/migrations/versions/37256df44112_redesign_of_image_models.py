@@ -5,7 +5,7 @@ Revises: 4da10b980a5c
 Create Date: 2024-01-03 17:29:09.760782
 
 """
-import asyncio
+
 from typing import Sequence, Union
 
 from alembic import op

@@ -24,10 +24,24 @@ from app.repos.collection import (
 class UnitOfWork:
     def __init__(self):
         self.session_factory = async_session_maker
+        self._nested = 0
 
     async def __aenter__(self):
-        self.session = self.session_factory()
+        if self._nested == 0:
+            self.session = self.session_factory()
+            await self._initialize_resources()
+        self._nested += 1
+        return self
+        # self.tasks = TasksRepository(self.session)
+        # self.task_history = TaskHistoryRepository(self.session)
 
+    async def __aexit__(self, *args):
+        # await self.rollback()
+        self._nested -= 1
+        if self._nested == 0:
+            await self.session.close()
+
+    async def _initialize_resources(self):
         self.users = UsersRepository(self.session)
         self.moderator = ModeratorRepository(self.session)
         self.artist = ArtistRepository(self.session)
@@ -44,12 +58,6 @@ class UnitOfWork:
         self.artwork_like = ArtworkLikeRepository(self.session)
         self.artist_like = ArtistLikeRepository(self.session)
         self.festival_like = FestivalLikeRepository(self.session)
-        # self.tasks = TasksRepository(self.session)
-        # self.task_history = TaskHistoryRepository(self.session)
-
-    async def __aexit__(self, *args):
-        # await self.rollback()
-        await self.session.close()
 
     async def commit(self):
         await self.session.commit()

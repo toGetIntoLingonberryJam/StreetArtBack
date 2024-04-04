@@ -243,10 +243,12 @@ class TicketsService:
                     # for image in ticket_images
                     {
                         **ImageReadSchema(**image.__dict__).__dict__,
-                        "created_at": image.created_at.isoformat()
-                        if hasattr(image, "created_at")
-                        and isinstance(image.created_at, datetime)
-                        else None,
+                        "created_at": (
+                            image.created_at.isoformat()
+                            if hasattr(image, "created_at")
+                            and isinstance(image.created_at, datetime)
+                            else None
+                        ),
                     }
                     for image in ticket_images
                 ]
@@ -471,16 +473,14 @@ class TicketsService:
     # endregion ArtworkTicket
 
     @staticmethod
-    async def delete_all_tickets(
-            uow: UnitOfWork
-    ):
+    async def delete_all_tickets(uow: UnitOfWork):
         async with uow:
             await uow.tickets.delete_all()
 
     @staticmethod
     async def get_all_tickets(
-            uow: UnitOfWork,
-            ticket_model: Optional[TicketModel] = None,
+        uow: UnitOfWork,
+        ticket_model: Optional[TicketModel] = None,
     ):
         async with uow:
             if ticket_model:
@@ -494,8 +494,8 @@ class TicketsService:
 
     @staticmethod
     async def count(
-            uow: UnitOfWork,
-            # ticket_model: Optional[TicketModel] = None,
+        uow: UnitOfWork,
+        # ticket_model: Optional[TicketModel] = None,
     ) -> int:
         async with uow:
             # if ticket_model:

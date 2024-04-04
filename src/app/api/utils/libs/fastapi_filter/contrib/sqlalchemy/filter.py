@@ -3,7 +3,7 @@ import itertools
 from enum import Enum
 from typing import Union
 
-from pydantic import FieldValidationInfo, field_validator
+from pydantic import ValidationInfo, field_validator
 from sqlalchemy import or_
 from sqlalchemy.orm import Query, class_mapper, joinedload
 from sqlalchemy.sql.selectable import Select
@@ -90,7 +90,7 @@ class Filter(BaseFilterModel):
         desc = "desc"
 
     @field_validator("*", mode="before")
-    def split_str(cls, value, field: FieldValidationInfo):
+    def split_str(cls, value, field: ValidationInfo):
         if (
             field.field_name == cls.Constants.ordering_field_name
             or field.field_name.endswith("__in")
@@ -156,7 +156,9 @@ class Filter(BaseFilterModel):
                             related_field_name = related_fields.pop()
                             base_model = self.Constants.model
                             for related_field in related_fields:
-                                query = query.outerjoin(getattr(base_model, related_field))
+                                query = query.outerjoin(
+                                    getattr(base_model, related_field)
+                                )
 
                                 base_model = getattr(
                                     base_model, related_field

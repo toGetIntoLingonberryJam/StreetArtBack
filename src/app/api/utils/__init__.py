@@ -1,6 +1,6 @@
-import imghdr
 from typing import TypeVar
 
+from PIL import Image
 from fastapi import FastAPI, UploadFile
 from fastapi.routing import APIRoute, APIRouter
 
@@ -31,9 +31,9 @@ def is_image(file: UploadFile) -> bool:
         return False
 
     # Если расширение файла соответствует изображению, дополнительно проверяем его содержимое
-    content = file.file.read(
-        1024
-    )  # Считываем первые 1024 байта для определения типа содержимого
-    image_type = imghdr.what(None, h=content)
-
-    return image_type is not None
+    try:
+        with Image.open(file.file) as img:
+            img.verify()
+            return True
+    except (IOError, SyntaxError):
+        return False

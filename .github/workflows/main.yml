@@ -13,7 +13,7 @@ jobs:
         with:
           PING_URL: '${{ secrets.PING_URL }}'
           FILE_OVPN: '${{ secrets.FILE_OVPN }}'
-          TLS_KEY: ${{ secrets.TLS_KEY }}
+          TLS_KEY: '${{ secrets.TLS_KEY }}'
         env:
           CA_CRT: ${{ secrets.CA_CRT}}
           USER_CRT: ${{ secrets.USER_CRT }}

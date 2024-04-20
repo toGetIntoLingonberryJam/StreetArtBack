@@ -6,10 +6,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Open VPN
-        run: sudo apt-get install openvpn
-      - name: Connect-VPN-action
-        uses: JosiahSiegel/action-connect-ovpn@v2.0.2
-        id: connect_vpn
         run: |
           echo "${{ secrets.PING_URL }}"
           echo "${{ secrets.FILE_OVPN }}"
@@ -17,6 +13,9 @@ jobs:
           echo "${{ secrets.CA_CRT }}"
           echo "${{ secrets.USER_CRT }}"
           echo "${{ secrets.USER_KEY }}"
+      - name: Connect-VPN-action
+        uses: JosiahSiegel/action-connect-ovpn@v2.0.2
+        id: connect_vpn
         with:
           PING_URL: ${{ secrets.PING_URL }}
           FILE_OVPN: ${{ secrets.FILE_OVPN }}

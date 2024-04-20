@@ -4,30 +4,18 @@ jobs:
   check-vpn:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Open VPN
-        run: |
-          echo "${{ secrets.PING_URL }}"
-          echo "${{ secrets.FILE_OVPN }}"
-          echo "${{ secrets.TLS_KEY }}"
-          echo "${{ secrets.CA_CRT }}"
-          echo "${{ secrets.USER_CRT }}"
-          echo "${{ secrets.USER_KEY }}"
-      - name: Connect-VPN-action
-        uses: JosiahSiegel/action-connect-ovpn@v2.0.2
-        id: connect_vpn
-        with:
-          PING_URL: ${{ secrets.PING_URL }}
-          FILE_OVPN: ${{ secrets.FILE_OVPN }}
-          TLS_KEY: ${{ secrets.TLS_KEY }}
+      - shell: bash
         env:
+          PING_URL: '${{ secrets.PING_URL }}'
+          FILE_OVPN: '${{ secrets.FILE_OVPN }}'
+          TLS_KEY: ${{ secrets.TLS_KEY }}
           CA_CRT: ${{ secrets.CA_CRT}}
           USER_CRT: ${{ secrets.USER_CRT }}
           USER_KEY: ${{ secrets.USER_KEY }}
-      - name: Check Connect VPN
-        env:
-          STATUS: ${{ steps.connect_vpn.outputs.STATUS }}
-        run: echo "$STATUS"
-      - name: kill vpn
-        if: always()
-        run: sudo killall openvpn
+        run: |
+          echo "$PING_URL"
+          echo "$FILE_OVPN"
+          echo "$TLS_KEY"
+          echo "$CA_CRT"
+          echo "$USER_CRT"
+          echo "$USER_KEY"

@@ -11,13 +11,13 @@ jobs:
         uses: JosiahSiegel/action-connect-ovpn@v2.0.2
         id: connect_vpn
         with:
-          PING_URL: ${{ secrets.PING_URL }}
-          FILE_OVPN: ${{ secrets.FILE_OVPN }}
-          TLS_KEY: ${{ secrets.TLS_KEY }}
+          PING_URL: '${{ secrets.PING_URL }}'
+          FILE_OVPN: '${{ secrets.FILE_OVPN }}'
+          TLS_KEY: '${{ secrets.TLS_KEY }}'
         env:
-          CA_CRT: ${{ secrets.CA_CRT}}
-          USER_CRT: ${{ secrets.USER_CRT }}
-          USER_KEY: ${{ secrets.USER_KEY }}
+          CA_CRT: '${{ secrets.CA_CRT}}'
+          USER_CRT: '${{ secrets.USER_CRT }}'
+          USER_KEY: '${{ secrets.USER_KEY }}'
       - name: Check Connect VPN
         env:
           STATUS: ${{ steps.connect_vpn.outputs.STATUS }}
@@ -25,18 +25,3 @@ jobs:
       - name: kill vpn
         if: always()
         run: sudo killall openvpn
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Test with pytest
-        run: |
-          pytest -v

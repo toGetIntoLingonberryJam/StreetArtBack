@@ -10,14 +10,20 @@ jobs:
       - name: Connect-VPN-action
         uses: JosiahSiegel/action-connect-ovpn@v2.0.2
         id: connect_vpn
+        run: echo "${{ secrets.PING_URL }}"
+        run: echo "${{ secrets.FILE_OVPN }}"
+        run: echo "${{ secrets.TLS_KEY }}"
+        run: echo "${{ secrets.CA_CRT }}"
+        run: echo "${{ secrets.USER_CRT }}"
+        run: echo "${{ secrets.USER_KEY }}"
         with:
-          PING_URL: '${{ secrets.PING_URL }}'
-          FILE_OVPN: '${{ secrets.FILE_OVPN }}'
-          TLS_KEY: '${{ secrets.TLS_KEY }}'
+          PING_URL: ${{ secrets.PING_URL }}
+          FILE_OVPN: ${{ secrets.FILE_OVPN }}
+          TLS_KEY: ${{ secrets.TLS_KEY }}
         env:
-          CA_CRT: '${{ secrets.CA_CRT}}'
-          USER_CRT: '${{ secrets.USER_CRT }}'
-          USER_KEY: '${{ secrets.USER_KEY }}'
+          CA_CRT: ${{ secrets.CA_CRT}}
+          USER_CRT: ${{ secrets.USER_CRT }}
+          USER_KEY: ${{ secrets.USER_KEY }}
       - name: Check Connect VPN
         env:
           STATUS: ${{ steps.connect_vpn.outputs.STATUS }}

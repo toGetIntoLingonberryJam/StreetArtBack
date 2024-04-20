@@ -21,7 +21,7 @@ jobs:
       - name: Check Connect VPN
         env:
           STATUS: ${{ steps.connect_vpn.outputs.STATUS }}
-        run: echo "$STATUS"
+        run: ifconfig
       - name: kill vpn
         if: always()
         run: sudo killall openvpn

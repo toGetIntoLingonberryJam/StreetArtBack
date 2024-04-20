@@ -11,8 +11,8 @@ jobs:
         uses: JosiahSiegel/action-connect-ovpn@v2.0.2
         id: connect_vpn
         with:
-          PING_URL: ${{ secrets.PING_URL }}
-          FILE_OVPN: ${{ secrets.FILE_OVPN }}
+          PING_URL: '10.8.0.1'
+          FILE_OVPN: '.github/vpn/remotevds.ovpn'
           TLS_KEY: ${{ secrets.TLS_KEY }}
         env:
           CA_CRT: ${{ secrets.CA_CRT}}

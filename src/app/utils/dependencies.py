@@ -8,7 +8,6 @@ from app.api.routes.common import generate_detail, ErrorCode
 from app.modules.artists.models import Artist
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
-from app.repos.SQLAlchemy_repository import SQLAlchemyRepository
 from app.services.artist import ArtistsService
 from app.services.moderator import ModeratorsService
 from app.utils.unit_of_work import UnitOfWork

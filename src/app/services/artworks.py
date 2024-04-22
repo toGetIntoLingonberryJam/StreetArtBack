@@ -2,7 +2,6 @@ import asyncio
 from typing import Optional, List
 
 from fastapi import UploadFile, HTTPException
-from sqlalchemy.exc import NoResultFound
 from starlette import status
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
@@ -20,7 +19,6 @@ from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreateS
 from app.modules.artworks.schemas.artwork_moderation import (
     ArtworkModerationCreateSchema,
 )
-from app.modules.users.models import User
 from app.services.cloud_storage import CloudStorageService
 from app.utils.exceptions import ObjectNotFoundException
 

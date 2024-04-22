@@ -38,10 +38,12 @@ from app.modules.artworks.schemas.artwork import (
 )
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
 from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSchema
-from app.modules.users.fastapi_users_config import current_user
+from app.modules.collections.models import LikeType
+from app.modules.users.fastapi_users_config import current_user, current_nullable_user
 from app.modules.users.models import User
 from app.services.artworks import ArtworksService
 from app.services.collection import CollectionService
+from app.services.user import UserService
 from app.utils.dependencies import UOWDep, get_current_moderator
 from app.utils.exceptions import ObjectNotFoundException
 
@@ -124,6 +126,7 @@ async def create_artwork(
 @cache(expire=60, namespace="show_artworks", key_builder=request_key_builder)
 async def show_artworks(
     uow: UOWDep,
+    user: User = Depends(current_nullable_user),
     pagination: MyParams = Depends(),
     filters: Filter = FilterDepends(ArtworkFilter),
 ):
@@ -131,7 +134,9 @@ async def show_artworks(
     artworks = await ArtworksService().get_artworks(
         uow=uow, pagination=pagination, filters=filters
     )
-
+    if user:
+        for artwork in artworks:
+            artwork.liked = await UserService().get_user_status_like(uow, user.id, LikeType.ARTWORK, artwork.id)
     result = paginate(artworks, pagination)
 
     return result

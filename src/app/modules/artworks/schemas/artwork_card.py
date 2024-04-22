@@ -19,6 +19,7 @@ class ArtworkCardSchema(BaseModel):
     images: Optional[List[ArtworkImageReadSchema]] = Field(..., exclude=True)
     location: ArtworkLocationReadSchema = Field(..., exclude=True)
     artist: Optional[ArtistCardSchema]
+    liked: Optional[bool] = False
 
     @computed_field
     @property

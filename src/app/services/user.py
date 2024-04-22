@@ -45,3 +45,17 @@ class UserService:
         async with uow:
             user = await uow.users.edit(user_id, kwargs)
             return user
+
+    async def get_user_status_like(self,
+                                   uow: UnitOfWork,
+                                   user_id: int,
+                                   like_type: LikeType,
+                                   object_id: int) -> bool:
+        async with uow:
+            if like_type == LikeType.ARTIST:
+                like = await uow.artist_like.get(user_id=user_id, artist_id=object_id)
+            elif like_type == LikeType.ARTWORK:
+                like = await uow.artwork_like.get(user_id=user_id, artwork_id=object_id)
+            elif like_type == LikeType.FESTIVAL:
+                like = await uow.festival_like.get(user_id=user_id, festival_id=object_id)
+            return like is not None

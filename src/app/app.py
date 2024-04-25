@@ -32,4 +32,5 @@ async def lifespan(fastapi_app: FastAPI):
     yield  # Возвращаем работу приложению
     # тут можно выполнить код после завершения приложения
 
+
 app = FastAPI(title="StreetArtWitnessesAPI", version="2.0.0", lifespan=lifespan)

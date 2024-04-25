@@ -38,12 +38,10 @@ from app.modules.artworks.schemas.artwork import (
 )
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
 from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSchema
-from app.modules.collections.models import LikeType
-from app.modules.users.fastapi_users_config import current_user, current_nullable_user
+from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
 from app.services.artworks import ArtworksService
 from app.services.collection import CollectionService
-from app.services.user import UserService
 from app.utils.dependencies import UOWDep, get_current_moderator
 from app.utils.exceptions import ObjectNotFoundException
 
@@ -126,19 +124,13 @@ async def create_artwork(
 @cache(expire=60, namespace="show_artworks", key_builder=request_key_builder)
 async def show_artworks(
     uow: UOWDep,
-    user: User = Depends(current_nullable_user),
     pagination: MyParams = Depends(),
     filters: Filter = FilterDepends(ArtworkFilter),
 ):
-    # artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
     artworks = await ArtworksService().get_artworks(
         uow=uow, pagination=pagination, filters=filters
     )
-    if user:
-        for artwork in artworks:
-            artwork.liked = await UserService().get_user_status_like(uow, user.id, LikeType.ARTWORK, artwork.id)
     result = paginate(artworks, pagination)
-
     return result
 
 
@@ -241,7 +233,7 @@ async def delete_artwork(
 
 
 @router_artworks.post(
-    "/{artwork_id}/toggle_like",
+    "/{artwork_id}/switch_like",
     description="Ставит и удаляет лайк на арт-объект.",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -252,7 +244,7 @@ async def delete_artwork(
         )
     },
 )
-async def toggle_like(artwork_id: int, uow: UOWDep, user: User = Depends(current_user)):
+async def switch_like(artwork_id: int, uow: UOWDep, user: User = Depends(current_user)):
     try:
         artwork = await ArtworksService().get_artwork(uow, artwork_id)
         reaction_add = await CollectionService().toggle_artwork_like(

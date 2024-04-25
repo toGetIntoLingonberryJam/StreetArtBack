@@ -1,13 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import (
-    BaseModel,
-    Field,
-    model_validator,
-    ConfigDict,
-    HttpUrl
-)
+from pydantic import BaseModel, Field, model_validator, ConfigDict, HttpUrl
 import json
 
 from app.modules.artists.schemas.artist_card import ArtistCardSchema
@@ -24,7 +18,6 @@ from app.modules.artworks.schemas.artwork_moderation import (
 )
 
 from pydantic_partial import create_partial_model
-
 from app.modules.festivals.card_schema import FestivalCardSchema
 
 
@@ -35,7 +28,7 @@ class ArtworkBaseSchema(BaseModel):
         ge=1900,
         le=datetime.today().year,
         description="The year of creation cannot be less than 1900 and more than the current "
-                    "year.",
+        "year.",
     )
     description: Optional[str] = None
     artist_id: Optional[int]
@@ -49,7 +42,7 @@ class ArtworkCreateSchema(ArtworkBaseSchema):
 
     @model_validator(mode="before")
     def validate_to_json(
-            cls, value
+        cls, value
     ):  # noqa Костыль, без которого не работает multipart/form data заспросы
         if isinstance(value, str):
             return cls(**json.loads(value))  # noqa

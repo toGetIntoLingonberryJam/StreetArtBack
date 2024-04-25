@@ -110,7 +110,7 @@ async def get_festival_artworks(
 
 
 @festival_router.post(
-    "/{festival_id}/toggle_like",
+    "/{festival_id}/switch_like",
     description="Ставит и удаляет лайк на фестиваль.",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -121,7 +121,7 @@ async def get_festival_artworks(
         )
     },
 )
-async def toggle_like(
+async def switch_like(
     festival_id: int, uow: UOWDep, user: User = Depends(current_user)
 ):
     try:

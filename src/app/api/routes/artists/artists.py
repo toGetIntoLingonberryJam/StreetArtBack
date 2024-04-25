@@ -135,7 +135,7 @@ async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
 
 
 @artist_router.post(
-    "/{artist_id}/toggle_like",
+    "/{artist_id}/switch_like",
     description="Ставит и удаляет лайк на художника.",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -146,7 +146,7 @@ async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
         )
     },
 )
-async def toggle_like(artist_id: int, uow: UOWDep, user: User = Depends(current_user)):
+async def switch_like(artist_id: int, uow: UOWDep, user: User = Depends(current_user)):
     try:
         artist = await ArtistsService().get_artist_by_id(uow, artist_id)
         reaction_add = await CollectionService().toggle_artist_like(

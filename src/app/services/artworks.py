@@ -222,7 +222,9 @@ class ArtworksService:
                 )
                 return artwork
         except ObjectNotFoundException:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artwork not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Artwork not found"
+            )
 
     @staticmethod
     async def get_artworks(uow: UnitOfWork, filters: Filter | None = None, **filter_by):

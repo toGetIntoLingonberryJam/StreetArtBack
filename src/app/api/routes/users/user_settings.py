@@ -43,10 +43,10 @@ async def delete_user(
 
 @settings_router.patch("/me/change_password", response_model=UserRead)
 async def update_password(
-        request: Request,
-        user_update: UserUpdatePassword,
-        user: User = Depends(current_user),
-        user_manager: UserManager = Depends(get_user_manager),
+    request: Request,
+    user_update: UserUpdatePassword,
+    user: User = Depends(current_user),
+    user_manager: UserManager = Depends(get_user_manager),
 ):
     try:
         credentials = OAuth2PasswordRequestForm(
@@ -73,10 +73,10 @@ async def update_password(
 
 @settings_router.patch("/me/change_username", response_model=UserRead)
 async def update_username(
-        request: Request,
-        user_update: UserUpdateUsername,
-        user: User = Depends(current_user),
-        user_manager: UserManager = Depends(get_user_manager),
+    request: Request,
+    user_update: UserUpdateUsername,
+    user: User = Depends(current_user),
+    user_manager: UserManager = Depends(get_user_manager),
 ):
     try:
         updated_user = await user_manager.update(
@@ -94,8 +94,8 @@ async def update_username(
 
 @settings_router.get("/user/{user_id}", response_model=UserRead)
 async def get_user_by_id(
-        user_id: int,
-        user_manager: UserManager = Depends(get_user_manager),
+    user_id: int,
+    user_manager: UserManager = Depends(get_user_manager),
 ):
     try:
         user = await user_manager.get(id=user_id)

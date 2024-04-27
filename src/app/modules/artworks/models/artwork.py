@@ -35,7 +35,7 @@ class Artwork(Base):
     )
 
     # поля для связи арт-объекта с конкретным пользователем-художником, если он зарегистрирован
-    artist: Mapped["Artist"] = relationship(secondary="authorship")
+    artist: Mapped[List["Artist"]] = relationship(secondary="authorship", lazy="selectin")
 
     festival_id = mapped_column(ForeignKey("festival.id"), nullable=True)
     festival: Mapped["Festival"] = relationship(

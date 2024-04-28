@@ -1,18 +1,19 @@
 from app.api.utils import remove_trailing_slashes_from_routes
 from fastapi import APIRouter
 
-from . import auth, users, artworks, tickets, artists, festivals, collection, geo
+from . import auth, users, artworks, artists, festivals, collection, geo, support
+from ..utils.custom_router import CustomAPIRouter
 
-router = APIRouter(prefix="/v1", include_in_schema=True)
+router = CustomAPIRouter(prefix="/v1", include_in_schema=True)
 
 router.include_router(auth.router)
 router.include_router(users.router)
 router.include_router(artworks.router)
 router.include_router(artists.router)
 router.include_router(festivals.router)
-router.include_router(tickets.router)
 router.include_router(collection.router)
 router.include_router(geo.router)
+router.include_router(support.router)
 
 # Удаляем последний слэш в путях
 router = remove_trailing_slashes_from_routes(router)

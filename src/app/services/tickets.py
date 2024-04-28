@@ -125,35 +125,56 @@ class TicketsService:
     # region Ticket
     @staticmethod
     async def get_ticket(
-        uow: UnitOfWork, ticket_id: int, ticket_model: Optional[TicketModel] = None
+        uow: UnitOfWork, ticket_id: int, ticket_model: Optional[TicketModel] = None, user_id: int | None = None
     ):
         async with uow:
             if ticket_model:
                 ticket = await uow.tickets.get_ticket_by_ticket_model(
-                    ticket_id=ticket_id, ticket_model_enum_value=ticket_model
+                    ticket_id=ticket_id, ticket_model_enum_value=ticket_model, user_id=user_id
                 )
             else:
-                ticket = await uow.tickets.get(obj_id=ticket_id)
+                ticket = await uow.tickets.get_ticket_by_ticket_model(
+                    ticket_id=ticket_id, ticket_model_enum_value=TicketModel.TICKET, user_id=user_id
+                )
             return ticket
 
     @staticmethod
     async def get_tickets(
         uow: UnitOfWork,
-        pagination: Optional[Params] = None,
-        ticket_model: Optional[TicketModel] = None,
+        pagination: MyParams | None = None,
+        ticket_model: TicketModel | None = None,
+        user_id: int | None = None
     ):
+        """
+        Возвращает тикеты, в зависимости от того, какие параметры были переданы.
+
+        :param uow: Нужен для работы с БД.
+        :type uow: UnitOfWork
+
+        :param pagination: Отвечает за пагинацию: в последствии достаётся offset и limit для запроса к БД.
+        :type pagination: MyParams | None
+
+        :param ticket_model: Нужен для разделения логики получения различных типов тикетов.
+        :type uow: TicketModel | None
+
+        :param user_id: Служит для дальнейшей фильтрации тикетов по id пользователя - создателя тикета.
+        :type user_id: Int | None
+        """
         async with uow:
+            # ToDo: Посмотреть: крашнется ли функция, если передать pagination=None
+            #  (в таком случае, ведь, не будут инициализированы переменные offset, limit)
             if pagination:
                 pagination_raw_params = pagination.to_raw_params()
                 offset = pagination_raw_params.offset
                 limit = pagination_raw_params.limit
 
             if ticket_model:
-                tickets = await uow.tickets.get_all_tickets_by_ticket_model(
-                    ticket_model_enum_value=ticket_model, offset=offset, limit=limit
-                )
+                tickets = await uow.tickets.get_all_tickets(ticket_model_enum_value=ticket_model,
+                                                            offset=offset, limit=limit, user_id=user_id)
             else:
-                tickets = await uow.tickets.get_all(offset=offset, limit=limit)
+                # Возвращаем абсолютно все тикеты
+                tickets = await uow.tickets.get_all_tickets(ticket_model_enum_value=TicketModel.TICKET,
+                                                            offset=offset, limit=limit, user_id=user_id)
 
             return tickets
 
@@ -480,13 +501,13 @@ class TicketsService:
     @staticmethod
     async def get_all_tickets(
         uow: UnitOfWork,
-        ticket_model: Optional[TicketModel] = None,
+        ticket_model: TicketModel | None = None,
+        user_id: int | None = None
     ):
         async with uow:
             if ticket_model:
-                tickets = await uow.tickets.get_all_tickets_by_ticket_model(
-                    ticket_model_enum_value=ticket_model
-                )
+                tickets = await uow.tickets.get_all_tickets(ticket_model_enum_value=ticket_model,
+                                                            user_id=user_id)
             else:
                 tickets = await uow.tickets.get_all()
 

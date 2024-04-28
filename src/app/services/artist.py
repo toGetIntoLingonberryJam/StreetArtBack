@@ -6,6 +6,7 @@ from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 from sqlalchemy.exc import NoResultFound
 
+from app.api.utils.paginator import MyParams
 from app.modules.artists.schemas.artist import ArtistCreateSchema
 from app.modules.cloud_storage.schemas.image import ImageCreateSchema
 from app.services.cloud_storage import CloudStorageService
@@ -69,7 +70,7 @@ class ArtistsService:
     async def get_all_artist(
         self,
         uow: UnitOfWork,
-        pagination: Params | None = None,
+        pagination: MyParams | None = None,
         filters: Filter | None = None,
         **filter_by
     ):

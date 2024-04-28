@@ -1,7 +1,5 @@
 from typing import Sequence, Any
 
-from sqlalchemy.exc import NoResultFound
-
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel as BaseSchema
 
@@ -10,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import RelationshipProperty, InstrumentedAttribute, with_polymorphic
 
 from app.db import Base as ModelBase
-from app.utils.exceptions import ObjectNotFoundException
 
 
 class SQLAlchemyRepository:
@@ -91,6 +88,30 @@ class SQLAlchemyRepository:
         await self.session.refresh(new_obj)
         return new_obj
 
+    async def create_many(self, obj_data_list: list[BaseSchema | dict]) -> list[ModelBase]:
+        """Создает несколько объектов в базе данных на основе переданных данных."""
+        try:
+            # Преобразование данных в объекты модели
+            new_objects = [
+                self.model(**(obj_data if isinstance(obj_data, dict) else obj_data.model_dump()))
+                for obj_data in obj_data_list
+            ]
+
+            # Добавление всех новых объектов в сессию одним вызовом
+            self.session.add_all(new_objects)
+            await self.session.flush()
+
+            # # Обновление каждого объекта после flush
+            # for obj in new_objects:
+            #     await self.session.refresh(obj)
+
+            return new_objects
+        except Exception as e:
+            # Обработка исключений
+            print(f"Ошибка при создании объектов: {e}")
+            await self.session.rollback()
+            return []
+
     async def get_all(
         self, offset: int = 0, limit: int | None = None
     ) -> Sequence[ModelBase]:
@@ -108,15 +129,12 @@ class SQLAlchemyRepository:
     async def get(
         self, obj_id: int, filters: Filter | None = None, **filter_by
     ) -> ModelBase:
-        try:
-            stmt = await self._select(self.model)
-            stmt = stmt.filter_by(id=obj_id)
-            result = await self.session.execute(stmt)
-            # filter_by["id"] = obj_id
-            # a = await self._filter(filters=filters, **filter_by)
-            return result.unique().scalar_one()
-        except NoResultFound:
-            raise ObjectNotFoundException("Object not found")
+        stmt = await self._select(self.model)
+        stmt = stmt.filter_by(id=obj_id)
+        result = await self.session.execute(stmt)
+        # filter_by["id"] = obj_id
+        # a = await self._filter(filters=filters, **filter_by)
+        return result.unique().scalar_one()
 
     async def filter(
         self,

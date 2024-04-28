@@ -1,13 +1,13 @@
 import asyncio
 from typing import Optional, List
 
-from fastapi import UploadFile, HTTPException
+from fastapi import UploadFile
 from sqlalchemy.exc import NoResultFound
-from starlette import status
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 
+from app.api.utils.paginator import MyParams
 from app.modules import Moderator
 from app.modules.artworks.models.artwork import Artwork
 from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
@@ -48,15 +48,13 @@ class ArtworksService:
 
         artwork_dict = artwork_schema.model_dump(exclude={"location"})
 
-        artwork_dict["added_by_user_id"] = moderator.user_id
+        artwork_dict["added_by_user_id"] = moderator.id
         artwork_dict["artist_id"] = (
             artwork_schema.artist_id if artwork_schema.artist_id else None
         )
         artwork_dict["festival_id"] = (
             artwork_schema.festival_id if artwork_schema.festival_id else None
         )
-        if artwork_schema.links:
-            artwork_dict["links"] = [i.__str__() for i in artwork_schema.links]
 
         async with uow:
             artwork = await uow.artworks.create(artwork_dict)
@@ -151,7 +149,7 @@ class ArtworksService:
     @staticmethod
     async def get_artworks_by_moderation_status(
         uow: UnitOfWork,
-        pagination: Optional[Params] = None,
+        pagination: Optional[MyParams] = None,
         filters: Optional[Filter] = None,
         **filter_by
     ) -> list[Artwork]:
@@ -172,7 +170,7 @@ class ArtworksService:
     async def get_pending_artworks(
         self,
         uow: UnitOfWork,
-        pagination: Optional[Params] = None,
+        pagination: Optional[MyParams] = None,
         filters: Optional[Filter] = None,
     ) -> list[Artwork]:
         filters.add_filtering_fields(moderation__status=ArtworkModerationStatus.PENDING)
@@ -183,7 +181,7 @@ class ArtworksService:
     async def get_approved_artworks(
         self,
         uow: UnitOfWork,
-        pagination: Optional[Params] = None,
+        pagination: Optional[MyParams] = None,
         filters: Optional[Filter] = None,
         **filter_by
     ) -> list[Artwork]:
@@ -202,9 +200,12 @@ class ArtworksService:
     async def get_rejected_artworks(
         self,
         uow: UnitOfWork,
-        pagination: Optional[Params] = None,
+        pagination: Optional[MyParams] = None,
         filters: Optional[Filter] = None,
     ) -> list[Artwork]:
+        if filters is None:
+            filters = Filter()
+
         filters.add_filtering_fields(
             moderation__status=ArtworkModerationStatus.REJECTED
         )
@@ -217,14 +218,11 @@ class ArtworksService:
     async def get_artwork(
         uow: UnitOfWork, artwork_id: int, filters: Filter | None = None, **filter_by
     ):
-        try:
-            async with uow:
-                artwork = await uow.artworks.get(
-                    obj_id=artwork_id, filters=filters, **filter_by
-                )
-                return artwork
-        except ObjectNotFoundException:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artwork not found")
+        async with uow:
+            artwork = await uow.artworks.get(
+                obj_id=artwork_id, filters=filters, **filter_by
+            )
+            return artwork
 
     @staticmethod
     async def get_artworks(uow: UnitOfWork, filters: Filter | None = None, **filter_by):

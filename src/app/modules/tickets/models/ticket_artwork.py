@@ -7,7 +7,8 @@ from app.modules.tickets.utils.classes import TicketModel, TicketRegistry
 
 @TicketRegistry.register(TicketModel.ARTWORK_TICKET)
 class ArtworkTicket(TicketBase):
-    __tablename__ = "artwork_ticket"
+    __tablename__ = TicketModel.ARTWORK_TICKET.value
+
     id: Mapped[int] = mapped_column(None, ForeignKey("ticket.id"), primary_key=True)
 
     artwork_id: Mapped[int] = mapped_column(

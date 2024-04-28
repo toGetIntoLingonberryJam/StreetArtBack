@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional, Annotated, List
 
 from fastapi import APIRouter, HTTPException, status, Depends, Body, UploadFile, File
@@ -33,41 +34,58 @@ from app.services.artworks import ArtworksService
 from app.services.tickets import TicketsService
 from app.utils.dependencies import UOWDep, get_current_moderator
 
-router = APIRouter(tags=["Tickets"])
+router = APIRouter()
 
 
 @router.get(
-    "/",
+    "/my",
     response_model=list[TicketReadSchemaType],
-    description="ДЛЯ МОДЕРАТОРОВ! Выводит список тикетов.",
+    description="ДЛЯ ПОЛЬЗОВАТЕЛЕЙ! Выводит список тикетов авторизованного пользователя.",
 )
 # @cache(expire=15)
 async def show_tickets(
-    uow: UOWDep,
-    ticket_model: TicketModel = None,
-    pagination: MyParams = Depends(),
+        uow: UOWDep,
+        user: User = Depends(current_user),
+        ticket_model: TicketModel = None,
+        pagination: MyParams = Depends(),
 ):
-    # ticket_model_class = TicketRegistry.ticket_classes.get(ticket_model)
-    # if ticket_model_class is None:
-    #     # TODO: доделайть, заглушка. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    tickets = await TicketsService().get_tickets(
-        uow=uow, pagination=pagination, ticket_model=ticket_model
-    )
+    tickets = await TicketsService().get_tickets(uow=uow, pagination=pagination, ticket_model=ticket_model,
+                                                 user_id=user.id)
     return tickets
 
 
 @router.get(
     "/{ticket_id}",
     response_model=TicketReadSchemaType,
-    description="Выводит тикет.",
+    description="""Выводит тикет. `Вероятно, выбор ticket_model можно вырезать? Он так и так, если не передать, 
+    выведет тикет, просто с ticket_model - конкретный тип ожидает` 
+    **Кстати, можно немного по другому реализовать фильтрацию тикетов по пользователю... и не знаю стоит ли оно того. 
+    Короче, сейчас, даже если такой тикет есть в базе, но к нему обращается не его создатель, то будет 404 - не найдено,
+    мол такого объекта вообще не существует. С одной стороны - ок. Но с другой.. 
+    Наверное лучше через 403 Forbidden, типо "Нет доступа".**
+    
+    
+    Если роль пользователя:
+    - user, artist - ответ будет приходить только на тикеты, созданные этим пользователем. 
+    - modeartor - может получить тикет по любому ticket_id
+    """,
 )
 # @cache(expire=15)
-async def show_ticket(uow: UOWDep, ticket_id: int, ticket_model: TicketModel = None):
+async def show_ticket(
+        uow: UOWDep,
+        ticket_id: int,
+        ticket_model: TicketModel = None,
+        user: User = Depends(current_user)):
     try:
-        ticket = await TicketsService().get_ticket(
-            uow=uow, ticket_id=ticket_id, ticket_model=ticket_model
-        )
+        if user.is_moderator:
+            ticket = await TicketsService().get_ticket(
+                uow=uow, ticket_id=ticket_id, ticket_model=ticket_model
+            )
+        else:
+            ticket = await TicketsService().get_ticket(
+                uow=uow, ticket_id=ticket_id, ticket_model=ticket_model, user_id=user.id
+            )
+
         return ticket
     except NoResultFound:
         # Обработка случая, когда запись не найдена
@@ -80,15 +98,51 @@ async def show_ticket(uow: UOWDep, ticket_id: int, ticket_model: TicketModel = N
         )
 
 
+@router.get(
+    "/user/{user_id}",
+    response_model=list[TicketReadSchemaType],
+    description="ДЛЯ МОДЕРАТОРОВ! Выводит список тикетов конкретного пользователя."
+)
+# @cache(expire=15)
+async def show_tickets(
+        uow: UOWDep,
+        user_id: int,
+        moderator: Moderator = Depends(get_current_moderator),
+        ticket_model: TicketModel = None,
+        pagination: MyParams = Depends(),
+):
+    tickets = await TicketsService().get_tickets(uow=uow, ticket_model=ticket_model,
+                                                 pagination=pagination, user_id=user_id)
+    return tickets
+
+
+@router.get(
+    "/",
+    response_model=list[TicketReadSchemaType],
+    description="ДЛЯ МОДЕРАТОРОВ! Выводит список всех тикетов.",
+)
+# @cache(expire=15)
+async def show_tickets(
+        uow: UOWDep,
+        moderator: Moderator = Depends(get_current_moderator),
+        ticket_model: TicketModel = None,
+        pagination: MyParams = Depends(),
+):
+    tickets = await TicketsService().get_tickets(
+        uow=uow, pagination=pagination, ticket_model=ticket_model
+    )
+    return tickets
+
+
 @router.post(
     "/",
     response_model=TicketReadSchemaType,
     description="Создаёт обычный текстовый тикет.",
 )
 async def create_ticket(
-    uow: UOWDep,
-    user: User = Depends(current_user),
-    ticket_schema: TicketCreateSchema = Body(...),
+        uow: UOWDep,
+        user: User = Depends(current_user),
+        ticket_schema: TicketCreateSchema = Body(...),
 ):
     ticket = await TicketsService.create_ticket(
         uow=uow, user=user, ticket_schema=ticket_schema
@@ -112,14 +166,14 @@ async def create_ticket(
     },
 )
 async def create_artwork_ticket(
-    uow: UOWDep,
-    user: User = Depends(current_user),
-    artwork_ticket_schema: ArtworkTicketCreateSchema = Body(...),
-    thumbnail_image_index: Annotated[int, Body()] = None,
-    images: Annotated[
-        List[UploadFile],
-        File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
-    ] = None,
+        uow: UOWDep,
+        user: User = Depends(current_user),
+        artwork_ticket_schema: ArtworkTicketCreateSchema = Body(...),
+        thumbnail_image_index: Annotated[int, Body()] = None,
+        images: Annotated[
+            List[UploadFile],
+            File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
+        ] = None,
 ):
     if images:
         for image in images:
@@ -185,14 +239,14 @@ async def create_artwork_ticket(
 
 
 @router.patch(
-    "/approve/{artwork_ticket_id}",
+    "/artwork/approve/{artwork_ticket_id}",
     response_model=ArtworkTicketReadSchema,
     description="ДЛЯ МОДЕРАТОРА!!! Подтвердить тикет связанный с арт-объектом.",
 )
 async def approve_artwork_ticket(
-    uow: UOWDep,
-    artwork_ticket_id: int,
-    moderator: Moderator = Depends(get_current_moderator),
+        uow: UOWDep,
+        artwork_ticket_id: int,
+        moderator: Moderator = Depends(get_current_moderator),
 ):
     artwork_ticket = await TicketsService.approve_artwork_ticket(
         uow=uow, moderator=moderator, artwork_ticket_id=artwork_ticket_id
@@ -202,21 +256,20 @@ async def approve_artwork_ticket(
 
 
 @router.patch(
-    "/reject/{artwork_ticket_id}",
+    "/artwork/reject/{artwork_ticket_id}",
     response_model=ArtworkTicketReadSchema,
     description="ДЛЯ МОДЕРАТОРА!!! Отклонить тикет связанный с арт-объектом.",
 )
 async def approve_artwork_ticket(
-    uow: UOWDep,
-    artwork_ticket_id: int,
-    moderator: Moderator = Depends(get_current_moderator),
+        uow: UOWDep,
+        artwork_ticket_id: int,
+        moderator: Moderator = Depends(get_current_moderator),
 ):
     artwork_ticket = await TicketsService.reject_artwork_ticket(
         uow=uow, moderator=moderator, artwork_ticket_id=artwork_ticket_id
     )
 
     return artwork_ticket
-
 
 # @router.post(
 #     "/",

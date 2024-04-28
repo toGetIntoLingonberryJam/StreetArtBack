@@ -16,7 +16,7 @@ from app.modules.tickets.utils.classes import (
 
 @TicketRegistry.register(TicketModel.TICKET)
 class TicketBase(Base):
-    __tablename__ = "ticket"
+    __tablename__ = TicketModel.TICKET.value
 
     __mapper_args__ = {
         "polymorphic_on": "discriminator",

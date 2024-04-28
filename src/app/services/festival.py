@@ -7,6 +7,7 @@ from fastapi_pagination import Params
 from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
+from app.api.utils.paginator import MyParams
 from app.modules.cloud_storage.schemas.image import ImageCreateSchema
 from app.modules.festivals.schemas import FestivalCreateSchema
 from app.services.cloud_storage import CloudStorageService
@@ -51,7 +52,7 @@ class FestivalService:
     async def get_all_festival(
         self,
         uow: UnitOfWork,
-        pagination: Params | None = None,
+        pagination: MyParams | None = None,
         filters: Filter | None = None,
         **filter_by
     ):

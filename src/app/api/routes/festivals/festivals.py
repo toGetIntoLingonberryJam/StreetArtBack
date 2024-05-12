@@ -16,7 +16,7 @@ from fastapi_pagination import paginate
 
 from app.api.utils.filters.festivals.festival import FestivalFilter
 from app.api.utils.paginator import Page, MyParams
-from app.modules import User
+from app.modules import User, Moderator
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
 from app.modules.festivals.schemas import FestivalReadSchema, FestivalCreateSchema
 from app.modules.users.fastapi_users_config import current_user
@@ -24,7 +24,7 @@ from app.services.artist import ArtistsService
 from app.services.artworks import ArtworksService
 from app.services.collection import CollectionService
 from app.services.festival import FestivalService
-from app.utils.dependencies import UOWDep
+from app.utils.dependencies import UOWDep, get_current_moderator
 from app.utils.exceptions import ObjectNotFoundException
 
 festival_router = APIRouter()
@@ -85,7 +85,10 @@ async def get_festival_list(
     response_model=ArtworkCardSchema,
     description="Присвоение фестивалю работы.",
 )
-async def assignee_artwork(uow: UOWDep, artwork_id: int, festival_id: int):
+async def assignee_artwork(uow: UOWDep,
+                           artwork_id: int,
+                           festival_id: int,
+                           moderator: Moderator = Depends(get_current_moderator)):
     try:
         artwork = await FestivalService().update_artwork_festival(
             uow, artwork_id, festival_id

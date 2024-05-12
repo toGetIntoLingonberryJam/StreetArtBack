@@ -35,6 +35,7 @@ class ArtistCreateSchema(ArtistBaseSchema):
 class ArtistReadSchema(ArtistBaseSchema):
     id: int
     image: Optional[ImageReadSchema] = None
+    # artworks: Optional[List[ArtworkCardSchema]] = None
 
     # @field_validator("links", mode="before")
     # def links_validator(cls, v: List[str]) -> List[str]:

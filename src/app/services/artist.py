@@ -27,10 +27,10 @@ class ArtistsService:
             raise ObjectNotFoundException("Artist not found")
 
     async def create_artist(
-        self,
-        uow: UnitOfWork,
-        artist_schema: ArtistCreateSchema,
-        image: Optional[UploadFile] = None,
+            self,
+            uow: UnitOfWork,
+            artist_schema: ArtistCreateSchema,
+            image: Optional[UploadFile] = None,
     ):
         async with uow:
             if artist_schema.user_id:
@@ -67,11 +67,11 @@ class ArtistsService:
             return artist
 
     async def get_all_artist(
-        self,
-        uow: UnitOfWork,
-        pagination: Params | None = None,
-        filters: Filter | None = None,
-        **filter_by
+            self,
+            uow: UnitOfWork,
+            pagination: Params | None = None,
+            filters: Filter | None = None,
+            **filter_by
     ):
         async with uow:
             offset: int = 0
@@ -95,7 +95,7 @@ class ArtistsService:
             artist = await uow.artist.filter(user_id=user_id)
             return artist
 
-    async def update_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id):
+    async def update_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id: int):
         async with uow:
             try:
                 artist = await uow.artist.get(artist_id)
@@ -104,7 +104,24 @@ class ArtistsService:
 
             try:
                 artwork = await uow.artworks.get(artwork_id)
-                artwork.artist = artist
+                if artist not in artwork.artist:
+                    artwork.artist.append(artist)
+                await uow.commit()
+                return artwork
+            except NoResultFound:
+                raise ObjectNotFoundException("Арт-объект не найден.")
+
+    async def remove_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id: int):
+        async with uow:
+            try:
+                artist = await uow.artist.get(artist_id)
+            except NoResultFound:
+                raise ObjectNotFoundException("Художник не найден.")
+
+            try:
+                artwork = await uow.artworks.get(artwork_id)
+                if artist in artwork.artist:
+                    artwork.artist.remove(artist)
                 await uow.commit()
                 return artwork
             except NoResultFound:

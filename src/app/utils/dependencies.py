@@ -5,7 +5,7 @@ from sqlalchemy.exc import NoResultFound
 from starlette import status
 
 from app.api.routes.common import generate_detail, ErrorCode
-from app.modules.artists.models import Artist
+from app.modules.artists.models.artist import Artist
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
 from app.services.artist import ArtistsService

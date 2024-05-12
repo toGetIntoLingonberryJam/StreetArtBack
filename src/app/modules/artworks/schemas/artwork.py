@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field, model_validator, ConfigDict, HttpUrl
 import json
@@ -31,11 +31,14 @@ class ArtworkBaseSchema(BaseModel):
         "year.",
     )
     description: Optional[str] = None
-    artist_id: Optional[int]
+    artist_ids: Optional[List[int]] = None
     festival_id: Optional[int]
     status: ArtworkStatus
     links: Optional[List[HttpUrl]] = None
 
+    # @field_validator("artist", mode='before')
+    # def links_validator(cls, v):
+    #     return [{"id": i} for i in cls.artist_id]
 
 class ArtworkCreateSchema(ArtworkBaseSchema):
     location: ArtworkLocationBaseSchema
@@ -57,7 +60,7 @@ class ArtworkReadSchema(ArtworkBaseSchema):
 
     location: ArtworkLocationReadSchema
     images: Optional[List[ArtworkImageReadSchema]]
-    artist: Optional[ArtistCardSchema]
+    artist: List[ArtistCardSchema]
     festival: Optional[FestivalCardSchema]
 
     created_at: Optional[datetime] = Field(None, exclude=True)

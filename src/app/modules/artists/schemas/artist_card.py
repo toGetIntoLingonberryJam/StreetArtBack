@@ -17,5 +17,3 @@ class ArtistCardSchema(BaseModel):
     def preview_image(self) -> Optional[HttpUrl]:
         if self.image:
             return self.image.image_url
-
-

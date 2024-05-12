@@ -2,7 +2,6 @@ import asyncio
 from typing import Optional, List
 
 from fastapi import UploadFile, HTTPException
-from sqlalchemy.exc import NoResultFound
 from starlette import status
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
@@ -20,7 +19,6 @@ from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreateS
 from app.modules.artworks.schemas.artwork_moderation import (
     ArtworkModerationCreateSchema,
 )
-from app.modules.users.models import User
 from app.services.cloud_storage import CloudStorageService
 from app.utils.exceptions import ObjectNotFoundException
 
@@ -224,7 +222,9 @@ class ArtworksService:
                 )
                 return artwork
         except ObjectNotFoundException:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artwork not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Artwork not found"
+            )
 
     @staticmethod
     async def get_artworks(uow: UnitOfWork, filters: Filter | None = None, **filter_by):

@@ -127,13 +127,10 @@ async def show_artworks(
     pagination: MyParams = Depends(),
     filters: Filter = FilterDepends(ArtworkFilter),
 ):
-    # artworks = await ArtworksService().get_approved_artworks(uow, pagination, filters)
     artworks = await ArtworksService().get_artworks(
         uow=uow, pagination=pagination, filters=filters
     )
-
     result = paginate(artworks, pagination)
-
     return result
 
 
@@ -236,7 +233,7 @@ async def delete_artwork(
 
 
 @router_artworks.post(
-    "/{artwork_id}/toggle_like",
+    "/{artwork_id}/switch_like",
     description="Ставит и удаляет лайк на арт-объект.",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(
@@ -247,7 +244,7 @@ async def delete_artwork(
         )
     },
 )
-async def toggle_like(artwork_id: int, uow: UOWDep, user: User = Depends(current_user)):
+async def switch_like(artwork_id: int, uow: UOWDep, user: User = Depends(current_user)):
     try:
         artwork = await ArtworksService().get_artwork(uow, artwork_id)
         reaction_add = await CollectionService().toggle_artwork_like(

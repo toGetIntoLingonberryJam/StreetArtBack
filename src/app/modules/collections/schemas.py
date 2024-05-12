@@ -1,12 +1,8 @@
-from pydantic import Field, AliasChoices
-
+from pydantic import BaseModel
 from app.modules.collections.models import LikeType
 
 
-class LikeSchema:
+class LikeSchema(BaseModel):
     id: int
-    user_id: int
-    object_id: int = Field(
-        ..., validation_alias=AliasChoices("artwork_id", "festival_id", "artist_id")
-    )
+    is_liked: bool = False
     object_type: LikeType

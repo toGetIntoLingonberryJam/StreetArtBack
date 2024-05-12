@@ -19,7 +19,7 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import (
     BaseModel,
     ConfigDict,
-    FieldValidationInfo,
+    ValidationInfo,
     ValidationError,
     create_model,
     field_validator,
@@ -126,7 +126,7 @@ class BaseFilterModel(BaseModel, extra="allow"):
             ) from e
 
     @field_validator("*", mode="before", check_fields=False)
-    def strip_order_by_values(cls, value, field: FieldValidationInfo):
+    def strip_order_by_values(cls, value, field: ValidationInfo):
         if field.field_name != cls.Constants.ordering_field_name:
             return value
 
@@ -142,7 +142,7 @@ class BaseFilterModel(BaseModel, extra="allow"):
         return stripped_values
 
     @field_validator("*", mode="before", check_fields=False)
-    def validate_order_by(cls, value, field: FieldValidationInfo):
+    def validate_order_by(cls, value, field: ValidationInfo):
         if field.field_name != cls.Constants.ordering_field_name:
             return value
 

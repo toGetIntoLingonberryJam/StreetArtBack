@@ -1,12 +1,13 @@
-from functools import lru_cache
 from pydantic import PostgresDsn, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8"
+        env_file="/etc/secrets/.env", env_file_encoding="utf-8"
     )
+
+    mode: str
 
     db_host: str
     db_port: int
@@ -36,7 +37,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-# @lru_cache
-# def settings -> Settings:
-#     return Settings()
+print(f"Settings Mode: {settings.mode}")

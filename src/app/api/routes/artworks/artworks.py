@@ -110,9 +110,6 @@ async def create_artwork(
         images_urls=images_urls,
         thumbnail_image_index=thumbnail_image_index,
     )
-
-    # artwork_images = await ArtworksService().
-
     return artwork
 
 

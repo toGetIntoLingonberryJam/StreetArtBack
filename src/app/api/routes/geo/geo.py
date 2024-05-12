@@ -48,7 +48,7 @@ async def show_artwork_locations(
     user_coords: Annotated[
         CommaSeparatedList[float] | None,
         Query(description="Ожидаются float-значения: Ширина, Долгота"),
-    ] = None
+    ] = None,
     # user_coords: Optional[Tuple[float, float]] = Query(
     #     None, description="Ожидаются float-значения: Ширина, Долгота"
     # ), #TODO: Не работает.

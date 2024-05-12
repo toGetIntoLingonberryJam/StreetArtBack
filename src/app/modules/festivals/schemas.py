@@ -17,7 +17,7 @@ class FestivalBaseSchema(BaseModel):
 
 class FestivalCreateSchema(FestivalBaseSchema):
     @field_validator("links")
-    def links_validator(cls, v: List[HttpUrl]) -> List[str]:
+    def links_validator(cls, v: Optional[List[HttpUrl]]) -> Optional[List[str]]:
         if v:
             return [i.__str__() for i in v]
 
@@ -33,8 +33,3 @@ class FestivalCreateSchema(FestivalBaseSchema):
 class FestivalReadSchema(FestivalBaseSchema):
     id: int
     image: Optional[ImageReadSchema] = None
-
-    # @field_validator("links", mode="before")
-    # def links_validator(cls, v: List[str]) -> List[str]:
-    #     links = "".join(v).strip("{}").split(",")
-    #     return links

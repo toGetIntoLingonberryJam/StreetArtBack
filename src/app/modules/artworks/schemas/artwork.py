@@ -6,8 +6,7 @@ from pydantic import (
     Field,
     model_validator,
     ConfigDict,
-    field_validator,
-    HttpUrl,
+    HttpUrl
 )
 import json
 
@@ -36,10 +35,9 @@ class ArtworkBaseSchema(BaseModel):
         ge=1900,
         le=datetime.today().year,
         description="The year of creation cannot be less than 1900 and more than the current "
-        "year.",
+                    "year.",
     )
     description: Optional[str] = None
-    # source_description: Optional[str] = None
     artist_ids: Optional[List[int]] = None
     festival_id: Optional[int]
     status: ArtworkStatus
@@ -54,16 +52,11 @@ class ArtworkCreateSchema(ArtworkBaseSchema):
 
     @model_validator(mode="before")
     def validate_to_json(
-        cls, value
+            cls, value
     ):  # noqa Костыль, без которого не работает multipart/form data заспросы
         if isinstance(value, str):
             return cls(**json.loads(value))  # noqa
         return value
-
-    @field_validator("links")
-    def links_validator(cls, v: List[HttpUrl]) -> List[str]:
-        if v:
-            return [i.__str__() for i in v]
 
 
 class ArtworkReadSchema(ArtworkBaseSchema):
@@ -79,12 +72,6 @@ class ArtworkReadSchema(ArtworkBaseSchema):
 
     created_at: Optional[datetime] = Field(None, exclude=True)
     updated_at: datetime
-
-    # @field_validator("links", mode="before")
-    # def links_validator(cls, v: List[str]) -> List[str]:
-    #     if v:
-    #         links = "".join(v).strip("{}").split(",")
-    #         return links
 
 
 class ArtworkForModeratorReadSchema(ArtworkReadSchema):

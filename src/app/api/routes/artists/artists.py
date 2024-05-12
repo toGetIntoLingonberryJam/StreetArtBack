@@ -16,7 +16,7 @@ from app.api.routes.common import (
 )
 from app.api.utils.filters.artists.artist import ArtistFilter
 from app.api.utils.paginator import MyParams, Page
-from app.modules import User
+from app.modules import User, Moderator
 from app.modules.artists.schemas.artist import ArtistReadSchema, ArtistCreateSchema
 from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
@@ -24,7 +24,7 @@ from app.modules.users.fastapi_users_config import current_user
 from app.services.artist import ArtistsService
 from app.services.artworks import ArtworksService
 from app.services.collection import CollectionService
-from app.utils.dependencies import UOWDep
+from app.utils.dependencies import UOWDep, get_current_moderator
 from app.utils.exceptions import (
     UserNotFoundException,
     IncorrectInput,
@@ -69,11 +69,11 @@ async def get_artist(artist_id: int, uow: UOWDep):
     },
 )
 async def create_artist(
-    artist: ArtistCreateSchema,
-    uow: UOWDep,
-    image: Annotated[
-        UploadFile, File(..., description="Изображение в формате jpeg, png или heic.")
-    ] = None,
+        artist: ArtistCreateSchema,
+        uow: UOWDep,
+        image: Annotated[
+            UploadFile, File(..., description="Изображение в формате jpeg, png или heic.")
+        ] = None,
 ):
     if image and not is_image(image):
         raise HTTPException(
@@ -97,9 +97,9 @@ async def create_artist(
     "/", response_model=Page[ArtistCardSchema], description="Получение списка артистов"
 )
 async def get_artist_list(
-    uow: UOWDep,
-    pagination: MyParams = Depends(),
-    filters: Filter = FilterDepends(ArtistFilter),
+        uow: UOWDep,
+        pagination: MyParams = Depends(),
+        filters: Filter = FilterDepends(ArtistFilter),
 ):
     artists = await ArtistsService().get_all_artist(uow, pagination, filters)
     return paginate(artists, pagination)
@@ -111,7 +111,7 @@ async def get_artist_list(
     description="Получение списка работ художника по id",
 )
 async def get_artist_artworks(
-    uow: UOWDep, artist_id: int, pagination: MyParams = Depends()
+        uow: UOWDep, artist_id: int, pagination: MyParams = Depends()
 ):
     artworks = await ArtworksService().get_approved_artworks(
         uow, pagination, artist_id=artist_id
@@ -124,9 +124,30 @@ async def get_artist_artworks(
     response_model=ArtworkCardSchema,
     description="Присвоение художнику работы.",
 )
-async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
+async def assignee_artwork(uow: UOWDep,
+                           artwork_id: int,
+                           artist_id: int,
+                           moderator: Moderator = Depends(get_current_moderator)):
     try:
         artwork = await ArtistsService().update_artwork_artist(
+            uow, artwork_id, artist_id
+        )
+        return artwork
+    except ObjectNotFoundException as e:
+        raise HTTPException(status_code=404, detail=e.__str__())
+
+
+@artist_router.post(
+    "/unassignee",
+    response_model=ArtworkCardSchema,
+    description="Отмена присвоения художнику работы.",
+)
+async def unassignee_artwork(uow: UOWDep,
+                             artwork_id: int,
+                             artist_id: int,
+                             moderator: Moderator = Depends(get_current_moderator)):
+    try:
+        artwork = await ArtistsService().remove_artwork_artist(
             uow, artwork_id, artist_id
         )
         return artwork

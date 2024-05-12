@@ -18,7 +18,7 @@ class ArtworkCardSchema(BaseModel):
     status: ArtworkStatus
     images: Optional[List[ArtworkImageReadSchema]] = Field(..., exclude=True)
     location: ArtworkLocationReadSchema = Field(..., exclude=True)
-    artist: Optional[ArtistCardSchema]
+    artist: Optional[List[ArtistCardSchema]]
 
     @computed_field
     @property

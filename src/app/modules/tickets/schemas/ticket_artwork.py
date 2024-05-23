@@ -1,16 +1,13 @@
 # from datetime import datetime
 #
 # from pydantic import Field, ConfigDict
+import json
 from typing import Optional
 
-from pydantic import model_validator, ConfigDict
-import json
+from pydantic import ConfigDict, Field, model_validator
 from pydantic_partial import create_partial_model
 
-from app.modules.artworks.schemas.artwork import (
-    ArtworkCreateSchema,
-    ArtworkUpdateSchema,
-)
+from app.modules.artworks.schemas.artwork import ArtworkCreateSchema, ArtworkUpdateSchema
 from app.modules.tickets.schemas.ticket_base import (
     TicketBaseSchema,
     TicketCreateSchema,
@@ -19,12 +16,13 @@ from app.modules.tickets.schemas.ticket_base import (
 )
 
 
-class ArtworkTicketBaseSchema(TicketBaseSchema):
+class TicketArtworkBaseSchema(TicketBaseSchema):
     pass
+    # images: Optional[List[ImageReadSchema]] = Field(exclude=True)
 
 
-class ArtworkTicketCreateSchema(TicketCreateSchema, ArtworkTicketBaseSchema):
-    artwork_data: ArtworkCreateSchema
+class TicketArtworkCreateSchema(TicketCreateSchema, TicketArtworkBaseSchema):
+    artwork_data: Optional[ArtworkCreateSchema] = None
 
     @model_validator(mode="before")
     def validate_to_json(
@@ -35,16 +33,15 @@ class ArtworkTicketCreateSchema(TicketCreateSchema, ArtworkTicketBaseSchema):
         return value
 
 
-class ArtworkTicketReadSchema(TicketReadSchema, ArtworkTicketBaseSchema):
+class TicketArtworkReadSchema(TicketReadSchema, TicketArtworkBaseSchema):
     # model_config = ConfigDict(from_attributes=True)
-    artwork_id: Optional[int] = None
     artwork_data: dict
 
 
-class ArtworkTicketUpdateSchema(TicketUpdateSchema, ArtworkTicketBaseSchema):
+class TicketArtworkUpdateSchema(TicketUpdateSchema, TicketArtworkBaseSchema):
     artwork_data: ArtworkUpdateSchema
 
 
-ArtworkTicketUpdateSchema = create_partial_model(
-    ArtworkTicketUpdateSchema, recursive=True
+TicketArtworkUpdateSchema = create_partial_model(
+    TicketArtworkUpdateSchema, recursive=True
 )

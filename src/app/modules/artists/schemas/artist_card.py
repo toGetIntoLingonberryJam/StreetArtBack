@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, computed_field
 
-from app.modules.cloud_storage.schemas.image import ImageReadSchema
+from app.modules.images.schemas.image import ImageReadSchema
 
 
 class ArtistCardSchema(BaseModel):
@@ -10,12 +10,11 @@ class ArtistCardSchema(BaseModel):
 
     id: int
     name: str
-    image: Optional[ImageReadSchema] = Field(exclude=True)
-
-    @computed_field
-    @property
-    def preview_image(self) -> Optional[HttpUrl]:
-        if self.image:
-            return self.image.image_url
-
-
+    image: Optional[ImageReadSchema] = None
+    # image: Optional[ImageReadSchema] = Field(exclude=True)
+    #
+    # @computed_field
+    # @property
+    # def preview_image(self) -> Optional[HttpUrl]:
+    #     if self.image:
+    #         return self.image.image_url

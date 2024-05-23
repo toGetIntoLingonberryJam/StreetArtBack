@@ -3,9 +3,7 @@ from app.utils.unit_of_work import UnitOfWork
 
 class CollectionService:
     @staticmethod
-    async def toggle_artwork_like(
-        uow: UnitOfWork, user_id: int, artwork_id: int
-    ) -> bool:
+    async def toggle_artwork_like(uow: UnitOfWork, user_id: int, artwork_id: int) -> bool:
         """Создает реакцию на Artwork. При наличии реацкии на данный Artwork - удаляет реакцию."""
         async with uow:
             current_like = await uow.artwork_like.filter(

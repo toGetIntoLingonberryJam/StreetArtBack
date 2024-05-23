@@ -1,9 +1,9 @@
 from sqladmin import ModelView
 
 from app.modules.artworks.models.artwork import Artwork
-from app.modules.artworks.models.artwork_image import ArtworkImage
 from app.modules.artworks.models.artwork_location import ArtworkLocation
 from app.modules.artworks.models.artwork_moderation import ArtworkModeration
+from app.modules.images.models.image_artwork import ImageArtwork
 
 DROPDOWN_CATEGORY = "Арт-объект"
 
@@ -26,7 +26,7 @@ class ArtworkAdmin(ModelView, model=Artwork):
     # }
 
 
-class ArtworkImageAdmin(ModelView, model=ArtworkImage):
+class ImageArtworkAdmin(ModelView, model=ImageArtwork):
     column_list = "__all__"
     DROPDOWN_CATEGORY = DROPDOWN_CATEGORY
 

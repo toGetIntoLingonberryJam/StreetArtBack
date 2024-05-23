@@ -1,7 +1,6 @@
 from fastapi import Query
 from fastapi_pagination import Page, Params
 from fastapi_pagination.customization import CustomizedPage, UseParams
-
 from fastapi_pagination.utils import disable_installed_extensions_check
 
 disable_installed_extensions_check()

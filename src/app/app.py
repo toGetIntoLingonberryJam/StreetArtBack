@@ -1,15 +1,13 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 from fastapi_pagination import add_pagination
 
 from app.admin_panel.apanel import AdminPanel
 from app.api.routes import router
-
 from app.db import engine, redis
-
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
 
 
 @asynccontextmanager
@@ -31,5 +29,6 @@ async def lifespan(fastapi_app: FastAPI):
 
     yield  # Возвращаем работу приложению
     # тут можно выполнить код после завершения приложения
+
 
 app = FastAPI(title="StreetArtWitnessesAPI", version="2.0.0", lifespan=lifespan)

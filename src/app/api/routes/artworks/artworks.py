@@ -1,49 +1,40 @@
 from typing import Annotated, List, Optional
 
-from fastapi import (
-    APIRouter,
-    UploadFile,
-    HTTPException,
-    File,
-    Body,
-    Depends,
-    status,
-    Query,
-)
+from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 from fastapi_cache.decorator import cache
+from fastapi_pagination import paginate
 from sqlalchemy.exc import NoResultFound
 
 from app.api.routes.common import (
-    ErrorModel,
     ErrorCode,
-    generate_response,
+    ErrorModel,
     generate_detail,
+    generate_response,
 )
-from app.api.utils import is_image
 from app.api.utils.fastapi_cache import request_key_builder
+from app.api.utils.filters.artworks import ArtworkFilter
 from app.api.utils.filters.artworks.artwork_location import ArtworkLocationFilter
 from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
-from app.api.utils.filters.artworks import ArtworkFilter
-from app.api.utils.paginator import Page, MyParams
-from fastapi_pagination import paginate
-
-from app.modules import Moderator
+from app.api.utils.paginator import MyParams, Page
+from app.api.utils.utils import raise_if_not_image, raise_if_not_contains_urls
 from app.modules.artworks.schemas.artwork import (
     ArtworkCreateSchema,
+    ArtworkForModeratorReadSchema,
     ArtworkReadSchema,
     ArtworkUpdateSchema,
-    ArtworkForModeratorReadSchema,
 )
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
 from app.modules.artworks.schemas.artwork_location import ArtworkLocationReadSchema
+from app.modules.models import Moderator
 from app.modules.users.fastapi_users_config import current_user
 from app.modules.users.models import User
 from app.services.artworks import ArtworksService
 from app.services.collection import CollectionService
 from app.utils.dependencies import UOWDep, get_current_moderator
 from app.utils.exceptions import ObjectNotFoundException
+from app.utils.query_comma_list_support import CommaSeparatedList
 
 router_artworks = APIRouter(tags=["Artworks"])
 
@@ -88,19 +79,10 @@ async def create_artwork(
         List[UploadFile],
         File(..., description="Разрешены '.webp', '.jpg', '.jpeg', '.png', '.heic'"),
     ] = None,
-    images_urls: Annotated[list[str], Query()] = None,
+    images_urls: Annotated[CommaSeparatedList[str], Body()] = None,
 ):
-    if images:
-        for image in images:
-            if not is_image(image):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=generate_detail(
-                        error_code=ErrorCode.INVALID_IMAGE_FILE_EXTENSION,
-                        message="Invalid image file extension",
-                        data={"filename": image.filename},
-                    ),
-                )
+    raise_if_not_image(images)
+    raise_if_not_contains_urls(images_urls)
 
     artwork = await ArtworksService().create_artwork(
         uow=uow,

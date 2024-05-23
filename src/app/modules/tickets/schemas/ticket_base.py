@@ -1,26 +1,39 @@
+import json
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, Field, ConfigDict
-
-
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic_partial import create_partial_model
 
-from app.modules.tickets.utils.classes import TicketType, TicketStatus
+from app.modules.images.schemas.image import ImageReadSchema
+from app.modules.tickets.utils.classes import (
+    TicketAvailableObjectClasses,
+    TicketStatus,
+    TicketType,
+)
 
 
 class TicketBaseSchema(BaseModel):
-    ticket_type: Optional[TicketType] = None
     reason: Optional[str] = None
 
 
 class TicketCreateSchema(TicketBaseSchema):
-    pass
+    @model_validator(mode="before")
+    def validate_to_json(
+        cls, value
+    ):  # noqa Костыль, без которого не работает multipart/form data заспросы
+        if isinstance(value, str):
+            return cls(**json.loads(value))  # noqa
+        return value
 
 
 class TicketReadSchema(TicketBaseSchema):
     model_config = ConfigDict(from_attributes=True)
 
+    object_class: TicketAvailableObjectClasses
+    object_id: int | None
+
+    ticket_type: TicketType
     status: TicketStatus = TicketStatus.PENDING
     moderator_comment: Optional[str] = None
 
@@ -29,6 +42,8 @@ class TicketReadSchema(TicketBaseSchema):
 
     discriminator: str
     id: int
+
+    images: Optional[List[ImageReadSchema]]
 
     created_at: datetime
     updated_at: datetime

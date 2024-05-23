@@ -1,24 +1,27 @@
+from typing import Type
+
+from sqlalchemy.orm import DeclarativeMeta
+
 from app.db import async_session_maker
 from app.repos.artworks import (
-    ArtworkRepository,
     ArtworkLocationRepository,
-    ArtworkImageRepository,
     ArtworkModerationRepository,
+    ArtworkRepository,
     FestivalRepository,
 )
-from app.repos.tickets import TicketBaseRepository, ArtworkTicketRepository
-from app.repos.cloud_storage import ImageRepository
-from app.repos.users import (
-    ModeratorRepository,
-    ArtistRepository,
-    UsersRepository,
-)
-
 from app.repos.collection import (
-    ArtworkLikeRepository,
     ArtistLikeRepository,
+    ArtworkLikeRepository,
     FestivalLikeRepository,
 )
+from app.repos.images import (
+    ImageArtworkRepository,
+    ImageRepository,
+    ImageTicketRepository,
+)
+from app.repos.SQLAlchemy_repository import SQLAlchemyRepository
+from app.repos.tickets import TicketArtworkRepository, TicketBaseRepository
+from app.repos.users import ArtistRepository, ModeratorRepository, UsersRepository
 
 
 class UnitOfWork:
@@ -48,11 +51,12 @@ class UnitOfWork:
 
         self.artworks = ArtworkRepository(self.session)
         self.artwork_locations = ArtworkLocationRepository(self.session)
-        self.artwork_images = ArtworkImageRepository(self.session)
+        self.images_artwork = ImageArtworkRepository(self.session)
+        self.images_ticket = ImageTicketRepository(self.session)
         self.images = ImageRepository(self.session)
         self.artwork_moderation = ArtworkModerationRepository(self.session)
         self.tickets = TicketBaseRepository(self.session)
-        self.artwork_tickets = ArtworkTicketRepository(self.session)
+        self.tickets_artwork = TicketArtworkRepository(self.session)
         self.festival = FestivalRepository(self.session)
 
         self.artwork_like = ArtworkLikeRepository(self.session)
@@ -64,3 +68,14 @@ class UnitOfWork:
 
     async def rollback(self):
         await self.session.rollback()
+
+    @classmethod
+    async def get_repo_by_class(
+        cls, model_class: DeclarativeMeta
+    ) -> SQLAlchemyRepository:
+        async with cls() as uow:
+            for attr_name in dir(uow):
+                attr = getattr(uow, attr_name)
+                if isinstance(attr, SQLAlchemyRepository) and attr.model == model_class:
+                    return attr
+            raise ValueError("Repository for the given model class not found")

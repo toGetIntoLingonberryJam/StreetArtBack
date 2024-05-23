@@ -1,10 +1,10 @@
-from typing import Optional, List
 import json
+from typing import List, Optional
 
-from pydantic import field_validator, HttpUrl, BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator, model_validator
 
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
-from app.modules.cloud_storage.schemas.image import ImageReadSchema
+from app.modules.images.schemas.image import ImageReadSchema
 
 
 class ArtistBaseSchema(BaseModel):

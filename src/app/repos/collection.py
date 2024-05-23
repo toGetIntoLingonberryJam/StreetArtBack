@@ -1,4 +1,4 @@
-from app.modules.collections.models import ArtworkLike, ArtistLike, FestivalLike
+from app.modules.collections.models import ArtistLike, ArtworkLike, FestivalLike
 from app.repos.SQLAlchemy_repository import SQLAlchemyRepository
 
 

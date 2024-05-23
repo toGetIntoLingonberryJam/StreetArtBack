@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from . import artworks
+from .artworks import router_artworks
 
 router = APIRouter(prefix="/artworks")
 
-router.include_router(artworks.router_artworks)
+router.include_router(router_artworks)

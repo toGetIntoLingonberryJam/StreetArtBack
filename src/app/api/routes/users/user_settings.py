@@ -10,8 +10,8 @@ from app.modules.users.manager import UserManager, get_user_manager
 from app.modules.users.models import User
 from app.modules.users.schemas import (
     UserRead,
-    UserUpdatePassword,
     UserUpdate,
+    UserUpdatePassword,
     UserUpdateUsername,
 )
 

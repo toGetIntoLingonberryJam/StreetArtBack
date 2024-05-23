@@ -1,4 +1,4 @@
-from pydantic import Field, AliasChoices
+from pydantic import AliasChoices, Field
 
 from app.modules.collections.models import LikeType
 

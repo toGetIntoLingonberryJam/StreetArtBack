@@ -1,6 +1,8 @@
-from fastapi import APIRouter
 from typing import get_type_hints
-from app.modules import User, Artist, Moderator
+
+from fastapi import APIRouter
+
+from app.modules.models import Artist, Moderator, User
 
 USER_ROLES = [User, Artist, Moderator]
 
@@ -13,12 +15,14 @@ class CustomAPIRouter(APIRouter):
             endpoint_name = self._format_endpoint_name(endpoint.__name__, role)
         else:
             endpoint_name = endpoint.__name__
-        kwargs.pop("name", None)  # Удаление аргумента 'name', если он есть (а есть он всегда)
+        kwargs.pop(
+            "name", None
+        )  # Удаление аргумента 'name', если он есть (а есть он всегда)
         super().add_api_route(path, endpoint, **kwargs, name=endpoint_name)
 
     @staticmethod
     def _format_endpoint_name(func_name: str, user_role: str) -> str:
-        separator = '⮜'
+        separator = "⮜"
         return f"{func_name} {separator} {user_role}"
 
     @staticmethod

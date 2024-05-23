@@ -1,9 +1,9 @@
 from typing import Optional
 
-from pydantic import BaseModel, field_validator, HttpUrl
+from pydantic import BaseModel, HttpUrl, field_validator
 from pydantic_partial import PartialModelMixin
 
-from app.modules.artworks.models.artwork_image import ArtworkImage
+from app.modules.images.models import ImageArtwork
 
 
 class ArtworkLocationBaseSchema(BaseModel):
@@ -14,6 +14,10 @@ class ArtworkLocationBaseSchema(BaseModel):
 
 class ArtworkLocationCreateSchema(ArtworkLocationBaseSchema):
     artwork_id: int
+
+
+class ArtworkLocationTicketCreateSchema(ArtworkLocationCreateSchema):
+    thumbnail_image_id: Optional[int]
 
 
 class ArtworkLocationUpdateSchema(PartialModelMixin, ArtworkLocationBaseSchema):
@@ -29,7 +33,7 @@ class ArtworkLocationReadSchema(ArtworkLocationBaseSchema):
     def validate_image(cls, v):  # noqa
         if v:
             # Если значение - строка, вернуть его как URL-адрес
-            if isinstance(v, ArtworkImage):
+            if isinstance(v, ImageArtwork):
                 return v.image_url
             if isinstance(v, dict):  # Костыль для кэширования
                 return v.get("image_url")

@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import Integer, ForeignKey, String
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,11 +15,12 @@ class Artist(Base):
     # псевдоним артиста
     name: Mapped[str] = mapped_column(String(length=50), index=True)
     description: Mapped[str] = mapped_column(String(length=320), nullable=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("user.id"), index=True, nullable=True
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), index=True, nullable=True)
     artworks: Mapped[List["Artwork"]] = relationship(
-        "Artwork", back_populates="artist", lazy="selectin", cascade="all, delete-orphan"
+        "Artwork",
+        back_populates="artist",
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )
 
     image_id: Mapped[int] = mapped_column(ForeignKey("image.id"), nullable=True)

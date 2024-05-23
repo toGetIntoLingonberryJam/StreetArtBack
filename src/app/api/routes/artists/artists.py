@@ -1,34 +1,33 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
-
-from app.api.utils import is_image
-from app.api.utils.libs.fastapi_filter import FilterDepends
-from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi_pagination import paginate
 from starlette import status
 
 from app.api.routes.common import (
-    generate_response,
-    ErrorModel,
     ErrorCode,
+    ErrorModel,
     generate_detail,
+    generate_response,
 )
 from app.api.utils.filters.artists.artist import ArtistFilter
+from app.api.utils.libs.fastapi_filter import FilterDepends
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from app.api.utils.paginator import MyParams, Page
-from app.modules import User
-from app.modules.artists.schemas.artist import ArtistReadSchema, ArtistCreateSchema
+from app.api.utils.utils import is_image
+from app.modules.artists.schemas.artist import ArtistCreateSchema, ArtistReadSchema
 from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
+from app.modules.models import User
 from app.modules.users.fastapi_users_config import current_user
 from app.services.artist import ArtistsService
 from app.services.artworks import ArtworksService
 from app.services.collection import CollectionService
 from app.utils.dependencies import UOWDep
 from app.utils.exceptions import (
-    UserNotFoundException,
     IncorrectInput,
     ObjectNotFoundException,
+    UserNotFoundException,
 )
 
 artist_router = APIRouter(prefix="/artists", tags=["Artist"])
@@ -126,9 +125,7 @@ async def get_artist_artworks(
 )
 async def assignee_artwork(uow: UOWDep, artwork_id: int, artist_id: int):
     try:
-        artwork = await ArtistsService().update_artwork_artist(
-            uow, artwork_id, artist_id
-        )
+        artwork = await ArtistsService().update_artwork_artist(uow, artwork_id, artist_id)
         return artwork
     except ObjectNotFoundException as e:
         raise HTTPException(status_code=404, detail=e.__str__())

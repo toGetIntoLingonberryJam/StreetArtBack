@@ -1,7 +1,7 @@
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi_users.jwt import generate_jwt, decode_jwt
-from sqladmin.authentication import AuthenticationBackend
 from fastapi.requests import Request
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi_users.jwt import decode_jwt, generate_jwt
+from sqladmin.authentication import AuthenticationBackend
 
 from app.db import get_async_session
 from app.modules.users.manager import get_user_manager

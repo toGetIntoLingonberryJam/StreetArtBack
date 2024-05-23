@@ -1,24 +1,26 @@
-from typing import Type, Optional
+from typing import Optional, Type, TypeVar
 
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
-from app.modules import User
-from app.modules.tickets.models import TicketBase, ArtworkTicket
-from app.modules.tickets.utils.classes import TicketRegistry, TicketModel
+from app.modules.models import User
+from app.modules.tickets.models import TicketArtwork, TicketBase
+from app.modules.tickets.utils.classes import TicketModel, TicketRegistry, TicketType
+from app.modules.tickets.utils.types import TicketCreateSchemaType
 from app.repos.SQLAlchemy_repository import SQLAlchemyRepository
 
 
 class TicketBaseRepository(SQLAlchemyRepository):
-    model = TicketBase
+    model = TicketBase  # В момент вызова функций связанных с записью данных в БД это поле переопределяется
+    # на требуемое значение, после чего там же и переопределяются на базовый
+    # ToDo: подумать как улучшить
 
     @staticmethod
     async def _validate_and_get_ticket_model_class(
-        ticket_model_enum_value: TicketModel,
+        ticket_model: TicketModel,
     ) -> Type[TicketBase]:
-        ticket_model_value_class = TicketRegistry.ticket_classes.get(
-            ticket_model_enum_value
-        )
+        ticket_model_value_class = TicketRegistry.ticket_classes.get(ticket_model)
 
         if not issubclass(ticket_model_value_class, TicketBase):
             raise ValueError("Invalid ticket class")
@@ -26,15 +28,22 @@ class TicketBaseRepository(SQLAlchemyRepository):
         return ticket_model_value_class
 
     async def _create_ticket_filter(
-        self, ticket_model_enum_value: TicketModel, ticket_id: int | None = None, user_id: int | None = None, **filtering_fields
+        self,
+        ticket_model: TicketModel | None,
+        ticket_id: int | None = None,
+        user_id: int | None = None,
+        **filtering_fields,
     ) -> Filter:
         """Создаём фильтрацию по полученной модели и значению дискриминатора"""
-
         filters = Filter()
+        if ticket_model:
+            filters.add_filtering_fields(discriminator=ticket_model.value)
+        else:
+            ticket_model = TicketModel.TICKET
+
         filters.Constants.model = await self._validate_and_get_ticket_model_class(
-            ticket_model_enum_value=ticket_model_enum_value
+            ticket_model=ticket_model
         )
-        filters.add_filtering_fields(discriminator=ticket_model_enum_value.value)
 
         if ticket_id:
             filters.add_filtering_fields(id=ticket_id)
@@ -47,22 +56,21 @@ class TicketBaseRepository(SQLAlchemyRepository):
 
         return filters
 
-    async def get_ticket_by_ticket_model(
-        self, ticket_id: int, ticket_model_enum_value: TicketModel, user_id: int | None = None
+    async def get_ticket(
+        self,
+        ticket_id: int,
+        ticket_model: TicketModel | None,
+        user_id: int | None = None,
     ):
-        ticket_model_value_class = await self._validate_and_get_ticket_model_class(
-            ticket_model_enum_value=ticket_model_enum_value
+        # ticket_model_value_class = await self._validate_and_get_ticket_model_class(
+        #     ticket_model=ticket_model
+        # )
+        filters = await self._create_ticket_filter(
+            ticket_model=ticket_model,
+            user_id=user_id,
+            ticket_id=ticket_id,
         )
-        filters = await self._create_ticket_filter(ticket_model_enum_value=ticket_model_enum_value, user_id=user_id,
-                                                   ticket_id=ticket_id)
 
-
-
-        # # TODO: Пересмотри выполнение filter'а, который кастомный. Чет некорректные запросы шлёт
-        # #  поэтому пришлось сделать через kwargs'ы, а не через собственный фильтр. Предыдущий метод запускается
-        # #  только для того, чтобы прошла "валидация".
-        # filters = {"discriminator": ticket_model_enum_value.value, "id": ticket_id}
-        # res = await self.filter(**filters)
         res = await self.filter(filters=filters)
         if not res:
             raise NoResultFound
@@ -70,26 +78,36 @@ class TicketBaseRepository(SQLAlchemyRepository):
 
     async def get_all_tickets(
         self,
-        ticket_model_enum_value: TicketModel,
+        ticket_model: TicketModel | None,
         offset: int = 0,
         limit: int | None = None,
-        user_id: int | None = None
+        user_id: int | None = None,
     ):
-        filters = await self._create_ticket_filter(ticket_model_enum_value=ticket_model_enum_value, user_id=user_id)
+        filters = await self._create_ticket_filter(
+            ticket_model=ticket_model, user_id=user_id
+        )
         return await self.filter(offset=offset, limit=limit, filters=filters)
 
-    # async def create_ticket_by_ticket_model(
-    #         self,
-    #         user: User,
-    #         ticket_model_enum_value: TicketModel,
-    #         ticket_data: TicketCreateSchemaType
+    # async def create_ticket(
+    #     self,
+    #     user: User,
+    #     ticket_model: TicketModel,
+    #     ticket_type: TicketType,
+    #     ticket_schema: TicketCreateSchemaType,
     # ):
     #     ticket_model_value_class = await self._validate_and_get_ticket_model_class(
-    #         ticket_model_enum_value=ticket_model_enum_value)
+    #         ticket_model=ticket_model
+    #     )
+    #     # Динамическое создание класса на основе полученного значения
+    #     # self.model = type('DynamicTicket', (ticket_model_value_class,), {})
+    #
+    #     self.model = ticket_model_value_class
+    #
+    #     await self.create(ticket_data)
+    #
+    #     # Да-да, тот самый костыль xD
+    #     self.model = TicketBase
 
-    # Я могу получить класс из енума, и, по этому классу надо будет создать новую модель, но сначала репозиторий,
-    # т.к. он же отвечает за работу с БД...
 
-
-class ArtworkTicketRepository(TicketBaseRepository):
-    model = ArtworkTicket
+class TicketArtworkRepository(TicketBaseRepository):
+    model = TicketArtwork

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import polyline
 import requests
@@ -25,9 +25,7 @@ class GeoService:
     ):
         """Метод отправляет запрос к OSRM server'у и парсит JSON-ответ для получения дистанции, продолжительности и
         информации о передвижении. Возвращает словарь"""
-        artworks = await ArtworksService.get_artworks(
-            uow=uow, filters=geo_artwork_filter
-        )
+        artworks = await ArtworksService.get_artworks(uow=uow, filters=geo_artwork_filter)
 
         if not user_coords and len(artworks) <= 1:
             raise ValueError(

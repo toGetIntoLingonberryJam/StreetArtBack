@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi_users import schemas
 from fastapi_users.schemas import CreateUpdateDictModel
-from pydantic import EmailStr, ConfigDict
+from pydantic import ConfigDict, EmailStr
 
 
 class UserRead(CreateUpdateDictModel):

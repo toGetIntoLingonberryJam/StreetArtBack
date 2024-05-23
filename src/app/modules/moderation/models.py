@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import Integer, ForeignKey
+from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -15,5 +15,3 @@ class Moderator(Base):
     answered_tickets: Mapped[List["TicketBase"]] = relationship(
         back_populates="moderator"
     )
-
-    # requests = relationship(Req)

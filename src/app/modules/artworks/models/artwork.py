@@ -4,8 +4,8 @@ from enum import Enum as PyEnum
 from typing import List
 
 import pytz
-from sqlalchemy import Integer, String, ForeignKey, DateTime, func, ARRAY
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy import ARRAY, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import Enum
 
 from app.db import Base
@@ -40,9 +40,12 @@ class Artwork(Base):
         "Artist", foreign_keys=artist_id, back_populates="artworks", lazy="joined"
     )
 
-    festival_id = mapped_column(ForeignKey("festival.id"), nullable=True)
+    festival_id: Mapped[int] = mapped_column(ForeignKey("festival.id"), nullable=True)
     festival: Mapped["Festival"] = relationship(
         "Festival", foreign_keys=festival_id, back_populates="artworks", lazy="joined"
+    )
+    location_id: Mapped[int] = mapped_column(
+        ForeignKey("artwork_location.id", use_alter=True), nullable=True
     )
     # Отношение "один-ко-одному" к ArtworkLocation
     location: Mapped["ArtworkLocation"] = relationship(
@@ -53,10 +56,10 @@ class Artwork(Base):
         cascade="all, delete-orphan",
     )
 
-    # Отношение "ОДИН-КО-МНОГИМ" к изображениям арт-объекта (ArtworkImage)
-    images: Mapped[List["ArtworkImage"]] = relationship(
+    # Отношение "ОДИН-КО-МНОГИМ" к изображениям арт-объекта (ImageArtwork)
+    images: Mapped[List["ImageArtwork"]] = relationship(
         back_populates="artwork",
-        foreign_keys="ArtworkImage.artwork_id",
+        foreign_keys="ImageArtwork.artwork_id",
         lazy="selectin",
         cascade="all, delete-orphan",
     )

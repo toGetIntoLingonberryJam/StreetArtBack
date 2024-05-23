@@ -3,12 +3,11 @@ from typing import Optional
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, IntegerIDMixin
 
-from app.modules.users.utils.confirm_email import send_verify_email
-from app.modules.users.schemas import UserRead
-from config import settings
 from app.modules.users.models import User, get_user_db
-
+from app.modules.users.schemas import UserRead
+from app.modules.users.utils.confirm_email import send_verify_email
 from app.modules.users.utils.forgot_password import send_reset_password_email
+from config import settings
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):

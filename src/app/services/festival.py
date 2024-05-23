@@ -1,15 +1,14 @@
 from typing import Optional
 
 from fastapi import UploadFile
-
-from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Params
 from sqlalchemy import exc
 from sqlalchemy.exc import NoResultFound
 
+from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from app.api.utils.paginator import MyParams
-from app.modules.cloud_storage.schemas.image import ImageCreateSchema
 from app.modules.festivals.schemas import FestivalCreateSchema
+from app.modules.images.schemas.image import ImageCreateSchema
 from app.services.cloud_storage import CloudStorageService
 from app.utils.exceptions import ObjectNotFoundException
 from app.utils.unit_of_work import UnitOfWork
@@ -33,13 +32,12 @@ class FestivalService:
         async with uow:
             festival_dict = festival_schema.model_dump()
             if image:
-                cloud_file = await CloudStorageService.upload_to_yandex_disk(
-                    image=image
-                )
+                cloud_file = await CloudStorageService.upload_to_yandex_disk(image=image)
                 image_schema = ImageCreateSchema(
                     image_url=cloud_file.public_url,
                     public_key=cloud_file.public_key,
                     file_path=cloud_file.file_path,
+                    blurhash=cloud_file.blurhash
                 )
                 image_model = await uow.images.create(image_schema)
                 festival_dict["image"] = image_model
@@ -54,7 +52,7 @@ class FestivalService:
         uow: UnitOfWork,
         pagination: MyParams | None = None,
         filters: Filter | None = None,
-        **filter_by
+        **filter_by,
     ):
         async with uow:
             offset: int = 0

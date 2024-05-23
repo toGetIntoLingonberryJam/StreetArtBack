@@ -2,4 +2,21 @@
 pythonpath=[
     ".", "src"
 ]
-asyncid_mode="auto"
+asyncio_mode="auto"
+
+[tool.black]
+line-length = 90
+target-version = ['py311']
+extend-exclude = '''
+(
+  migrations   # DB migrations
+)
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 90
+multi_line_output = 3
+skip_gitignore = true
+skip_glob = ["**/migrations/*"]
+src_paths = ["src"]

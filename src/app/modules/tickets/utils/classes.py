@@ -1,7 +1,5 @@
 import enum
 
-from app.modules.models import Artist, Artwork, Festival
-
 
 # Enum и базовая модель Ticket
 class TicketRegistry:

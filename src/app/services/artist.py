@@ -17,7 +17,8 @@ from app.utils.unit_of_work import UnitOfWork
 
 
 class ArtistsService:
-    async def get_artist_by_id(self, uow: UnitOfWork, artist_id: int):
+    @staticmethod
+    async def get_artist_by_id(uow: UnitOfWork, artist_id: int):
         try:
             async with uow:
                 artist = await uow.artist.get(artist_id)
@@ -26,10 +27,10 @@ class ArtistsService:
             raise ObjectNotFoundException("Artist not found")
 
     async def create_artist(
-            self,
-            uow: UnitOfWork,
-            artist_schema: ArtistCreateSchema,
-            image: Optional[UploadFile] = None,
+        self,
+        uow: UnitOfWork,
+        artist_schema: ArtistCreateSchema,
+        image: Optional[UploadFile] = None,
     ):
         async with uow:
             if artist_schema.user_id:
@@ -54,7 +55,7 @@ class ArtistsService:
                     image_url=cloud_file.public_url,
                     public_key=cloud_file.public_key,
                     file_path=cloud_file.file_path,
-                    blurhash=cloud_file.blurhash
+                    blurhash=cloud_file.blurhash,
                 )
                 image_model = await uow.images.create(image_schema)
                 artist_dict["image"] = image_model
@@ -93,7 +94,9 @@ class ArtistsService:
             artist = await uow.artist.filter(user_id=user_id)
             return artist
 
-    async def update_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id: int):
+    async def update_artwork_artist(
+        self, uow: UnitOfWork, artwork_id: int, artist_id: int
+    ):
         async with uow:
             try:
                 artist = await uow.artist.get(artist_id)
@@ -109,7 +112,9 @@ class ArtistsService:
             except NoResultFound:
                 raise ObjectNotFoundException("Арт-объект не найден.")
 
-    async def remove_artwork_artist(self, uow: UnitOfWork, artwork_id: int, artist_id: int):
+    async def remove_artwork_artist(
+        self, uow: UnitOfWork, artwork_id: int, artist_id: int
+    ):
         async with uow:
             try:
                 artist = await uow.artist.get(artist_id)

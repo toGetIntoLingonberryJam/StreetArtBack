@@ -35,7 +35,9 @@ class Artwork(Base):
     )
 
     # поля для связи арт-объекта с конкретным пользователем-художником, если он зарегистрирован
-    artist: Mapped[List["Artist"]] = relationship(secondary="authorship", lazy="selectin")
+    artist: Mapped[List["Artist"]] = relationship(
+        secondary="authorship", back_populates="artworks", lazy="selectin"
+    )
 
     festival_id: Mapped[int] = mapped_column(ForeignKey("festival.id"), nullable=True)
     festival: Mapped["Festival"] = relationship(
@@ -84,9 +86,7 @@ class Artwork(Base):
         DateTime(timezone=True), default=datetime.now(tz=pytz.UTC), onupdate=func.now()
     )
 
-    likes: Mapped[List["User"]] = relationship(
-        secondary="artwork_like", lazy="selectin"
-    )
+    likes: Mapped[List["User"]] = relationship(secondary="artwork_like", lazy="selectin")
 
     def __repr__(self):
         return f"{self.title} (ID: {self.id})"

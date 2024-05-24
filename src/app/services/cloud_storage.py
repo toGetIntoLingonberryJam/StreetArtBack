@@ -1,27 +1,23 @@
 import asyncio
 import hashlib
-import io
 import os
 import threading
-from io import BytesIO
 from typing import Optional
 from urllib.parse import urlparse
 
 import imagehash
-import numpy
-import requests
 import yadisk
-from blurhash import blurhash
 from fastapi import UploadFile
 from PIL import Image
 from yadisk.objects import (
     AsyncOperationLinkObject,
     AsyncPublicResourceObject,
-    AsyncResourceObject, AsyncPublicResourceLinkObject,
+    AsyncResourceObject,
 )
 
 from app.modules.models import Artwork
 from app.modules.tickets.models import TicketBase
+from app.utils.images import generate_blurhash
 from config import settings
 
 
@@ -60,7 +56,7 @@ class CloudStorageService:
             with CloudStorageService._lock:
                 if CloudStorageService._client is None:
                     CloudStorageService._client = yadisk.AsyncClient(
-                        token=cls._settings.yandex_disk_token, session="aiohttp"
+                        token=cls._settings.yandex_disk_token
                     )
         return CloudStorageService._client
 
@@ -125,6 +121,13 @@ class CloudStorageService:
         return meta_info
 
     @classmethod
+    async def _get_file_preview_url(
+        cls, public_meta: AsyncPublicResourceObject | AsyncResourceObject
+    ) -> str:
+        file_preview_url = public_meta.FIELDS.get("preview")
+        return file_preview_url
+
+    @classmethod
     async def _get_file_public_url(
         cls, public_meta: AsyncPublicResourceObject | AsyncResourceObject
     ) -> str:
@@ -178,29 +181,16 @@ class CloudStorageService:
         await client.publish(file_cloud_path)
         public_file_info = await cls.get_file_info(file_cloud_path)
 
-        blurhash_image: Optional[str] = None
-        if image:
-            image.file.seek(0)
-            pil_image = Image.open(image.file)
-            np_array_image = numpy.array(pil_image)
-            blurhash_image = blurhash.blurhash_encode(np_array_image)
-        if image_url:
-            # ya_api = (f"https://cloud-api.yandex.net/v1/disk/public/resources?public_key={public_file_info.public_key}"
-            #           f"&preview_size=S")
-            # response = requests.get(ya_api)
-            # pil_image = Image.open(requests.get(response.json().get("preview"), stream=True).raw)
-
-            client_request = await client.session.send_request(method="GET", url=public_file_info.FIELDS.get('preview'))
-            client_response_content = await client_request._response.content.read()
-            pil_image = Image.open(io.BytesIO(client_response_content))
-            np_array_image = numpy.array(pil_image)
-            blurhash_image = blurhash.blurhash_encode(np_array_image)
+        blurhash_value: Optional[str] = await generate_blurhash(
+            image_source=image,
+            image_url=await cls._get_file_preview_url(public_file_info),
+        )
 
         cloud_file = CloudFile(
             public_url=await cls._get_file_public_url(public_file_info),
             public_key=await cls._get_file_public_key(public_file_info),
             file_path=file_cloud_path,
-            blurhash=blurhash_image
+            blurhash=blurhash_value,
         )
 
         return cloud_file

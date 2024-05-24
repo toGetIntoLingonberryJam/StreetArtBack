@@ -37,7 +37,7 @@ class FestivalService:
                     image_url=cloud_file.public_url,
                     public_key=cloud_file.public_key,
                     file_path=cloud_file.file_path,
-                    blurhash=cloud_file.blurhash
+                    blurhash=cloud_file.blurhash,
                 )
                 image_model = await uow.images.create(image_schema)
                 festival_dict["image"] = image_model

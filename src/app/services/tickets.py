@@ -21,7 +21,9 @@ from app.modules.tickets.utils.classes import (
     TicketType,
 )
 from app.modules.users.models import User
+from app.services.artist import ArtistsService
 from app.services.cloud_storage import CloudFile, CloudStorageService
+from app.utils.exceptions import ObjectNotFoundException
 from app.utils.unit_of_work import UnitOfWork
 
 
@@ -212,7 +214,7 @@ class TicketsService:
             if not thumbnail_image_index:
                 thumbnail_image_index = 0
 
-            ticket_data: dict = ticket_artwork_schema.model_dump(mode='json')
+            ticket_data: dict = ticket_artwork_schema.model_dump(mode="json")
 
             ticket_data["ticket_type"] = TicketType.CREATE
             ticket_data["user_id"] = user.id
@@ -307,14 +309,23 @@ class TicketsService:
 
             # Исключаю объект локации, т.к. его нужно создать отдельно и присвоить artwork'у
 
-            artwork_dict = ticket_artwork_schema.model_dump(exclude={"location"}, mode="json")
+            artwork_dict = ticket_artwork_schema.model_dump(
+                exclude={"location"}, mode="json"
+            )
 
             artwork_dict["added_by_user_id"] = ticket_artwork.user_id
-            artwork_dict["artist_id"] = (
-                ticket_artwork_schema.artist_id
-                if ticket_artwork_schema.artist_id
-                else None
-            )
+
+            artwork_dict["artist"] = []
+            if ticket_artwork_schema.artist:
+                for artist_id in ticket_artwork_schema.artist:
+                    try:
+                        artist = await ArtistsService.get_artist_by_id(
+                            uow=uow, artist_id=artist_id
+                        )
+                        artwork_dict["artist"].append(artist)
+                    except ObjectNotFoundException:
+                        continue
+
             artwork_dict["festival_id"] = (
                 ticket_artwork_schema.festival_id
                 if ticket_artwork_schema.festival_id

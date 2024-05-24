@@ -10,4 +10,3 @@ class Authorship(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     artist_id: Mapped[int] = mapped_column(ForeignKey("artist.id"), index=True)
     artwork_id: Mapped[int] = mapped_column(ForeignKey("artwork.id"), index=True)
-

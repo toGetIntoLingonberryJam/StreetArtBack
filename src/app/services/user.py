@@ -16,8 +16,7 @@ class UserService:
     async def get_artist_likes(self, uow: UnitOfWork, user_id: int):
         likes = await self.get_user_likes(uow, user_id, LikeType.ARTIST)
         artists = [
-            (await ArtistsService().get_artist_by_id(uow, like.artist_id))
-            for like in likes
+            (await ArtistsService.get_artist_by_id(uow, like.artist_id)) for like in likes
         ]
         return artists
 

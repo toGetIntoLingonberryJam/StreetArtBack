@@ -15,10 +15,10 @@ class Artist(Base):
     # псевдоним артиста
     name: Mapped[str] = mapped_column(String(length=50), index=True)
     description: Mapped[str] = mapped_column(String(length=320), nullable=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("user.id"), index=True, nullable=True
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), index=True, nullable=True)
+    artworks: Mapped[List["Artwork"]] = relationship(
+        secondary="authorship", back_populates="artist", lazy="selectin"
     )
-    artworks: Mapped[List["Artwork"]] = relationship(secondary="authorship", lazy="selectin")
 
     image_id: Mapped[int] = mapped_column(ForeignKey("image.id"), nullable=True)
     image: Mapped["Image"] = relationship(lazy="joined", foreign_keys="Artist.image_id")

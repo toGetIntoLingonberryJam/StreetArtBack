@@ -15,12 +15,11 @@ from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import paginate
 from app.api.utils.filters.festivals.festival import FestivalFilter
-from app.modules import User, Moderator
+from app.modules.models import User, Moderator
 from app.api.utils.paginator import MyParams, Page
 from app.api.utils.utils import is_image
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
 from app.modules.festivals.schemas import FestivalCreateSchema, FestivalReadSchema
-from app.modules.models import User
 from app.modules.users.fastapi_users_config import current_user
 from app.services.artist import ArtistsService
 from app.services.artworks import ArtworksService
@@ -87,10 +86,12 @@ async def get_festival_list(
     response_model=ArtworkCardSchema,
     description="Присвоение фестивалю работы.",
 )
-async def assignee_artwork(uow: UOWDep,
-                           artwork_id: int,
-                           festival_id: int,
-                           moderator: Moderator = Depends(get_current_moderator)):
+async def assignee_artwork(
+    uow: UOWDep,
+    artwork_id: int,
+    festival_id: int,
+    moderator: Moderator = Depends(get_current_moderator),
+):
     try:
         artwork = await FestivalService().update_artwork_festival(
             uow, artwork_id, festival_id
@@ -126,9 +127,7 @@ async def get_festival_artworks(
         )
     },
 )
-async def switch_like(
-    festival_id: int, uow: UOWDep, user: User = Depends(current_user)
-):
+async def switch_like(festival_id: int, uow: UOWDep, user: User = Depends(current_user)):
     try:
         festival = await FestivalService().get_festival_by_id(uow, festival_id)
         reaction_add = await CollectionService().toggle_festival_like(

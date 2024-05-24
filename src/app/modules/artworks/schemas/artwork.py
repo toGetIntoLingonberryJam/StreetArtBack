@@ -30,11 +30,13 @@ class ArtworkBaseSchema(BaseModel):
         "year.",
     )
     description: Optional[str] = None
-    artist_ids: Optional[List[int]] = None
+    artist: Optional[List[int]] = None
     festival_id: Optional[int]
     status: ArtworkStatus
 
-    links: Optional[List[HttpUrl]] = Field(None, description="List of URLs related to the artwork")
+    links: Optional[List[HttpUrl]] = Field(
+        None, description="List of URLs related to the artwork"
+    )
 
     # model_config = ConfigDict(validate_assignment=True)  # Отключаем кеширование
 

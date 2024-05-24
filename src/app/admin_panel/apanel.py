@@ -12,16 +12,16 @@ class AdminPanel:
 
     def _add_views(self):
         views = [
-            UserAdmin,
-            ArtistAdmin,
-            ModeratorAdmin,
-            ArtworkAdmin,
-            ImageArtworkAdmin,
-            ArtworkLocationAdmin,
-            ArtworkModerationAdmin,
-            TicketArtworkAdmin,
-            TicketBaseAdmin,
-            ImageAdmin,
+            # UserAdmin,
+            # ArtistAdmin,
+            # ModeratorAdmin,
+            # ArtworkAdmin,
+            # ImageArtworkAdmin,
+            # ArtworkLocationAdmin,
+            # ArtworkModerationAdmin,
+            # TicketArtworkAdmin,
+            # TicketBaseAdmin,
+            # ImageAdmin,
         ]
 
         for view in views:

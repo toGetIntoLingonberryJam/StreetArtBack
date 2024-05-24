@@ -1,15 +1,13 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 from fastapi_pagination import add_pagination
 
 from app.admin_panel.apanel import AdminPanel
 from app.api.routes import router
-
 from app.db import engine, redis
-
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
 
 
 @asynccontextmanager

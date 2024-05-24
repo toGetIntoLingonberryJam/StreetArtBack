@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from app.modules.cloud_storage.schemas.image import ImageReadSchema
+from app.modules.images.schemas.image import ImageReadSchema
 
 
 class FestivalCardSchema(BaseModel):

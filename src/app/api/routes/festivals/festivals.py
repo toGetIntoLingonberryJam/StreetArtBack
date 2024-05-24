@@ -1,24 +1,26 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi_pagination import paginate
 from starlette import status
 
 from app.api.routes.common import (
-    generate_response,
-    ErrorModel,
     ErrorCode,
+    ErrorModel,
     generate_detail,
+    generate_response,
 )
-from app.api.utils import is_image
+from app.api.utils.filters.festivals.festival import FestivalFilter
 from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import paginate
-
 from app.api.utils.filters.festivals.festival import FestivalFilter
-from app.api.utils.paginator import Page, MyParams
 from app.modules import User, Moderator
+from app.api.utils.paginator import MyParams, Page
+from app.api.utils.utils import is_image
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
-from app.modules.festivals.schemas import FestivalReadSchema, FestivalCreateSchema
+from app.modules.festivals.schemas import FestivalCreateSchema, FestivalReadSchema
+from app.modules.models import User
 from app.modules.users.fastapi_users_config import current_user
 from app.services.artist import ArtistsService
 from app.services.artworks import ArtworksService

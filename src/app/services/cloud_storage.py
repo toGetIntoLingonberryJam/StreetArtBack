@@ -1,22 +1,27 @@
 import asyncio
 import hashlib
+import io
 import os
+import threading
+from io import BytesIO
+from typing import Optional
 from urllib.parse import urlparse
 
-from PIL import Image
 import imagehash
-import threading
-from typing import Optional
-
+import numpy
+import requests
 import yadisk
+from blurhash import blurhash
 from fastapi import UploadFile
+from PIL import Image
 from yadisk.objects import (
-    AsyncPublicResourceObject,
-    AsyncResourceObject,
     AsyncOperationLinkObject,
+    AsyncPublicResourceObject,
+    AsyncResourceObject, AsyncPublicResourceLinkObject,
 )
 
-from app.modules import TicketBase, Artwork
+from app.modules.models import Artwork
+from app.modules.tickets.models import TicketBase
 from config import settings
 
 
@@ -24,6 +29,7 @@ class CloudFile:
     public_url: str
     public_key: str
     file_path: str
+    blurhash: str
 
     @staticmethod
     def generate_file_path_by_class(obj):
@@ -33,10 +39,11 @@ class CloudFile:
         elif issubclass(obj, Artwork):
             path += "artworks"
 
-    def __init__(self, public_url: str, public_key: str, file_path: str):
+    def __init__(self, public_url: str, public_key: str, file_path: str, blurhash: str):
         self.public_url = public_url
         self.public_key = public_key
         self.file_path = file_path
+        self.blurhash = blurhash
 
     def __str__(self):
         return f"public_url: {self.public_url}, file_path: {self.file_path}"
@@ -53,7 +60,7 @@ class CloudStorageService:
             with CloudStorageService._lock:
                 if CloudStorageService._client is None:
                     CloudStorageService._client = yadisk.AsyncClient(
-                        token=cls._settings.yandex_disk_token
+                        token=cls._settings.yandex_disk_token, session="aiohttp"
                     )
         return CloudStorageService._client
 
@@ -132,101 +139,136 @@ class CloudStorageService:
         return public_file_url
 
     @classmethod
-    async def upload_to_yandex_disk(
-        cls, image: UploadFile, custom_folder: str | None = None
-    ) -> CloudFile:
-        """Загружает файл на диск. Возвращает публичную ссылку загруженного файла."""
-        client = cls.get_client()
-        # Открываем изображение и вычисляем хеш
-        unique_filename = cls.generate_unique_filename(image)
-
-        # TODO: Проработать все случаи:
-        #  нахождение одинаковых файлов для записи в артворк их ссылок;
-        #  удаление изображений в методе удаления артворка
-        # Создание правильного пути до выбранной папки загрузки изображения в Яндекс.Диск
+    async def _upload_file_to_yandex_disk(
+        cls,
+        client,
+        unique_filename: str,
+        custom_folder: str,
+        image: UploadFile | None = None,
+        image_url: str | None = None,
+    ) -> CloudFile | None:
+        """Загружает файл на Яндекс.Диск. Возвращает публичную ссылку загруженного файла."""
+        # Создание правильного пути до выбранной папки загрузки файла в Яндекс.Диск
         custom_folder = (
             "/"
             if custom_folder is None or custom_folder == ""
             else f'/{custom_folder.strip("/")}/'
         )
-
-        # ### Загружаем изображение в Яндекс.Диск ###
         file_cloud_path = (
             settings.yandex_disk_images_folder + custom_folder + unique_filename
         )
 
-        if await cls.file_exists(file_cloud_path):
-            # Получаем информацию о файле
-            file_info = await cls.get_file_info(file_cloud_path)
-            # Проверяем размер текущего файла на диске и нового изображения
-            if file_info["size"] < image.size:
-                # Размер нового изображения больше, заменяем файл на диске
+        if image:
+            if await cls.file_exists(file_cloud_path):
+                file_info = await cls.get_file_info(file_cloud_path)
+                if file_info["size"] < image.size:
+                    image.file.seek(0)
+                    await client.upload(image.file, file_cloud_path, overwrite=True)
+            else:
                 image.file.seek(0)
-                await client.upload(image.file, file_cloud_path, overwrite=True)
-        else:
-            # Файл не найден, загружаем новый
-            image.file.seek(0)
-            await client.upload(image.file, file_cloud_path)
+                await client.upload(image.file, file_cloud_path)
+        if image_url:
+            if not await cls.file_exists(file_cloud_path):
+                operation = await client.upload_url(
+                    image_url, file_cloud_path, disable_redirects=False
+                )
+                if not await cls.wait_for_operation(operation):
+                    return None
 
-        # Предоставление общего доступа к файлу
         await client.publish(file_cloud_path)
-
-        # Получение ранее созданной публичной ссылки
         public_file_info = await cls.get_file_info(file_cloud_path)
+
+        blurhash_image: Optional[str] = None
+        if image:
+            image.file.seek(0)
+            pil_image = Image.open(image.file)
+            np_array_image = numpy.array(pil_image)
+            blurhash_image = blurhash.blurhash_encode(np_array_image)
+        if image_url:
+            # ya_api = (f"https://cloud-api.yandex.net/v1/disk/public/resources?public_key={public_file_info.public_key}"
+            #           f"&preview_size=S")
+            # response = requests.get(ya_api)
+            # pil_image = Image.open(requests.get(response.json().get("preview"), stream=True).raw)
+
+            client_request = await client.session.send_request(method="GET", url=public_file_info.FIELDS.get('preview'))
+            client_response_content = await client_request._response.content.read()
+            pil_image = Image.open(io.BytesIO(client_response_content))
+            np_array_image = numpy.array(pil_image)
+            blurhash_image = blurhash.blurhash_encode(np_array_image)
 
         cloud_file = CloudFile(
             public_url=await cls._get_file_public_url(public_file_info),
             public_key=await cls._get_file_public_key(public_file_info),
             file_path=file_cloud_path,
+            blurhash=blurhash_image
         )
 
         return cloud_file
 
     @classmethod
-    async def upload_to_yandex_disk_by_url(
-        cls, image_url: str, custom_folder: str | None = None
+    async def upload_to_yandex_disk(
+        cls,
+        image: UploadFile | None = None,
+        image_url: str | None = None,
+        custom_folder: str | None = None,
     ) -> CloudFile | None:
-        """Загружает файл на диск по ссылке. Возвращает публичную ссылку загруженного файла."""
+        """Загружает файл на диск или по ссылке. Возвращает публичную ссылку загруженного файла."""
         client = cls.get_client()
 
-        # Вычисляем хеш из ссылки
-        # ToDo: Переделать в вычисление хэша файлом (для того, чтобы избежать одинаковых изображений)
-        unique_filename = cls.generate_unique_filename_by_url(image_url=image_url)
+        if image:
+            unique_filename = cls.generate_unique_filename(image)
+        elif image_url:
+            unique_filename = cls.generate_unique_filename_by_url(image_url=image_url)
+        else:
+            raise ValueError("Необходимо предоставить либо файл, либо URL изображения.")
 
-        # Создание правильного пути до выбранной папки загрузки изображения в Яндекс.Диск
-        custom_folder = (
-            "/"
-            if custom_folder is None or custom_folder == ""
-            else f'/{custom_folder.strip("/")}/'
+        return await cls._upload_file_to_yandex_disk(
+            client, unique_filename, custom_folder, image=image, image_url=image_url
         )
 
-        # ### Загружаем изображение в Яндекс.Диск ###
-        file_cloud_path = (
-            settings.yandex_disk_images_folder + custom_folder + unique_filename
-        )
+    @staticmethod
+    async def upload_files_to_yandex_disk(
+        images: Optional[list[UploadFile]] = None,
+        images_urls: Optional[list[str]] = None,
+    ) -> list[CloudFile]:
+        cloud_files = []
 
-        if not await cls.file_exists(file_cloud_path):
-            operation = await client.upload_url(
-                image_url, file_cloud_path, disable_redirects=False
+        if images:
+            results = await asyncio.gather(
+                *[
+                    CloudStorageService.upload_to_yandex_disk(image=image)
+                    for image in images
+                ]
+            )
+            cloud_files.extend(
+                [
+                    cloud_file
+                    for cloud_file in results
+                    if isinstance(cloud_file, CloudFile)
+                ]
             )
 
-            if not await cls.wait_for_operation(operation):
-                return None  # Если не получилось у Яндекса загрузить файл, то вернётся None.
-                # Позже можно переделать чтоб мы сами скачивали (вдруг ресурс заблокирован в Яндексе)
+        if images_urls:
+            results = await asyncio.gather(
+                *[
+                    CloudStorageService.upload_to_yandex_disk(image_url=image_url)
+                    for image_url in images_urls
+                ]
+            )
+            cloud_files.extend(
+                [
+                    cloud_file
+                    for cloud_file in results
+                    if isinstance(cloud_file, CloudFile)
+                ]
+            )
 
-            # Предоставление общего доступа к файлу
-            await client.publish(file_cloud_path)
+        unique_cloud_files = {}
+        for cloud_file in cloud_files:
+            if cloud_file.public_url not in unique_cloud_files:
+                unique_cloud_files[cloud_file.public_url] = cloud_file
 
-        # Получение ранее созданной публичной ссылки
-        public_file_info = await cls.get_file_info(file_cloud_path)
-
-        cloud_file = CloudFile(
-            public_url=await cls._get_file_public_url(public_file_info),
-            public_key=await cls._get_file_public_key(public_file_info),
-            file_path=file_cloud_path,
-        )
-
-        return cloud_file
+        return list(unique_cloud_files.values())
 
     @classmethod
     async def delete_from_yandex_disk(cls, public_url: str):

@@ -1,7 +1,6 @@
 from sqladmin import ModelView
 
-from app.modules import Artist, Moderator
-from app.modules.users.models import User
+from app.modules.models import Artist, Moderator, User
 
 DROPDOWN_CATEGORY = "Аккаунт"
 

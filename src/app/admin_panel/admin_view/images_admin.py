@@ -1,7 +1,6 @@
 from sqladmin import ModelView
 
-
-from app.modules.cloud_storage.models import Image
+from app.modules.images.models import Image
 
 DROPDOWN_CATEGORY = "Изображения"
 

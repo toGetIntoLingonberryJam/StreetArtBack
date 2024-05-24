@@ -1,5 +1,5 @@
-from sqlalchemy import Integer, String, Float, ForeignKey
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy import Float, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 
@@ -13,13 +13,13 @@ class ArtworkLocation(Base):
     longitude: Mapped[float] = mapped_column(Float)
     address: Mapped[str] = mapped_column(String)
 
-    # Поле, которое будет указывать на миниатюрное изображение в ArtworkImage
+    # Поле, которое будет указывать на миниатюрное изображение в ImageArtwork
     thumbnail_image_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("artwork_image.id"), nullable=True
+        Integer, ForeignKey("image_artwork.id"), nullable=True
     )
-    # Отношение к изображению ArtworkImage
+    # Отношение к изображению ImageArtwork
     thumbnail_image = relationship(
-        "ArtworkImage", foreign_keys=[thumbnail_image_id], lazy="selectin"
+        "ImageArtwork", foreign_keys=[thumbnail_image_id], lazy="selectin"
     )
 
     # Отношение "один-ко-одному" к объекту Artwork

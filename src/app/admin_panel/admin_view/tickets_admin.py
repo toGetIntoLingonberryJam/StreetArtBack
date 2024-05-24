@@ -1,12 +1,12 @@
 from sqladmin import ModelView
 
 from app.modules.tickets.models import TicketBase
-from app.modules.tickets.models.ticket_artwork import ArtworkTicket
+from app.modules.tickets.models.ticket_artwork import TicketArtwork
 
 DROPDOWN_CATEGORY = "Тикет"
 
 
-class ArtworkTicketAdmin(ModelView, model=ArtworkTicket):
+class TicketArtworkAdmin(ModelView, model=TicketArtwork):
     column_list = "__all__"
     category = DROPDOWN_CATEGORY
 

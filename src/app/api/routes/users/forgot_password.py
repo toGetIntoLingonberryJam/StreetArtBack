@@ -8,11 +8,11 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
+from app.modules.users.manager import get_user_manager
 from app.modules.users.utils.forgot_password import (
     get_reset_password_template,
     get_result_password_template,
 )
-from app.modules.users.manager import get_user_manager
 
 password_router = APIRouter()
 
@@ -52,9 +52,7 @@ async def reset_password(
         exceptions.UserInactive,
         exceptions.InvalidPasswordException,
     ):
-        return HTMLResponse(
-            content=get_result_password_template(False), status_code=400
-        )
+        return HTMLResponse(content=get_result_password_template(False), status_code=400)
 
 
 @password_router.get("/verify_reset_password")

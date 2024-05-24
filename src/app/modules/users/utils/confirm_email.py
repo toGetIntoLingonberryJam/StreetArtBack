@@ -1,7 +1,9 @@
 import smtplib
 from email.message import EmailMessage
-from config import settings
+
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+from config import settings
 
 
 async def send_verify_email(token, receiver, username: str) -> bool:

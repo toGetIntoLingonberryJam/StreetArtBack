@@ -1,13 +1,13 @@
 import enum
 from datetime import datetime
+from enum import Enum as PyEnum
 
 import pytz
-from sqlalchemy import Integer, String, ForeignKey, DateTime, func
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import Enum
 
 from app.db import Base
-from enum import Enum as PyEnum
-from sqlalchemy.types import Enum
 
 
 class ArtworkModerationStatus(str, PyEnum):

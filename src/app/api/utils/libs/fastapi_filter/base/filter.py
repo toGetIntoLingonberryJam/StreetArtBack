@@ -19,13 +19,13 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import (
     BaseModel,
     ConfigDict,
-    ValidationInfo,
+    Extra,
     ValidationError,
+    ValidationInfo,
     create_model,
     field_validator,
-    Extra,
 )
-from pydantic.fields import FieldInfo, Field
+from pydantic.fields import Field, FieldInfo
 
 UNION_TYPES: List = [Union]
 
@@ -297,9 +297,7 @@ def FilterDepends(
                 data = instance.model_dump(
                     exclude_unset=True, exclude_defaults=True, by_alias=by_alias
                 )
-                if original_filter := getattr(
-                    Filter.Constants, "original_filter", None
-                ):
+                if original_filter := getattr(Filter.Constants, "original_filter", None):
                     prefix = f"{Filter.Constants.prefix}__"
                     stripped = {}
                     for k, v in data.items():

@@ -1,24 +1,23 @@
+import json
 from datetime import datetime
 from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field, model_validator, ConfigDict, HttpUrl
-import json
+from pydantic_partial import create_partial_model
 
 from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.models.artwork import ArtworkStatus
-from app.modules.artworks.schemas.artwork_image import ArtworkImageReadSchema
 from app.modules.artworks.schemas.artwork_location import (
+    ArtworkLocationBaseSchema,
     ArtworkLocationReadSchema,
     ArtworkLocationUpdateSchema,
-    ArtworkLocationBaseSchema,
 )
 from app.modules.artworks.schemas.artwork_moderation import (
     ArtworkModerationBaseSchema,
     ArtworkModerationUpdateSchema,
 )
-
-from pydantic_partial import create_partial_model
 from app.modules.festivals.card_schema import FestivalCardSchema
+from app.modules.images.schemas.image_artwork import ImageArtworkReadSchema
 
 
 class ArtworkBaseSchema(BaseModel):
@@ -34,11 +33,26 @@ class ArtworkBaseSchema(BaseModel):
     artist_ids: Optional[List[int]] = None
     festival_id: Optional[int]
     status: ArtworkStatus
-    links: Optional[List[HttpUrl]] = None
 
-    # @field_validator("artist", mode='before')
-    # def links_validator(cls, v):
-    #     return [{"id": i} for i in cls.artist_id]
+    links: Optional[List[HttpUrl]] = Field(None, description="List of URLs related to the artwork")
+
+    # model_config = ConfigDict(validate_assignment=True)  # Отключаем кеширование
+
+    @model_validator(mode="before")
+    def urls_to_strings(cls, values):
+        if not isinstance(values, cls):
+            return values
+
+        if "links" in values and values["links"] is not None:
+            values["links"] = [str(url) for url in values["links"]]
+        return values
+
+    # @model_validator(mode="after")
+    # def strings_to_urls(cls, values):
+    #     if "links" in values and values["links"] is not None:
+    #         values["links"] = [HttpUrl(url) for url in values["links"]]
+    #     return values
+
 
 class ArtworkCreateSchema(ArtworkBaseSchema):
     location: ArtworkLocationBaseSchema
@@ -59,7 +73,7 @@ class ArtworkReadSchema(ArtworkBaseSchema):
     added_by_user_id: int
 
     location: ArtworkLocationReadSchema
-    images: Optional[List[ArtworkImageReadSchema]]
+    images: Optional[List[ImageArtworkReadSchema]]
     artist: List[ArtistCardSchema]
     festival: Optional[FestivalCardSchema]
 

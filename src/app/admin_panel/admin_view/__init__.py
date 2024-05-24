@@ -1,35 +1,25 @@
-from app.admin_panel.admin_view.users_admin import (
-    UserAdmin,
-    ArtistAdmin,
-    ModeratorAdmin,
-)
+import sqladmin
+from sqladmin.forms import Boolean, ColumnProperty, ModelConverterBase, Union, validators
+
 from app.admin_panel.admin_view.artworks_admin import (
     ArtworkAdmin,
     ArtworkLocationAdmin,
-    ArtworkImageAdmin,
     ArtworkModerationAdmin,
+    ImageArtworkAdmin,
 )
-from app.admin_panel.admin_view.tickets_admin import TicketBaseAdmin, ArtworkTicketAdmin
 from app.admin_panel.admin_view.images_admin import ImageAdmin
-
-import sqladmin
-from sqladmin.forms import (
-    ColumnProperty,
-    Union,
-    Boolean,
-    validators,
-    ModelConverterBase,
-)
+from app.admin_panel.admin_view.tickets_admin import TicketArtworkAdmin, TicketBaseAdmin
+from app.admin_panel.admin_view.users_admin import ArtistAdmin, ModeratorAdmin, UserAdmin
 
 
 # Переопределяем метод _prepare_column используя подход Monkey Patching
 def new_prepare_column(
     self, prop: ColumnProperty, form_include_pk: bool, kwargs: dict
 ) -> Union[dict, None]:
-    """Переопределяет метод _prepare_column класса ModelConverterBase."""
+    """Переопределяет метод _prepare_column класса ModelConverterBase. Для корректного вывода полей, при наследовании"""
 
     # Проверка версии
-    custom_method_lib_version = "0.16.0"
+    custom_method_lib_version = "0.16.1"
     current_lib_version = sqladmin.__version__
     if custom_method_lib_version not in current_lib_version:
         raise RuntimeError(
@@ -52,9 +42,7 @@ def new_prepare_column(
         if callable_default is not None:
             # ColumnDefault(val).arg can be also a plain value
             default = (
-                callable_default(None)
-                if callable(callable_default)
-                else callable_default
+                callable_default(None) if callable(callable_default) else callable_default
             )
 
     kwargs["default"] = default

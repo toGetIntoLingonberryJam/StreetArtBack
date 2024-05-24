@@ -1,4 +1,4 @@
-from fastapi import Body, Depends, APIRouter
+from fastapi import APIRouter, Body, Depends
 from fastapi_users import exceptions
 from pydantic import EmailStr
 from starlette import status

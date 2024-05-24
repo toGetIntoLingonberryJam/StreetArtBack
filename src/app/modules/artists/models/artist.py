@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import Integer, ForeignKey, String
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

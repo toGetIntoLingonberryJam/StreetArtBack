@@ -1,9 +1,9 @@
 from typing import Optional
 
-from pydantic import Field, ConfigDict
+from pydantic import ConfigDict, Field
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
-from app.modules import Artist
+from app.modules.models import Artist
 
 
 class ArtistFilter(Filter):

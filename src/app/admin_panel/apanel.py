@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from sqladmin import Admin
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from config import settings
 from app.admin_panel.admin_view import *
 from app.admin_panel.apanel_auth import AdminAuth
+from config import settings
 
 
 class AdminPanel:
@@ -16,10 +16,10 @@ class AdminPanel:
             ArtistAdmin,
             ModeratorAdmin,
             ArtworkAdmin,
-            ArtworkImageAdmin,
+            ImageArtworkAdmin,
             ArtworkLocationAdmin,
             ArtworkModerationAdmin,
-            ArtworkTicketAdmin,
+            TicketArtworkAdmin,
             TicketBaseAdmin,
             ImageAdmin,
         ]

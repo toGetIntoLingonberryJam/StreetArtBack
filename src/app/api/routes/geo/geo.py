@@ -1,13 +1,13 @@
-from typing import Optional, List, Tuple, Annotated
+from typing import Annotated, List, Optional, Tuple
 
-from fastapi import APIRouter, Query, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from requests import HTTPError
 
 from app.api.routes.common import (
-    ErrorModel,
     ErrorCode,
-    generate_response,
+    ErrorModel,
     generate_detail,
+    generate_response,
 )
 from app.api.utils.filters.geo.artwork import GeoArtworkFilter
 from app.api.utils.libs.fastapi_filter import FilterDepends

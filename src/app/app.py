@@ -1,4 +1,6 @@
 from contextlib import asynccontextmanager
+import fastapi_cdn_host
+from fastapi_cdn_host import CdnHostEnum
 
 from fastapi import FastAPI
 from fastapi_cache import FastAPICache
@@ -32,3 +34,6 @@ async def lifespan(fastapi_app: FastAPI):
 
 
 app = FastAPI(title="StreetArtWitnessesAPI", version="2.0.0", lifespan=lifespan)
+
+# Will use `unpkg.com` to replace the `cdn.jsdelivr.net/npm`
+fastapi_cdn_host.patch_docs(app=app, docs_cdn_host=CdnHostEnum.unpkg)

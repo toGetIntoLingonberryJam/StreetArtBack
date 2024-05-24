@@ -68,3 +68,4 @@ httpx~=0.26.0
 
 isort==5.13.2
 blurhash==1.1.4
+fastapi_cdn_host==0.4.3

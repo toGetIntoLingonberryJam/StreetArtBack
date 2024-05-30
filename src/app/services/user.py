@@ -62,3 +62,15 @@ class UserService:
                 )
             like = like[0] if like else None
             return like is not None
+
+
+    async def get_user_by_id(self, uow: UnitOfWork, user_id: int):
+        async with uow:
+            user = await uow.users.get(user_id)
+            return user
+
+
+    async def get_user_by_email(self, uow: UnitOfWork, email: str):
+        async with uow:
+            user = await uow.users.filter(limit=1, email=email)
+            return user[0] if user else None

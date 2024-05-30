@@ -3,6 +3,7 @@ import fastapi_cdn_host
 from fastapi_cdn_host import CdnHostEnum
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_pagination import add_pagination
@@ -34,6 +35,14 @@ async def lifespan(fastapi_app: FastAPI):
 
 
 app = FastAPI(title="StreetArtWitnessesAPI", version="2.0.0", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Will use `unpkg.com` to replace the `cdn.jsdelivr.net/npm`
 fastapi_cdn_host.patch_docs(app=app, docs_cdn_host=CdnHostEnum.unpkg)

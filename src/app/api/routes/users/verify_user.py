@@ -6,7 +6,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from app.modules.users.manager import get_user_manager
-from app.modules.users.utils.cloud_queue import get_result_template
+from app.services.email import EmailService
 
 verify_router = APIRouter()
 
@@ -36,8 +36,8 @@ async def verify(
 ):
     try:
         await user_manager.verify(token, request)
-        return HTMLResponse(content=get_result_template(True), status_code=200)
+        return HTMLResponse(content=EmailService().get_result_template(True), status_code=200)
     except (exceptions.InvalidVerifyToken, exceptions.UserNotExists):
-        return HTMLResponse(content=get_result_template(False), status_code=400)
+        return HTMLResponse(content=EmailService().get_result_template(False), status_code=400)
     except exceptions.UserAlreadyVerified:
-        return HTMLResponse(content=get_result_template(True), status_code=200)
+        return HTMLResponse(content=EmailService().get_result_template(True), status_code=200)

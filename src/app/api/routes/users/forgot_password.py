@@ -9,10 +9,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from app.modules.users.manager import get_user_manager
-from app.modules.users.utils.cloud_queue import (
-    get_reset_password_template,
-    get_result_password_template,
-)
+from app.services.email import EmailService
 
 password_router = APIRouter()
 
@@ -45,16 +42,16 @@ async def reset_password(
 ):
     try:
         user = await user_manager.reset_password(token, password, request)
-        return HTMLResponse(content=get_result_password_template(True), status_code=200)
+        return HTMLResponse(content=EmailService().get_result_password_template(True), status_code=200)
     except (
         exceptions.InvalidResetPasswordToken,
         exceptions.UserNotExists,
         exceptions.UserInactive,
         exceptions.InvalidPasswordException,
     ):
-        return HTMLResponse(content=get_result_password_template(False), status_code=400)
+        return HTMLResponse(content=EmailService().get_result_password_template(False), status_code=400)
 
 
 @password_router.get("/verify_reset_password")
 async def get_reset_password_form(token: str):
-    return HTMLResponse(content=get_reset_password_template(token), status_code=200)
+    return HTMLResponse(content=EmailService().get_reset_password_template(token), status_code=200)

@@ -5,7 +5,7 @@ from fastapi_users import BaseUserManager, IntegerIDMixin
 
 from app.modules.users.models import User, get_user_db
 from app.modules.users.schemas import UserRead
-from app.modules.users.utils.cloud_queue import send_verify_email_to_queue, send_reset_password_email_to_queue
+from app.services.cloud_queue import CloudQueueService
 from config import settings
 
 
@@ -17,12 +17,12 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         self, user: UserRead, token: str, request: Optional[Request] = None
     ) -> None:
         print(token)
-        send_verify_email_to_queue(token, user.email, user.username)
+        CloudQueueService.send_verify_email_to_queue(token, user.email, user.username)
 
     async def on_after_forgot_password(
         self, user: UserRead, token: str, request: Optional[Request] = None
     ) -> None:
-        send_reset_password_email_to_queue(token, user.email)
+        CloudQueueService.send_reset_password_email_to_queue(token, user.email)
 
 
 async def get_user_manager(user_db=Depends(get_user_db)):

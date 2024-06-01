@@ -70,4 +70,5 @@ isort==5.13.2
 blurhash==1.1.4
 fastapi_cdn_host==0.4.3
 
-boto3==1.34.117
+boto3==1.33.13
+botocore==1.33.13

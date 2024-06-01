@@ -5,8 +5,6 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from config import settings
 
-queue_url = settings.queue_url
-
 
 def send_verify_email_to_queue(token, receiver, username: str) -> bool:
     # Create client
@@ -15,18 +13,19 @@ def send_verify_email_to_queue(token, receiver, username: str) -> bool:
         endpoint_url='https://message-queue.api.cloud.yandex.net',
         region_name='ru-central1'
     )
-
+    data = {
+        "type": "verify_email",
+        "token": token,
+        "receiver": receiver,
+        "username": username,
+        "email_sender": settings.email_sender,
+        "email_password": settings.email_password,
+        "backend_url": settings.backend_url
+    }
     # Send message to queue
     client.send_message(
-        QueueUrl=queue_url,
-        MessageBody={
-            "type": "verify_email",
-            "token": token,
-            "receiver": receiver,
-            "username": username,
-            "email_sender": settings.email_sender,
-            "email_password": settings.email_password,
-            "backend_url": settings.backend_url}
+        QueueUrl=settings.queue_url,
+        MessageBody=json.dumps(data)
     )
 
     return True
@@ -37,7 +36,9 @@ def send_reset_password_email_to_queue(token, receiver: str) -> bool:
     client = boto3.client(
         service_name='sqs',
         endpoint_url='https://message-queue.api.cloud.yandex.net',
-        region_name='ru-central1'
+        region_name='ru-central1',
+        aws_access_key_id=settings.aws_access_key_id,
+        aws_secret_access_key=settings.aws_secret_access_key,
     )
     data = {
         "type": "reset_password",
@@ -50,7 +51,7 @@ def send_reset_password_email_to_queue(token, receiver: str) -> bool:
 
     # Send message to queue
     client.send_message(
-        QueueUrl=queue_url,
+        QueueUrl=settings.queue_url,
         MessageBody=json.dumps(data)
     )
 

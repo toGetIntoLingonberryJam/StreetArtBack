@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     email_password: str
     backend_url: str
 
+    queue_url: str
+    aws_access_key_id: str
+    aws_secret_access_key: str
+    bucket_name: str
+
     @property
     def database_url(self) -> PostgresDsn:
         return PostgresDsn.build(

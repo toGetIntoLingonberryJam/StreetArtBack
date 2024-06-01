@@ -7,7 +7,7 @@ from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from app.api.utils.paginator import MyParams
 from app.modules.artists.schemas.artist import ArtistCreateSchema
 from app.modules.images.schemas.image import ImageCreateSchema
-from app.services.cloud_storage import CloudStorageService
+from app.services.cloud_object_storage import CloudObjectStorageService
 from app.utils.exceptions import (
     IncorrectInput,
     ObjectNotFoundException,
@@ -50,7 +50,7 @@ class ArtistsService:
 
             artist_dict = artist_schema.model_dump()
             if image:
-                cloud_file = await CloudStorageService.upload_to_yandex_disk(image=image)
+                cloud_file = await CloudObjectStorageService.upload_to_yandex_disk(image=image)
                 image_schema = ImageCreateSchema(
                     image_url=cloud_file.public_url,
                     public_key=cloud_file.public_key,

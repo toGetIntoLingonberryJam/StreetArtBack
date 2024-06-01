@@ -9,7 +9,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from app.modules.users.manager import get_user_manager
-from app.modules.users.utils.forgot_password import (
+from app.modules.users.utils.cloud_queue import (
     get_reset_password_template,
     get_result_password_template,
 )

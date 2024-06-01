@@ -43,9 +43,3 @@ def __get_verify_message(token, username: str) -> EmailMessage:
     )
     msg.set_content(template, subtype="html")
     return msg
-
-
-def get_result_template(is_success: bool) -> str:
-    if is_success:
-        return env.get_template("verification_success.html").render()
-    return env.get_template("verification_fall.html").render()

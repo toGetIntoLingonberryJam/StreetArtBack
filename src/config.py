@@ -20,8 +20,6 @@ class Settings(BaseSettings):
     secret_reset_token: str
     yandex_disk_token: str
     yandex_disk_images_folder: str
-    email_sender: str
-    email_password: str
     backend_url: str
 
     queue_url: str

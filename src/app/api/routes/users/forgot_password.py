@@ -14,7 +14,7 @@ from app.services.email import EmailService
 password_router = APIRouter()
 
 
-@password_router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+@password_router.post("/forgot_password", status_code=status.HTTP_202_ACCEPTED, tags=["send-email"])
 async def forgot_password(
     request: Request,
     email: EmailStr = Body(..., embed=True),
@@ -33,7 +33,7 @@ async def forgot_password(
     return None
 
 
-@password_router.post("/reset-password", responses=RESET_PASSWORD_RESPONSES)
+@password_router.post("/reset_password", responses=RESET_PASSWORD_RESPONSES)
 async def reset_password(
     request: Request,
     token: Annotated[str, Form()],

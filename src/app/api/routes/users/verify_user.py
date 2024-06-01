@@ -12,7 +12,7 @@ verify_router = APIRouter()
 
 
 @verify_router.post(
-    "/request-verify-token", status_code=status.HTTP_202_ACCEPTED, tags=["verify-front"]
+    "/request_verify_token", status_code=status.HTTP_202_ACCEPTED, tags=["send-email"]
 )
 async def request_verify_token(
     request: Request,

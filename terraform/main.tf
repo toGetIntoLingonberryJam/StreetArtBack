@@ -289,3 +289,10 @@ data "yandex_lockbox_secret_version" "secret_sa_key" {
 data "yandex_lockbox_secret_version" "secret_jwt" {
   secret_id = var.secret_id_jwt
 }
+
+# ==============================
+#  Вывод данных
+# ==============================
+output "external_ip_address_vm_1" {
+  value = yandex_compute_instance.vm.network_interface.0.nat_ip_address
+}

@@ -262,7 +262,7 @@ resource "yandex_compute_instance" "vm" {
     destination  = "/tmp/.env"  # will copy to remote VM as /tmp/test.pub
   }
 
-  # Установка Docker, сертификата PostgreSQL и зависимостей
+  # Установка Docker, перенос .env, клонирование репозитория, запуск Docker контейнера 
   provisioner "remote-exec" {
     inline = [
       "sudo apt update",

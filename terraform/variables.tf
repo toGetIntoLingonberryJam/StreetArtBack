@@ -61,6 +61,3 @@ variable "secret_id_sa_key" {
 variable "secret_id_jwt" {
   type = string
 }
-variable "secret_id_email_credentials" {
-  type = string
-}

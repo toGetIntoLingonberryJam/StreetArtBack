@@ -43,7 +43,7 @@ resource "yandex_vpc_subnet" "subnet-1" {
 
 
 # ==============================
-# 2. Создание сервиса PostgreSQL
+# 3. Создание сервиса PostgreSQL
 # ==============================
 resource "yandex_mdb_postgresql_cluster" "postgres-clu" {
   name        = "postgres-clu"
@@ -92,7 +92,7 @@ resource "yandex_mdb_postgresql_user" "user" {
 }
 
 # ==============================
-# 3. Создание сервиса Redis
+# 4. Создание сервиса Redis
 # ==============================
 resource "yandex_mdb_redis_cluster" "redis" {
   name        = "street-art-redis"
@@ -120,7 +120,7 @@ resource "yandex_mdb_redis_cluster" "redis" {
 }
 
 # ==============================
-# 4. Создание Security Group
+# 5. Создание Security Group
 # ==============================
 resource "yandex_vpc_security_group" "web_sg" {
   name                = "web-sg"
@@ -181,7 +181,7 @@ resource "yandex_vpc_security_group" "db_access" {
 }
 
 # ==============================
-# 5. Создание виртуальной машины
+# 6. Создание виртуальной машины
 # ==============================
 data "yandex_compute_image" "last_ubuntu" {
   family = "ubuntu-2204-lts"  # ОС (Ubuntu, 22.04 LTS)
@@ -243,8 +243,6 @@ POSTGRES_SSL_MODE=verify-full
 SECRET_KEY_JWT=${data.yandex_lockbox_secret_version.secret_jwt.entries[0].text_value}
 SECRET_VERIFICATION_TOKEN=${data.yandex_lockbox_secret_version.secret_jwt.entries[1].text_value}
 SECRET_RESET_TOKEN=${data.yandex_lockbox_secret_version.secret_jwt.entries[2].text_value}
-EMAIL_SENDER=${data.yandex_lockbox_secret_version.email_credentials.entries[0].text_value}
-EMAIL_PASSWORD=${data.yandex_lockbox_secret_version.email_credentials.entries[1].text_value}
 BACKEND_URL=http://${self.network_interface.0.nat_ip_address}
 AWS_ACCESS_KEY_ID=${data.yandex_lockbox_secret_version.secret_sa_key.entries[0].text_value}
 AWS_SECRET_ACCESS_KEY=${data.yandex_lockbox_secret_version.secret_sa_key.entries[1].text_value}
@@ -279,6 +277,7 @@ EOF
     ]
   }
 }
+
 # ==============================
 #  Получение данных из Lockbox
 # ==============================
@@ -286,14 +285,6 @@ data "yandex_lockbox_secret_version" "secret_sa_key" {
   secret_id = var.secret_id_sa_key
 }
 
-#output "current_version" {
-#  value = data.yandex_lockbox_secret.secret_sa_key.current_version.entries
-#}
-
 data "yandex_lockbox_secret_version" "secret_jwt" {
   secret_id = var.secret_id_jwt
-}
-
-data "yandex_lockbox_secret_version" "email_credentials" {
-  secret_id = var.secret_id_email_credentials
 }

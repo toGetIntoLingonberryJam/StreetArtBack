@@ -229,27 +229,32 @@ resource "yandex_compute_instance" "vm" {
 
 
   # Генерация файла .env
-  provisioner "local-exec" {
-    command = <<-EOF
-      cat <<EOFF > generated.env
-MODE=${var.mode}
-REDIS_URL=redis://:${var.redis_pass}@${yandex_mdb_redis_cluster.redis.host.0.fqdn}:${var.redis_port}
-POSTGRES_HOST=${yandex_mdb_postgresql_cluster.postgres-clu.host.0.fqdn}
-POSTGRES_PORT=6432
-POSTGRES_DB=${yandex_mdb_postgresql_database.db.name}
-POSTGRES_USER=${yandex_mdb_postgresql_user.user.name}
-POSTGRES_PASSWORD=${yandex_mdb_postgresql_user.user.password}
-POSTGRES_SSL_MODE=verify-full
-SECRET_KEY_JWT=${data.yandex_lockbox_secret_version.secret_jwt.entries[0].text_value}
-SECRET_VERIFICATION_TOKEN=${data.yandex_lockbox_secret_version.secret_jwt.entries[1].text_value}
-SECRET_RESET_TOKEN=${data.yandex_lockbox_secret_version.secret_jwt.entries[2].text_value}
-BACKEND_URL=http://${self.network_interface.0.nat_ip_address}
-QUEUE_URL=${var.queue_url}
-AWS_ACCESS_KEY_ID=${data.yandex_lockbox_secret_version.secret_sa_key.entries[0].text_value}
-AWS_SECRET_ACCESS_KEY=${data.yandex_lockbox_secret_version.secret_sa_key.entries[1].text_value}
-BUCKET_NAME=${yandex_storage_bucket.bucket.bucket}
-EOFF
-EOF
+   provisioner "local-exec" {
+    command =  "echo '${templatefile("${path.module}/.env.tpl", 
+      { 
+        MODE = var.mode,
+        POSTGRES_HOST = yandex_mdb_postgresql_cluster.postgres-clu.host.0.fqdn,
+        POSTGRES_PORT = "6432",
+        POSTGRES_DB = yandex_mdb_postgresql_database.db.name, 
+        POSTGRES_USER = yandex_mdb_postgresql_user.user.name,
+        POSTGRES_PASSWORD = yandex_mdb_postgresql_user.user.password,
+
+        REDIS_PASSWORD = var.redis_pass,
+        REDIS_HOST = yandex_mdb_redis_cluster.redis.host.0.fqdn,
+        REDIS_PORT = var.redis_port,
+
+        SECRET_KEY_JWT = data.yandex_lockbox_secret_version.secret_jwt.entries[0].text_value,
+        SECRET_VERIFICATION_TOKEN = data.yandex_lockbox_secret_version.secret_jwt.entries[1].text_value,
+        SECRET_RESET_TOKEN = data.yandex_lockbox_secret_version.secret_jwt.entries[2].text_value,
+
+        BACKEND_IP = self.network_interface.0.nat_ip_address,
+
+        QUEUE_URL = var.queue_url,
+        AWS_ACCESS_KEY_ID =  data.yandex_lockbox_secret_version.secret_sa_key.entries[0].text_value,
+        AWS_SECRET_ACCESS_KEY = data.yandex_lockbox_secret_version.secret_sa_key.entries[1].text_value,
+        BUCKET_NAME = yandex_storage_bucket.bucket.bucket 
+      } 
+    )}' > generated.env"   
   }
 
   provisioner "file" {

@@ -14,12 +14,11 @@ class Settings(BaseSettings):
     db_pass: str
     db_name: str
     db_user: str
+    db_sslmode: str
     redis_url: RedisDsn
     secret_key_jwt: str
     secret_verification_token: str
     secret_reset_token: str
-    yandex_disk_token: str
-    yandex_disk_images_folder: str
     backend_url: str
 
     queue_url: str
@@ -36,8 +35,10 @@ class Settings(BaseSettings):
             host=self.db_host,
             port=self.db_port,
             path=f"{self.db_name}",
+            query=f"ssl={self.db_sslmode}"
         )
 
 
 settings = Settings()
 print(f"Settings Mode: {settings.mode}")
+print(f"DB url: {settings.database_url}")

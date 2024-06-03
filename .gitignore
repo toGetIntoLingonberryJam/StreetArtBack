@@ -268,3 +268,9 @@ pyrightconfig.json
 
 # Static Files
 src/static/
+terraform/.terraform*
+terraform/.terraform/
+terraform/generated.env
+terraform/key.json
+terraform/main.tfvars
+terraform/terraform.tfstate*

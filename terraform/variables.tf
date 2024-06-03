@@ -55,6 +55,11 @@ variable "mode" {
   default     = "PROD"
 }
 
+variable "queue_url" {
+  type = string
+  description = "Ссылка на Yandex Message Queue"
+}
+
 variable "secret_id_sa_key" {
   type = string
 }

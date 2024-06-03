@@ -244,6 +244,7 @@ SECRET_KEY_JWT=${data.yandex_lockbox_secret_version.secret_jwt.entries[0].text_v
 SECRET_VERIFICATION_TOKEN=${data.yandex_lockbox_secret_version.secret_jwt.entries[1].text_value}
 SECRET_RESET_TOKEN=${data.yandex_lockbox_secret_version.secret_jwt.entries[2].text_value}
 BACKEND_URL=http://${self.network_interface.0.nat_ip_address}
+QUEUE_URL=${var.queue_url}
 AWS_ACCESS_KEY_ID=${data.yandex_lockbox_secret_version.secret_sa_key.entries[0].text_value}
 AWS_SECRET_ACCESS_KEY=${data.yandex_lockbox_secret_version.secret_sa_key.entries[1].text_value}
 BUCKET_NAME=${yandex_storage_bucket.bucket.bucket}

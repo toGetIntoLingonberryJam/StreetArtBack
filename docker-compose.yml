@@ -18,13 +18,11 @@ services:
     container_name: fastapi_app
     expose:
       - 8000
-    secrets:
+    configs:
       - source: backend_env
-        target: /backend-app/src/.env  # путь файла в контейнере
+        target: /etc/secrets/.env  # путь файла в контейнере
         mode: 0444
     restart: always
-    env_file:
-      - .env
 
 volumes:
   postgres_data:
@@ -33,5 +31,5 @@ configs:
   nginx-config:
     file: ./nginx/nginx.conf
   backend_env:
-    file: ./src/.env
+    file: /etc/secrets/.env
 

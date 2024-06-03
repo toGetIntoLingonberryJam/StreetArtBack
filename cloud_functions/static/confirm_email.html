@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+</head>
+<body style="background-color: #F2F2F7;">
+    <table style="width: 600px; margin: 0 auto;">
+        <tr>
+            <td colspan="2">
+                <img style="width: 600px; height: 233px; border-radius: 18px; align-self: stretch"
+                src="https://sun9-54.userapi.com/impg/tl55XbSvz4cNTTNAKrQYOZ8AviN7thuPT97KAw/ICMiSz0RrfU.jpg?size=599x233&quality=96&sign=71bd9b6acc548ff3f70088e350eeb402&type=album">
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="font-family: 'Inter'; font-size: 20px; text-align: center;">
+                <p>Здравствуйте, {{username}}!</p>
+                <p>Только что была совершена регистрация на сервисе «Свидетели Стрит-Арта» с использованием данной почты.</p>
+                <p>Чтобы подтвердить почту нажмите на кнопку ниже.</p>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: center;">
+                <a href="{{BACKEND_URL}}/v1/users/verify/?token={{token}}" style="font-family: 'Inter'; text-decoration: none;
+                font-size: 16px; color: #0B0B0B; padding: 8px 12px; border: 0; background-color: #3DE8CA; border-radius: 10px; height: 36px;">
+                    Подтвердить почту
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="font-family: 'Inter'; font-size: 16px; text-align: center;">
+                <p>Проигнорируйте данное письмо, если вы не регистрировались на сервисе.</p>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="display: flex; flex-direction: column; align-items: center;">
+                <t style="color: #727272; font-family: 'Inter', Regular; font-size: 20px; line-height: 130%; text-align: center;">Свидетели Стрит-Арта</t>
+                <t style="color: #727272; font-family: 'Inter', Regular; font-size: 16px; line-height: 26px; text-align: center;">(to) Get Into Lingonberry Jam</t>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

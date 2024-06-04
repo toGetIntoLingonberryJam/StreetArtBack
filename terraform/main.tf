@@ -188,7 +188,7 @@ data "yandex_compute_image" "last_ubuntu" {
 }
 
 resource "yandex_compute_instance" "vm" {
-  depends_on = [yandex_mdb_postgresql_database.db, yandex_mdb_redis_cluster.redis]
+  depends_on = [yandex_mdb_postgresql_database.db, yandex_mdb_redis_cluster.redis, yandex_message_queue.email-queue]
 
   name = "street-art-back"
   platform_id = "standard-v3"
@@ -249,7 +249,7 @@ resource "yandex_compute_instance" "vm" {
 
         BACKEND_IP = self.network_interface.0.nat_ip_address,
 
-        QUEUE_URL = var.queue_url,
+        QUEUE_URL = yandex_message_queue.email-queue.id,
         AWS_ACCESS_KEY_ID =  data.yandex_lockbox_secret_version.secret_sa_key.entries[0].text_value,
         AWS_SECRET_ACCESS_KEY = data.yandex_lockbox_secret_version.secret_sa_key.entries[1].text_value,
         BUCKET_NAME = yandex_storage_bucket.bucket.bucket 
@@ -285,6 +285,84 @@ resource "yandex_compute_instance" "vm" {
 }
 
 # ==============================
+#  Создание Message Queue
+# ==============================
+
+resource "yandex_message_queue" "email-queue" {
+  name                        = "mq-email-terraform"
+  visibility_timeout_seconds  = 600
+  receive_wait_time_seconds   = 20
+  message_retention_seconds   = 1209600
+  access_key                  = data.yandex_lockbox_secret_version.secret_sa_key.entries[0].text_value
+  secret_key                  = data.yandex_lockbox_secret_version.secret_sa_key.entries[1].text_value
+}
+
+# ==============================
+#  Создание Cloud Function
+# ==============================
+
+locals {
+    # Получаем JSON ключа
+    service_account_key_file_json = jsondecode(file("./key.json"))
+
+    # Получаем ID сервисного аккаунта из JSON
+    service_account_id = local.service_account_key_file_json.service_account_id
+}
+
+# Создаём zip-архив с функией
+data "archive_file" "function_files" {
+  output_path = "./cloud_functions.zip"
+  source_dir  = "../cloud_functions"
+  type        = "zip"
+}
+
+resource "yandex_function" "email-sender-function" {
+    name               = "email-sender-function"
+    description        = "Email sender function"
+    user_hash          = data.archive_file.function_files.output_sha256
+    runtime            = "python37"
+    entrypoint         = "index.handler"
+    memory             = "128"
+    execution_timeout  = "10"
+	
+    service_account_id = local.service_account_id
+	
+    content {
+      zip_filename = "cloud_functions.zip"
+    }
+	
+	environment = {
+      "QUEUE_URL" = yandex_message_queue.email-queue.id
+      "AWS_ACCESS_KEY_ID" = data.yandex_lockbox_secret_version.secret_sa_key.entries[0].text_value
+      "AWS_SECRET_ACCESS_KEY" = data.yandex_lockbox_secret_version.secret_sa_key.entries[1].text_value
+      "EMAIL_SENDER" = data.yandex_lockbox_secret_version.email_credentials.entries[0].text_value
+      "EMAIL_PASSWORD" = data.yandex_lockbox_secret_version.email_credentials.entries[1].text_value
+  }
+}
+
+
+# ==============================
+#  Создание триггера функции
+# ==============================
+
+resource "yandex_function_trigger" "email-queue-trigger" {
+  name        = "email-queue-trigger"
+  description = "Триггер функции by Message Queue"
+  
+  message_queue {
+    queue_id           = yandex_message_queue.email-queue.arn
+    service_account_id = local.service_account_id
+    batch_size         = "1"
+    batch_cutoff       = "10"
+  }
+  
+  function {
+    id                 = yandex_function.email-sender-function.id
+    service_account_id = local.service_account_id
+  }
+}
+
+# ==============================
 #  Получение данных из Lockbox
 # ==============================
 data "yandex_lockbox_secret_version" "secret_sa_key" {
@@ -293,6 +371,10 @@ data "yandex_lockbox_secret_version" "secret_sa_key" {
 
 data "yandex_lockbox_secret_version" "secret_jwt" {
   secret_id = var.secret_id_jwt
+}
+
+data "yandex_lockbox_secret_version" "email_credentials" {
+  secret_id = var.secret_id_email_credentials
 }
 
 # ==============================

@@ -332,9 +332,6 @@ resource "yandex_function" "email-sender-function" {
     }
 	
 	environment = {
-      "QUEUE_URL" = yandex_message_queue.email-queue.id
-      "AWS_ACCESS_KEY_ID" = data.yandex_lockbox_secret_version.secret_sa_key.entries[0].text_value
-      "AWS_SECRET_ACCESS_KEY" = data.yandex_lockbox_secret_version.secret_sa_key.entries[1].text_value
       "EMAIL_SENDER" = data.yandex_lockbox_secret_version.email_credentials.entries[0].text_value
       "EMAIL_PASSWORD" = data.yandex_lockbox_secret_version.email_credentials.entries[1].text_value
   }

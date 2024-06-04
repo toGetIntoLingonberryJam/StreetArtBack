@@ -10,6 +10,7 @@ from forgot_password import send_reset_password_email
 # Настраиваем функцию для записи информации в журнал функции
 # Получаем стандартный логер языка Python
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 # Вычитываем переменную VERBOSE_LOG, которую мы указываем в переменных окружения
 verboseLogging = True  ## Convert to bool
 
@@ -27,11 +28,11 @@ def handler(event, context):
         aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
         aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
     )
-    # raise Exception('test')
+
     # Receive sent message
-    messages = client.receive_messages(
+    messages = client.receive_message(
         QueueUrl=os.environ['QUEUE_URL'],
-        MaxNumberOfMessages=10,
+        MaxNumberOfMessages=1,
         VisibilityTimeout=60,
         WaitTimeSeconds=1
     ).get('Messages')
@@ -40,23 +41,32 @@ def handler(event, context):
         return {
             'statusCode': 200
         }
-    for msg in messages:
-        # Get url from message
-        data = json.loads(msg.get('Body'))
-        if data['type'] == 'verify_email':
-            response = send_verify_email(data['token'], data['receiver'], data['username'], data['backend_url'])
-        elif data['type'] == 'reset_password':
-            response = send_reset_password_email(data['token'], data['receiver'], data['backend_url'])
-        else:
-            log(f'Invalid message type {msg}')
-        if not response:
-            log(f'Failed to send email {msg}')
 
-        # Delete received message
-        client.delete_message(
-            QueueUrl=os.environ['QUEUE_URL'],
-            ReceiptHandle=msg['ReceiptHandle']
-        )
+    for msg in messages:
+        log('Received message: "{}"'.format(msg.get('Body')))
+
+    # Get url from message
+    data = json.loads(msg.get('Body'))
+    if data['type'] == 'verify_email':
+        response = send_verify_email(data['token'], data['receiver'], data['username'], data['backend_url'])
+    elif data['type'] == 'reset_password':
+        response = send_reset_password_email(data['token'], data['receiver'], data['backend_url'])
+    else:
+        return {
+            'statusCode': 400,
+            'body': 'Invalid message type'
+        }
+    if not response:
+        return {
+            'statusCode': 500,
+            'body': 'Failed to send email'
+        }
+
+    # Delete received message
+    client.delete_message(
+        QueueUrl=os.environ['QUEUE_URL'],
+        ReceiptHandle=msg['ReceiptHandle']
+    )
     return {
         'statusCode': 200,
         'body': 'Email sent'

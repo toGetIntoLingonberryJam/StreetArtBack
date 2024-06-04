@@ -5,13 +5,14 @@ from email.message import EmailMessage
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+# from config import BACKEND_URL, EMAIL_SENDER, EMAIL_PASSWORD
 
 _env = Environment(
     loader=FileSystemLoader("static"), autoescape=select_autoescape(["html"])
 )
 
 
-def send_reset_password_email(token, receiver, backend_url) -> bool:
+async def send_reset_password_email(token, receiver, backend_url) -> bool:
     template = __get_reset_password_email(token, backend_url)
     template["To"] = receiver
     template["From"] = os.environ['EMAIL_SENDER']

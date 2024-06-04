@@ -320,7 +320,7 @@ resource "yandex_function" "email-sender-function" {
     name               = "email-sender-function"
     description        = "Email sender function"
     user_hash          = data.archive_file.function_files.output_sha256
-    runtime            = "python37"
+    runtime            = "python312"
     entrypoint         = "index.handler"
     memory             = "128"
     execution_timeout  = "10"

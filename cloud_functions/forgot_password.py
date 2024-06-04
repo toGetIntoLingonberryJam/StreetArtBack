@@ -12,7 +12,7 @@ _env = Environment(
 )
 
 
-async def send_reset_password_email(token, receiver, backend_url) -> bool:
+def send_reset_password_email(token, receiver, backend_url) -> bool:
     template = __get_reset_password_email(token, backend_url)
     template["To"] = receiver
     template["From"] = os.environ['EMAIL_SENDER']

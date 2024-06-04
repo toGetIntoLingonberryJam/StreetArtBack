@@ -6,7 +6,7 @@ from email.message import EmailMessage
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
-async def send_verify_email(token, receiver, username: str, backend_url) -> bool:
+def send_verify_email(token, receiver, username: str, backend_url) -> bool:
     template = __get_verify_message(token, username, backend_url)
     template["To"] = receiver
     template["From"] = os.environ['EMAIL_SENDER']

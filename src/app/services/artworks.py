@@ -1,18 +1,10 @@
-import asyncio
 from typing import List, Optional
 
 from fastapi import UploadFile, HTTPException
 from starlette import status
 
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
-from app.api.utils.paginator import MyParams
-from app.db import get_async_session
-from app.modules.artworks.models.artwork import Artwork
-from app.modules.artworks.models.artwork_moderation import ArtworkModerationStatus
 from app.modules.artworks.schemas.artwork import ArtworkCreateSchema, ArtworkUpdateSchema
-from app.modules.artworks.schemas.artwork_location import ArtworkLocationCreateSchema
-from app.modules.artworks.schemas.artwork_moderation import ArtworkModerationCreateSchema
-from app.modules.images.schemas.image_artwork import ImageArtworkCreateSchema
 from app.modules.models import Moderator
 from app.modules.tickets.schemas.ticket_artwork import TicketArtworkCreateSchema
 from app.modules.users.manager import get_user_manager
@@ -80,72 +72,6 @@ class ArtworksService:
             return artwork
 
     @staticmethod
-    async def get_artworks_by_moderation_status(
-        uow: UnitOfWork,
-        pagination: Optional[MyParams] = None,
-        filters: Optional[Filter] = None,
-        **filter_by,
-    ) -> list[Artwork]:
-        async with uow:
-            offset: int = 0
-            limit: Optional[int] = None
-
-            if pagination:
-                pagination_raw_params = pagination.to_raw_params()
-                offset = pagination_raw_params.offset
-                limit = pagination_raw_params.limit
-
-            artworks = await uow.artworks.filter(
-                offset=offset, limit=limit, filters=filters, **filter_by
-            )
-            return artworks
-
-    async def get_pending_artworks(
-        self,
-        uow: UnitOfWork,
-        pagination: Optional[MyParams] = None,
-        filters: Optional[Filter] = None,
-    ) -> list[Artwork]:
-        filters.add_filtering_fields(moderation__status=ArtworkModerationStatus.PENDING)
-        return await self.get_artworks_by_moderation_status(
-            uow=uow, pagination=pagination, filters=filters
-        )
-
-    async def get_approved_artworks(
-        self,
-        uow: UnitOfWork,
-        pagination: Optional[MyParams] = None,
-        filters: Optional[Filter] = None,
-        **filter_by,
-    ) -> list[Artwork]:
-        # filters.add_filtering_field(artwork_moderation__status='approved')
-        # filters.add_searching_field("artwork_moderation__status")
-        # filters.add_ordering_field("artwork_moderation__status")
-        if filters:
-            filters.add_filtering_fields(
-                moderation__status=ArtworkModerationStatus.APPROVED,
-            )
-
-        return await self.get_artworks_by_moderation_status(
-            uow=uow, pagination=pagination, filters=filters, **filter_by
-        )
-
-    async def get_rejected_artworks(
-        self,
-        uow: UnitOfWork,
-        pagination: Optional[MyParams] = None,
-        filters: Optional[Filter] = None,
-    ) -> list[Artwork]:
-        if filters is None:
-            filters = Filter()
-
-        filters.add_filtering_fields(moderation__status=ArtworkModerationStatus.REJECTED)
-
-        return await self.get_artworks_by_moderation_status(
-            uow=uow, pagination=pagination, filters=filters
-        )
-
-    @staticmethod
     async def get_artwork(
         uow: UnitOfWork, artwork_id: int, filters: Filter | None = None, **filter_by
     ):
@@ -173,19 +99,6 @@ class ArtworksService:
             return artworks
 
     @staticmethod
-    async def get_locations_approved_artworks(
-        uow: UnitOfWork, filters: Optional[Filter] = None
-    ):
-        async with uow:
-            filters.add_filtering_fields(
-                artwork__moderation__status=ArtworkModerationStatus.APPROVED
-            )
-
-            locations = await uow.artwork_locations.filter(filters=filters)
-
-            return locations
-
-    @staticmethod
     async def get_artworks_locations(
         uow: UnitOfWork,
         filters: Optional[Filter] = None,
@@ -204,15 +117,8 @@ class ArtworksService:
             if artwork_schema.location
             else None
         )
-        moderation_dict = (
-            artwork_schema.moderation.model_dump(exclude_unset=True)
-            if artwork_schema.moderation
-            else None
-        )
 
-        artwork_dict = artwork_schema.model_dump(
-            exclude_unset=True, exclude={"location", "moderation"}
-        )
+        artwork_dict = artwork_schema.model_dump(exclude_unset=True, exclude={"location"})
 
         async with uow:
             # Редактирование арт-объекта
@@ -222,10 +128,6 @@ class ArtworksService:
                 # Редактирование локации арт-объекта
                 await uow.artwork_locations.edit(artwork.location.id, location_dict)
 
-            if moderation_dict:
-                # Редактирование модерации арт-объекта
-                await uow.artwork_moderation.edit(artwork.moderation.id, moderation_dict)
-
             await uow.commit()
 
             return artwork
@@ -234,16 +136,16 @@ class ArtworksService:
         async with uow:
             artwork = await self.get_artwork(uow=uow, artwork_id=artwork_id)
 
-            ticket_artwork = await uow.ticket_artworks.filter(artwork_id=artwork.id)
+            ticket_artwork = await uow.tickets_artwork.filter(artwork_id=artwork.id)
             ticket_artwork = ticket_artwork[0]
 
             ticket_artwork.artwork_id = None
 
-            image_artworks = artwork.images
-            for img in image_artworks:
+            images_artwork_list = artwork.images
+            for img in images_artwork_list:
                 # ToDo: Переделать фильтр
                 exist_image = await uow.artworks.filter(
-                    images={uow.image_artworks.model.image_url: img.image_url}
+                    images={uow.images_artwork.model.image_url: img.image_url}
                 )
                 if len(exist_image) > 1:
                     continue

@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 import fastapi_cdn_host
 from fastapi_cdn_host import CdnHostEnum
@@ -11,11 +12,33 @@ from fastapi_pagination import add_pagination
 from app.admin_panel.apanel import AdminPanel
 from app.api.routes import router
 from app.db import engine, redis
+from logger_config import logger
+
+
+async def check_connections():
+    try:
+        # Проверка подключения к Redis
+        await redis.ping()
+    except Exception as e:
+        logger.error("Ошибка подключения к Redis: %s", str(e))
+        raise RuntimeError("Не удалось подключиться к Redis. Сервер остановлен.") from e
+
+    try:
+        # Проверка подключения к PostgreSQL
+        conn = await engine.connect()
+        await conn.aclose()
+    except Exception as e:
+        logger.error("Ошибка подключения к PostgreSQL: %s", str(e))
+        raise RuntimeError(
+            "Не удалось подключиться к PostgreSQL. Сервер остановлен."
+        ) from e
 
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
     """Запускаем код до и после запуска приложения"""
+    # Проверка подключения к Базам Данных. В случае неудачи - краш сервера.
+    await check_connections()
 
     # Include routers
     fastapi_app.include_router(router)
@@ -24,9 +47,6 @@ async def lifespan(fastapi_app: FastAPI):
     # Adding a pagination module to an application
     add_pagination(fastapi_app)
 
-    # Проверка подключения к Redis. Иначе - краш.
-    # ToDo: сделать красивый вывод ошибки, а не стандартный Traceback
-    await redis.ping()
     # Позволяет использовать декоратор @cache(sec), из fastapi_cache.decorator, кэшируя уникальный запрос-ответ в redis
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 

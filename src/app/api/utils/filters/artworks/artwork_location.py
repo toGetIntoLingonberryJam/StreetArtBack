@@ -16,7 +16,11 @@ class ArtworkLocationFilter(Filter):
 
     class Constants(Filter.Constants):
         model = ArtworkLocation
-        search_model_fields = ["title", "festival", "artist__username"]
+        search_model_fields = [
+            "artwork__title",
+            "artwork__festival",
+            "artwork__artist__username",
+        ]
 
     # class Config:
     #     populate_by_name = True

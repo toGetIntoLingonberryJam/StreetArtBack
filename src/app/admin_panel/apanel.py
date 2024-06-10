@@ -18,7 +18,6 @@ class AdminPanel:
             # ArtworkAdmin,
             # ImageArtworkAdmin,
             # ArtworkLocationAdmin,
-            # ArtworkModerationAdmin,
             # TicketArtworkAdmin,
             # TicketBaseAdmin,
             # ImageAdmin,

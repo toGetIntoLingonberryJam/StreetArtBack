@@ -5,7 +5,6 @@ from sqlalchemy.orm import DeclarativeMeta
 from app.db import async_session_maker
 from app.repos.artworks import (
     ArtworkLocationRepository,
-    ArtworkModerationRepository,
     ArtworkRepository,
     FestivalRepository,
 )
@@ -54,7 +53,6 @@ class UnitOfWork:
         self.images_artwork = ImageArtworkRepository(self.session)
         self.images_ticket = ImageTicketRepository(self.session)
         self.images = ImageRepository(self.session)
-        self.artwork_moderation = ArtworkModerationRepository(self.session)
         self.tickets = TicketBaseRepository(self.session)
         self.tickets_artwork = TicketArtworkRepository(self.session)
         self.festival = FestivalRepository(self.session)

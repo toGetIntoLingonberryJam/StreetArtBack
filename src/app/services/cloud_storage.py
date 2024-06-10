@@ -14,9 +14,6 @@ from yadisk.objects import (
     AsyncPublicResourceObject,
     AsyncResourceObject,
 )
-
-from app.modules.models import Artwork
-from app.modules.tickets.models import TicketBase
 from app.utils.images import generate_blurhash
 from config import settings
 
@@ -26,14 +23,6 @@ class CloudFile:
     public_key: str
     file_path: str
     blurhash: str
-
-    @staticmethod
-    def generate_file_path_by_class(obj):
-        path = settings.yandex_disk_images_folder + "/"
-        if issubclass(obj, TicketBase):
-            path += "tickets"
-        elif issubclass(obj, Artwork):
-            path += "artworks"
 
     def __init__(self, public_url: str, public_key: str, file_path: str, blurhash: str):
         self.public_url = public_url

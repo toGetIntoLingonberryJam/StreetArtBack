@@ -68,15 +68,6 @@ class Artwork(Base):
         Enum(ArtworkStatus), default=ArtworkStatus.EXISTING
     )
 
-    # связь Artwork с ArtworkModeration
-    moderation: Mapped["ArtworkModeration"] = relationship(
-        uselist=False,
-        back_populates="artwork",
-        foreign_keys="ArtworkModeration.artwork_id",
-        lazy="selectin",
-        cascade="all, delete-orphan",
-    )
-
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
         default=datetime.now(tz=pytz.UTC),

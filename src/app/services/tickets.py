@@ -340,7 +340,7 @@ class TicketsService:
             # else:
             #     artwork.artist = None
 
-            image_artworks: list[ImageArtwork] = list()
+            images_artwork_list: list[ImageArtwork] = list()
             for image in ticket_artwork.images:
                 # image = await uow.images.filter(image_url=image.get("image_url"))
                 # image = image[0]
@@ -355,9 +355,9 @@ class TicketsService:
                 image_artwork: ImageArtwork = await uow.images_artwork.create(
                     image_artwork_schema
                 )
-                image_artworks.append(image_artwork)
+                images_artwork_list.append(image_artwork)
 
-            artwork.images = image_artworks
+            artwork.images = images_artwork_list
 
             if ticket_artwork_schema.location is not None:
                 thumbnail_image_id = None

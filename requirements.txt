@@ -67,5 +67,8 @@ Jinja2~=3.1.3
 httpx~=0.26.0
 
 isort==5.13.2
-blurhash==1.1.4
+blurhash-python==1.2.2
 fastapi_cdn_host==0.4.3
+
+starlette~=0.37.2
+numpy~=1.26.4

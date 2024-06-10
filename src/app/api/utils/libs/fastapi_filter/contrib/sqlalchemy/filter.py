@@ -135,12 +135,19 @@ class Filter(BaseFilterModel):
 
                     base_model = self.Constants.model
                     while "__" in field_name:
-                        related_filed_name, field_name = field_name.split("__", 1)
-                        query = query.join(getattr(base_model, related_filed_name))
-                        base_model = getattr(
-                            base_model, related_filed_name
-                        ).property.mapper.class_
+                        related_field_name, field_name = field_name.split("__", 1)
 
+                        # Проверяем, является ли отношение "многие ко многим"
+                        relationship_ = getattr(base_model, related_field_name)
+                        if relationship_.property.uselist is not None:
+                            # Используем join для связи с промежуточной таблицей
+                            query = query.join(relationship_)
+                        else:
+                            # Обычный join для отношений "один ко многим"
+                            query = query.join(getattr(base_model, related_field_name))
+                        base_model = getattr(
+                            base_model, related_field_name
+                        ).property.mapper.class_
                 else:
                     operator = "__eq__"
 

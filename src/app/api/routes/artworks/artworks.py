@@ -21,7 +21,6 @@ from app.api.utils.paginator import MyParams, Page
 from app.api.utils.utils import raise_if_not_image, raise_if_not_contains_urls
 from app.modules.artworks.schemas.artwork import (
     ArtworkCreateSchema,
-    ArtworkForModeratorReadSchema,
     ArtworkReadSchema,
     ArtworkUpdateSchema,
 )
@@ -50,7 +49,6 @@ async def show_artwork_locations(
 ):
     # Возвращает локации подтверждённых арт-объектов.
     locations = await ArtworksService().get_artworks_locations(uow, filters)
-    # locations = await ArtworksService().get_locations_approved_artworks(uow, filters)
     return locations
 
 
@@ -147,7 +145,7 @@ async def show_artwork(artwork_id: int, uow: UOWDep):
 
 @router_artworks.patch(
     "/{artwork_id}",
-    response_model=ArtworkForModeratorReadSchema,
+    response_model=ArtworkReadSchema,
     description="ТОЛЬКО ДЛЯ МОДЕРАТОРОВ! Метод для редактирования отдельных полей арт-объекта.",
     responses={
         status.HTTP_404_NOT_FOUND: generate_response(

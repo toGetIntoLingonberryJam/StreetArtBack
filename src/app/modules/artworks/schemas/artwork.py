@@ -12,10 +12,6 @@ from app.modules.artworks.schemas.artwork_location import (
     ArtworkLocationReadSchema,
     ArtworkLocationUpdateSchema,
 )
-from app.modules.artworks.schemas.artwork_moderation import (
-    ArtworkModerationBaseSchema,
-    ArtworkModerationUpdateSchema,
-)
 from app.modules.festivals.card_schema import FestivalCardSchema
 from app.modules.images.schemas.image_artwork import ImageArtworkReadSchema
 
@@ -83,14 +79,9 @@ class ArtworkReadSchema(ArtworkBaseSchema):
     updated_at: datetime
 
 
-class ArtworkForModeratorReadSchema(ArtworkReadSchema):
-    moderation: ArtworkModerationBaseSchema
-
-
 class ArtworkUpdateSchema(ArtworkCreateSchema):
     location: Optional[ArtworkLocationUpdateSchema]
     added_by_user_id: Optional[int]
-    moderation: Optional[ArtworkModerationUpdateSchema]
 
 
 ArtworkUpdateSchema = create_partial_model(ArtworkUpdateSchema, recursive=True)

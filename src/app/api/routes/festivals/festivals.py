@@ -15,6 +15,7 @@ from app.api.utils.libs.fastapi_filter import FilterDepends
 from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import paginate
 from app.api.utils.filters.festivals.festival import FestivalFilter
+from app.modules.artworks.models import Artwork
 from app.modules.models import User, Moderator
 from app.api.utils.paginator import MyParams, Page
 from app.api.utils.utils import is_image
@@ -109,8 +110,12 @@ async def assignee_artwork(
 async def get_festival_artworks(
     uow: UOWDep, festival_id: int, pagination: MyParams = Depends()
 ):
-    artworks = await ArtworksService().get_approved_artworks(
-        uow, pagination, festival_id=festival_id
+    filters = Filter()
+    filters.add_filtering_fields(festival_id=festival_id)
+    filters.Constants.model = Artwork
+
+    artworks = await ArtworksService().get_artworks(
+        uow=uow, pagination=pagination, filters=filters
     )
     return paginate(artworks, pagination)
 

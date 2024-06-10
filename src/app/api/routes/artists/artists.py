@@ -16,6 +16,7 @@ from app.api.utils.libs.fastapi_filter.contrib.sqlalchemy import Filter
 from app.api.utils.paginator import MyParams, Page
 from app.modules.artists.schemas.artist import ArtistCreateSchema, ArtistReadSchema
 from app.api.utils.utils import is_image
+from app.modules.artworks.models import Artwork
 from app.modules.models import User, Moderator
 from app.modules.artists.schemas.artist_card import ArtistCardSchema
 from app.modules.artworks.schemas.artwork_card import ArtworkCardSchema
@@ -112,8 +113,12 @@ async def get_artist_list(
 async def get_artist_artworks(
     uow: UOWDep, artist_id: int, pagination: MyParams = Depends()
 ):
-    artworks = await ArtworksService().get_approved_artworks(
-        uow, pagination, artist_id=artist_id
+    filters = Filter()
+    filters.add_filtering_fields(artist__id=artist_id)
+    filters.Constants.model = Artwork
+
+    artworks = await ArtworksService().get_artworks(
+        uow=uow, pagination=pagination, filters=filters
     )
     return paginate(artworks, pagination)
 

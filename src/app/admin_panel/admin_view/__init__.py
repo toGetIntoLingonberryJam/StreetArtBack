@@ -4,7 +4,6 @@ from sqladmin.forms import Boolean, ColumnProperty, ModelConverterBase, Union, v
 from app.admin_panel.admin_view.artworks_admin import (
     ArtworkAdmin,
     ArtworkLocationAdmin,
-    ArtworkModerationAdmin,
     ImageArtworkAdmin,
 )
 from app.admin_panel.admin_view.images_admin import ImageAdmin

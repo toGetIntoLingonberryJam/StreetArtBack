@@ -1,14 +1,8 @@
-import io
-from datetime import datetime
-from PIL import Image as PILImage
-import pytz
-from blurhash import blurhash
-from sqlalchemy import DateTime, Integer, String, func, event
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
 from app.modules.images.utils.classes import ImageModel
-from app.services.cloud_storage import CloudStorageService
 
 
 class Image(Base):
